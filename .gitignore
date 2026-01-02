@@ -30,3 +30,7 @@ reports/
 
 # Substack export data
 substack_export/
+*.zip
+
+# Cruft folder
+cruft/
