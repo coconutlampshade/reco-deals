@@ -1,0 +1,52 @@
+name: Weekly Catalog Update
+
+on:
+  schedule:
+    # Run at 5:00 AM PST (13:00 UTC) every Sunday
+    - cron: '0 13 * * 0'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  update-catalog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Fetch latest Recomendo issue
+        run: |
+          python fetch_latest_issue.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet catalog/products.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No new products found"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "New products added!"
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add catalog/products.json
+          git commit -m "Add products from latest Recomendo issue
+
+          🤖 Automated weekly catalog update"
+          git push
