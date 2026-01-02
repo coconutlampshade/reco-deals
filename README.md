@@ -1,6 +1,6 @@
 # Recomendo Deals
 
-Automated deal finder for products previously recommended in the [Recomendo newsletter](https://recomendo.com). Checks 707 Amazon products daily and generates a newsletter featuring the best current deals.
+Automated deal finder for products previously recommended in the [Recomendo newsletter](https://recomendo.com). Checks 707+ Amazon products daily and generates a newsletter featuring the best current deals.
 
 ## How It Works
 
@@ -8,24 +8,32 @@ Automated deal finder for products previously recommended in the [Recomendo news
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │  Product        │     │  Keepa API      │     │  Amazon PA API  │     │  Mailchimp      │
 │  Catalog        │────▶│  Price Check    │────▶│  Live Prices    │────▶│  Draft Campaign │
-│  (707 items)    │     │  (find deals)   │     │  (compliance)   │     │  (ready to send)│
+│  (707+ items)   │     │  (find deals)   │     │  (compliance)   │     │  (ready to send)│
 └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
-1. **Product Catalog** - 707 Amazon products extracted from 498 Recomendo issues
+1. **Product Catalog** - Amazon products extracted from 498 Recomendo issues
 2. **Deal Detection** - Keepa API checks 90-day price history to find discounts
 3. **Live Pricing** - Amazon PA API fetches current prices (required for Associates compliance)
 4. **Newsletter** - HTML report created and uploaded to Mailchimp as a draft
 
-## Daily Automation
+## Automation
 
-GitHub Actions runs at **6:00 AM PST** daily:
-- Checks all products for deals (~2-3 min)
-- Generates HTML report with top 10 deals
-- Creates draft campaign in Mailchimp
-- You review and click Send when ready
+Everything runs automatically via GitHub Actions:
 
-Manual trigger: Go to Actions → "Daily Deals Report" → "Run workflow"
+| Workflow | Schedule | What it does |
+|----------|----------|--------------|
+| **Weekly Catalog Update** | Sunday 5:00 AM PST | Fetches latest Recomendo issue from RSS, extracts Amazon links, adds new products to catalog |
+| **Daily Deals Report** | Daily 6:00 AM PST | Checks for deals, generates report, creates Mailchimp draft |
+
+**Weekly flow:**
+- **Sunday 5am** - New products from latest issue added to catalog
+- **Sunday 6am** - Deals report includes any new products
+- **Mon-Sat 6am** - Daily deals report as usual
+
+By the time you check email in the morning, there's a draft campaign waiting in Mailchimp. All you need to do is review and click Send.
+
+Manual trigger: Go to Actions → select workflow → "Run workflow"
 
 ## APIs Used
 
@@ -40,18 +48,19 @@ Manual trigger: Go to Actions → "Daily Deals Report" → "Run workflow"
 ```
 reco-deals/
 ├── catalog/
-│   ├── products.json      # Product catalog (707 items)
-│   ├── deals.json         # Current deals from Keepa
-│   └── import_substack.py # Parser for Substack export
-├── check_deals.py         # Keepa API deal checker
-├── generate_report.py     # HTML report generator
-├── mailchimp_send.py      # Create Mailchimp draft
-├── pa_api.py              # Amazon PA API client
-├── config.py              # Configuration settings
-├── run_daily.sh           # Local automation script
+│   ├── products.json       # Product catalog (707+ items)
+│   ├── deals.json          # Current deals from Keepa
+│   └── import_substack.py  # Parser for Substack export
+├── check_deals.py          # Keepa API deal checker
+├── generate_report.py      # HTML report generator
+├── mailchimp_send.py       # Create Mailchimp draft
+├── pa_api.py               # Amazon PA API client
+├── fetch_latest_issue.py   # Fetch new issue from RSS
+├── config.py               # Configuration settings
 ├── .github/workflows/
-│   └── daily-deals.yml    # GitHub Actions workflow
-└── reports/               # Generated HTML reports
+│   ├── daily-deals.yml     # Daily deals workflow
+│   └── weekly-update.yml   # Weekly catalog update
+└── reports/                # Generated HTML reports
 ```
 
 ## Setup
@@ -85,6 +94,14 @@ Add the same keys as repository secrets at:
 
 ## Usage
 
+### Fetch Latest Issue
+
+```bash
+python fetch_latest_issue.py           # Add products from latest issue
+python fetch_latest_issue.py --dry-run # Preview without saving
+python fetch_latest_issue.py --all     # Process all items in RSS feed
+```
+
 ### Check for Deals
 
 ```bash
@@ -100,7 +117,7 @@ python generate_report.py --top 50
 ```
 
 Creates HTML report with live PA API prices. Options:
-- `--top N` - Initial pool of deals to check (default: 50, filtered to top 10)
+- `--top N` - Initial pool of deals to check (filtered to top 10)
 - `--output FILE` - Custom output path
 - `--format html|text|markdown` - Output format
 
@@ -115,29 +132,13 @@ Creates a draft campaign from the latest report. Options:
 - `--subject "..."` - Custom subject line
 - `--test` - Test API connection only
 
-### Run Full Pipeline
+### Full Import (One-time Setup)
+
+To rebuild catalog from a Substack export:
 
 ```bash
-./run_daily.sh
-```
-
-Or trigger via GitHub Actions.
-
-## Adding New Products
-
-### From a New Recomendo Issue
-
-```bash
-python harvest.py
-```
-
-Paste the newsletter content and follow prompts to extract Amazon links.
-
-### Re-import All Issues
-
-Place Substack export in `substack_export/` and run:
-
-```bash
+# Place export zip in project directory
+unzip substack_export.zip -d substack_export/
 python catalog/import_substack.py
 ```
 
@@ -162,6 +163,6 @@ The newsletter follows Amazon Associates Program requirements:
 
 **No deals found**: This can happen if prices haven't changed. The system only shows items where Amazon confirms a discount (list_price > current_price).
 
-## License
+---
 
-Private repository - Cool Tools Lab
+© 2026 Cool Tools Lab, LLC
