@@ -1,0 +1,63 @@
+name: Daily Deals Report
+
+on:
+  schedule:
+    # Run at 6:00 AM PST (14:00 UTC) every day
+    # GitHub Actions uses UTC, so 6am PST = 14:00 UTC (or 13:00 UTC during DST)
+    - cron: '0 14 * * *'
+
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  generate-deals:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Check for deals (Keepa API)
+        env:
+          KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
+        run: |
+          python check_deals.py
+
+      - name: Generate HTML report (PA API)
+        env:
+          PA_API_ACCESS_KEY: ${{ secrets.PA_API_ACCESS_KEY }}
+          PA_API_SECRET_KEY: ${{ secrets.PA_API_SECRET_KEY }}
+          PA_API_PARTNER_TAG: ${{ secrets.PA_API_PARTNER_TAG }}
+          PA_API_HOST: webservices.amazon.com
+          PA_API_REGION: us-east-1
+        run: |
+          mkdir -p reports
+          python generate_report.py --top 50 --output reports/deals-$(date +%Y-%m-%d).html
+
+      - name: Create Mailchimp draft campaign
+        env:
+          MAILCHIMP_API_KEY: ${{ secrets.MAILCHIMP_API_KEY }}
+          MAILCHIMP_LIST_ID: ${{ secrets.MAILCHIMP_LIST_ID }}
+          MAILCHIMP_FROM_NAME: "Recomendo Deals"
+          MAILCHIMP_REPLY_TO: ${{ secrets.MAILCHIMP_REPLY_TO }}
+          PA_API_ACCESS_KEY: ${{ secrets.PA_API_ACCESS_KEY }}
+          PA_API_SECRET_KEY: ${{ secrets.PA_API_SECRET_KEY }}
+          PA_API_PARTNER_TAG: ${{ secrets.PA_API_PARTNER_TAG }}
+        run: |
+          python mailchimp_send.py --html reports/deals-$(date +%Y-%m-%d).html
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deals-report-${{ github.run_number }}
+          path: reports/*.html
+          retention-days: 30
