@@ -12,7 +12,6 @@ Usage:
 """
 
 import argparse
-import base64
 import json
 import sys
 from datetime import datetime
@@ -38,19 +37,8 @@ def load_deals() -> dict:
         return json.load(f)
 
 
-def get_logo_base64() -> tuple[str, str]:
-    """Load logo and convert to base64 for embedding in HTML.
-    Returns (base64_data, mime_type)
-    """
-    # Try new Recomendo Deals logo first
-    for logo_file, mime in [("recomendo-deals.png", "image/png"),
-                            ("recomendo-deals.jpg", "image/jpeg"),
-                            ("Recomendo_title_logo.png", "image/png")]:
-        logo_path = config.PROJECT_ROOT / logo_file
-        if logo_path.exists():
-            with open(logo_path, "rb") as f:
-                return base64.b64encode(f.read()).decode("utf-8"), mime
-    return "", "image/png"
+# Logo URL (hosted externally for smaller email size)
+LOGO_URL = "https://kk.org/cooltools/files/2026/01/recomendo-deals.png"
 
 
 def calculate_issue_number(date_str: str) -> int:
@@ -194,7 +182,6 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         price_timestamp = datetime.now()
     tz_name = time.strftime("%Z")
     price_time_str = price_timestamp.strftime(f"%H:%M {tz_name}") if isinstance(price_timestamp, datetime) else price_timestamp
-    logo_b64, logo_mime = get_logo_base64()
 
     # Recomendo color palette
     # Primary: #4384F3 (bright blue)
@@ -243,7 +230,8 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             padding-bottom: 30px;
             border-bottom: 1px solid #e0e0e0;
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            align-items: flex-start;
         }}
         .deal:last-child {{
             border-bottom: none;
@@ -252,16 +240,14 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         }}
         .deal-image {{
             flex-shrink: 0;
-            width: 120px;
-            height: 120px;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: #f5f5f5;
+            width: 100px;
+            height: 100px;
         }}
         .deal-image img {{
-            width: 100%;
-            height: 100%;
+            width: 100px;
+            height: 100px;
             object-fit: contain;
+            border-radius: 8px;
         }}
         .deal-content {{
             flex: 1;
@@ -334,24 +320,9 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             background-color: #2b74f1;
         }}
         .footer {{
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
             font-size: 13px;
             color: #666;
             line-height: 1.6;
-        }}
-        .footer a {{
-            color: #4384F3;
-            text-decoration: none;
-        }}
-        .footer a:hover {{
-            text-decoration: underline;
-        }}
-        .footer .copyright {{
-            margin-top: 15px;
-            font-size: 12px;
-            color: #999;
         }}
         .intro {{
             font-size: 16px;
@@ -373,44 +344,23 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             background-color: #f9f9f9;
             border-radius: 4px;
         }}
-        .disclosure a {{
-            color: #4384F3;
-            text-decoration: none;
-        }}
-        .disclosure a:hover {{
-            text-decoration: underline;
-        }}
-        .price-timestamp {{
-            font-size: 11px;
-            color: #999;
-            margin-left: 5px;
-        }}
-        .price-timestamp a {{
-            color: #999;
-            text-decoration: none;
-        }}
-        .price-timestamp a:hover {{
-            text-decoration: underline;
-        }}
-        .price-disclaimer {{
-            display: none;
-            font-size: 11px;
-            color: #666;
-            background: #f9f9f9;
-            padding: 8px;
-            border-radius: 4px;
-            margin-top: 5px;
-        }}
-        .price-disclaimer:target {{
-            display: block;
-        }}
         @media (max-width: 480px) {{
             .deal {{
                 flex-direction: column;
+                align-items: center;
+                text-align: center;
             }}
             .deal-image {{
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }}
+            .deal-image img {{
+                width: 150px;
+                height: 150px;
+            }}
+            .deal-content {{
                 width: 100%;
-                height: 200px;
             }}
         }}
     </style>
@@ -418,7 +368,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
 <body>
     <div class="container">
         <div class="logo">
-            <img src="data:{logo_mime};base64,{logo_b64}" alt="Recomendo Deals">
+            <img src="{LOGO_URL}" alt="Recomendo Deals">
         </div>
         <div class="subtitle">{today}</div>
 
@@ -427,20 +377,18 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         </div>
 
         <div class="disclosure">
-            As an Amazon Associate we earn from qualifying purchases. Prices shown as of {price_time_str} (<a href="#price-disclaimer">details</a>).
-        </div>
-
-        <div id="price-disclaimer" class="price-disclaimer">
-            Product prices and availability are accurate as of the date/time indicated and are subject to change. Any price and availability information displayed on Amazon at the time of purchase applies to your purchase.
+            As an Amazon Associate we earn from qualifying purchases. Product prices and availability are accurate as of today at {price_time_str} and are subject to change. Any price and availability information displayed on Amazon at the time of purchase applies to your purchase.
         </div>
 """
 
     for asin, deal in deals:
-        title_text = deal.get("catalog_title") or deal.get("title") or f"Product {asin}"
         image_url = deal.get("image_url") or ""
 
         # Get live price from PA API (Amazon Associates compliant)
         live_price = live_prices.get(asin, {})
+
+        # Prefer PA API title (accurate) over catalog title (from newsletter link text)
+        title_text = live_price.get("title") or deal.get("catalog_title") or deal.get("title") or f"Product {asin}"
 
         # Use PA API's detail_page_url when showing PA API prices (compliance requirement)
         # The URL must come from the same API call as the price data
@@ -474,10 +422,6 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 meta_parts.append(f'Reviewed in <a href="{issue_url}" target="_blank">Recomendo #{issue_num}</a>')
             elif issue_url:
                 meta_parts.append(f'Reviewed in <a href="{issue_url}" target="_blank">Recomendo</a>')
-
-            # Note if recommended multiple times
-            if len(issues) > 1:
-                meta_parts.append(f"(and {len(issues) - 1} more issue{'s' if len(issues) > 2 else ''})")
 
         meta_html = " ".join(meta_parts) if meta_parts else ""
 
@@ -680,6 +624,26 @@ def main():
         asins = [asin for asin, _ in deals]
         price_timestamp = datetime.now()
         live_prices = fetch_live_prices(asins)
+
+        # Filter to only include items PA API confirms are on sale (list_price > current_price)
+        deals = [
+            (asin, deal) for asin, deal in deals
+            if live_prices.get(asin, {}).get("list_price") and
+               live_prices.get(asin, {}).get("current_price") and
+               live_prices[asin]["list_price"] > live_prices[asin]["current_price"]
+        ]
+        print(f"After PA API filter (confirmed discounts): {len(deals)} deals")
+
+        # Re-sort by PA API savings percentage and limit to top 10
+        deals.sort(key=lambda x: (
+            (live_prices[x[0]]["list_price"] - live_prices[x[0]]["current_price"]) / live_prices[x[0]]["list_price"]
+        ), reverse=True)
+        deals = deals[:10]
+        print(f"Final top deals: {len(deals)}")
+
+    if not deals:
+        print("No confirmed deals to report!")
+        return
 
     # Generate report
     if args.format == "html":
