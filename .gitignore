@@ -1,0 +1,32 @@
+# Environment and credentials
+.env
+*.csv
+!requirements.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.eggs/
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Reports (generated)
+reports/
+
+# Substack export data
+substack_export/
