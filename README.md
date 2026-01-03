@@ -15,7 +15,26 @@ Automated deal finder for products previously recommended in the [Recomendo news
 1. **Product Catalog** - Amazon products extracted from 498 Recomendo issues
 2. **Deal Detection** - Keepa API checks 90-day price history to find discounts
 3. **Live Pricing** - Amazon PA API fetches current prices (required for Associates compliance)
-4. **Newsletter** - HTML report created and uploaded to Mailchimp as a draft
+4. **Deal Ranking** - Scores deals by savings %, popularity (reviews), and quality (star rating)
+5. **Newsletter** - HTML report created and uploaded to Mailchimp as a draft
+
+## Deal Selection
+
+Each newsletter features the **top 10 deals** selected by:
+
+**Ranking Formula:**
+```
+score = savings_percentage + (popularity × 0.5) + (quality × 0.5)
+```
+
+- **Savings %** - Primary factor (0-100 points)
+- **Popularity** - Based on review count, log scale (0-15 points)
+- **Quality** - Bonus for 4.0+ star ratings (0-5 points)
+
+**Filters:**
+- **Media limit** - Max 1 book/movie/TV show per issue
+- **30-day cooldown** - Items won't repeat for 30 days after being featured
+- **PA API confirmation** - Only includes items Amazon confirms are discounted
 
 ## Automation
 
@@ -48,19 +67,20 @@ Manual trigger: Go to Actions → select workflow → "Run workflow"
 ```
 reco-deals/
 ├── catalog/
-│   ├── products.json       # Product catalog (707+ items)
-│   ├── deals.json          # Current deals from Keepa
-│   └── import_substack.py  # Parser for Substack export
-├── check_deals.py          # Keepa API deal checker
-├── generate_report.py      # HTML report generator
-├── mailchimp_send.py       # Create Mailchimp draft
-├── pa_api.py               # Amazon PA API client
-├── fetch_latest_issue.py   # Fetch new issue from RSS
-├── config.py               # Configuration settings
+│   ├── products.json          # Product catalog (707+ items)
+│   ├── deals.json             # Current deals from Keepa
+│   ├── featured_history.json  # 30-day cooldown tracking
+│   └── import_substack.py     # Parser for Substack export
+├── check_deals.py             # Keepa API deal checker
+├── generate_report.py         # HTML report generator
+├── mailchimp_send.py          # Create Mailchimp draft
+├── pa_api.py                  # Amazon PA API client
+├── fetch_latest_issue.py      # Fetch new issue from RSS
+├── config.py                  # Configuration settings
 ├── .github/workflows/
-│   ├── daily-deals.yml     # Daily deals workflow
-│   └── weekly-update.yml   # Weekly catalog update
-└── reports/                # Generated HTML reports
+│   ├── daily-deals.yml        # Daily deals workflow
+│   └── weekly-update.yml      # Weekly catalog update
+└── reports/                   # Generated HTML reports
 ```
 
 ## Setup
