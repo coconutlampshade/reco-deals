@@ -54,6 +54,62 @@ def calculate_issue_number(date_str: str) -> int:
         return 0
 
 
+FEATURED_HISTORY_FILE = Path(__file__).parent / "catalog" / "featured_history.json"
+COOLDOWN_DAYS = 30
+
+
+def load_featured_history() -> dict:
+    """Load history of when items were last featured."""
+    if FEATURED_HISTORY_FILE.exists():
+        with open(FEATURED_HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_featured_history(history: dict):
+    """Save featured history."""
+    with open(FEATURED_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2)
+
+
+def filter_recently_featured(deals: list, cooldown_days: int = COOLDOWN_DAYS) -> list:
+    """
+    Filter out items that were featured within the cooldown period.
+
+    Args:
+        deals: List of (asin, deal_data) tuples
+        cooldown_days: Number of days before an item can be featured again
+
+    Returns:
+        Filtered list excluding recently featured items
+    """
+    history = load_featured_history()
+    today = datetime.now()
+    filtered = []
+
+    for asin, deal in deals:
+        last_featured = history.get(asin)
+        if last_featured:
+            last_date = datetime.fromisoformat(last_featured)
+            days_since = (today - last_date).days
+            if days_since < cooldown_days:
+                continue
+        filtered.append((asin, deal))
+
+    return filtered
+
+
+def update_featured_history(asins: list[str]):
+    """Mark items as featured today."""
+    history = load_featured_history()
+    today = datetime.now().isoformat()
+
+    for asin in asins:
+        history[asin] = today
+
+    save_featured_history(history)
+
+
 def get_media_category(live_price: dict) -> str | None:
     """
     Determine if an item is a book, movie, or TV show.
@@ -698,6 +754,10 @@ def main():
         ]
         print(f"After PA API filter (confirmed discounts): {len(deals)} deals")
 
+        # Filter out items featured in the last 30 days
+        deals = filter_recently_featured(deals, cooldown_days=COOLDOWN_DAYS)
+        print(f"After 30-day cooldown filter: {len(deals)} deals")
+
         # Re-sort by composite score: savings percentage + popularity
         def deal_score(item):
             asin = item[0]
@@ -765,6 +825,11 @@ def main():
         f.write(report)
 
     print(f"Report saved to: {output_path}")
+
+    # Update featured history (30-day cooldown tracking)
+    featured_asins = [asin for asin, _ in deals]
+    update_featured_history(featured_asins)
+    print(f"Updated featured history for {len(featured_asins)} items")
 
     # Also print summary with live prices
     print(f"\nTop deals:")
