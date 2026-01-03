@@ -13,6 +13,7 @@ Usage:
 
 import argparse
 import json
+import math
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -51,6 +52,69 @@ def calculate_issue_number(date_str: str) -> int:
         return weeks + 1
     except ValueError:
         return 0
+
+
+def get_media_category(live_price: dict) -> str | None:
+    """
+    Determine if an item is a book, movie, or TV show.
+
+    Returns: "book", "movie", "tv", or None for other products.
+    """
+    product_group = (live_price.get("product_group") or "").lower()
+    binding = (live_price.get("binding") or "").lower()
+    title = (live_price.get("title") or "").lower()
+
+    # Books
+    if product_group in ("book", "books", "ebooks", "kindle store"):
+        return "book"
+    if binding in ("paperback", "hardcover", "kindle edition", "spiral-bound"):
+        return "book"
+
+    # Video content (movies and TV)
+    if product_group in ("dvd", "movies & tv", "blu-ray", "video"):
+        # Distinguish TV from movies by title patterns
+        tv_patterns = ["season", "series", "complete", "episode", "collection", "box set"]
+        if any(pattern in title for pattern in tv_patterns):
+            return "tv"
+        return "movie"
+
+    if binding in ("dvd", "blu-ray", "prime video"):
+        tv_patterns = ["season", "series", "complete", "episode", "collection", "box set"]
+        if any(pattern in title for pattern in tv_patterns):
+            return "tv"
+        return "movie"
+
+    return None
+
+
+def limit_media_items(deals: list, live_prices: dict, max_total: int = 1) -> list:
+    """
+    Limit total books, movies, and TV shows combined.
+
+    Args:
+        deals: List of (asin, deal_data) tuples, already sorted by quality
+        live_prices: Dict of ASIN -> live price info from PA API
+        max_total: Maximum total media items (books + movies + TV combined)
+
+    Returns:
+        Filtered list with media limits applied
+    """
+    media_count = 0
+    filtered = []
+
+    for asin, deal in deals:
+        live_price = live_prices.get(asin, {})
+        category = get_media_category(live_price)
+
+        if category:
+            if media_count >= max_total:
+                # Skip this item, already have enough media
+                continue
+            media_count += 1
+
+        filtered.append((asin, deal))
+
+    return filtered
 
 
 def score_deal(deal: dict) -> float:
@@ -634,10 +698,42 @@ def main():
         ]
         print(f"After PA API filter (confirmed discounts): {len(deals)} deals")
 
-        # Re-sort by PA API savings percentage and limit to top 10
-        deals.sort(key=lambda x: (
-            (live_prices[x[0]]["list_price"] - live_prices[x[0]]["current_price"]) / live_prices[x[0]]["list_price"]
-        ), reverse=True)
+        # Re-sort by composite score: savings percentage + popularity
+        def deal_score(item):
+            asin = item[0]
+            price_info = live_prices[asin]
+
+            # Savings percentage (0-100 scale)
+            savings_pct = ((price_info["list_price"] - price_info["current_price"])
+                          / price_info["list_price"]) * 100
+
+            # Popularity score based on review count (log scale, 0-30 points)
+            review_count = price_info.get("review_count") or 0
+            if review_count > 0:
+                # log10(1000) = 3, log10(10000) = 4, etc.
+                popularity = min(math.log10(review_count + 1) * 10, 30)
+            else:
+                popularity = 0
+
+            # Quality bonus for high ratings (0-10 points)
+            star_rating = price_info.get("star_rating") or 0
+            if star_rating >= 4.5:
+                quality = 10
+            elif star_rating >= 4.0:
+                quality = 5
+            else:
+                quality = 0
+
+            # Composite: savings is primary, popularity and quality are secondary
+            return savings_pct + (popularity * 0.5) + (quality * 0.5)
+
+        deals.sort(key=deal_score, reverse=True)
+
+        # Limit media items: max 1 total (books + movies + TV combined)
+        deals = limit_media_items(deals, live_prices, max_total=1)
+        print(f"After media limits: {len(deals)} deals")
+
+        # Final limit to top 10
         deals = deals[:10]
         print(f"Final top deals: {len(deals)}")
 

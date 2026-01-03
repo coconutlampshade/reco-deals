@@ -112,6 +112,9 @@ def get_items(asins: list[str], resources: list[str] = None) -> dict:
     if resources is None:
         resources = [
             "ItemInfo.Title",
+            "ItemInfo.Classifications",
+            "CustomerReviews.Count",
+            "CustomerReviews.StarRating",
             "Offers.Listings.Price",
             "Offers.Listings.SavingBasis",
             "Offers.Listings.Condition",
@@ -189,11 +192,28 @@ def extract_price_info(item: dict) -> dict:
         "title": None,
         "image_url": None,
         "detail_page_url": None,
+        "product_group": None,
+        "binding": None,
+        "review_count": None,
+        "star_rating": None,
     }
 
     # Get title
     if "ItemInfo" in item and "Title" in item["ItemInfo"]:
         result["title"] = item["ItemInfo"]["Title"].get("DisplayValue")
+
+    # Get classifications (product group, binding)
+    if "ItemInfo" in item and "Classifications" in item["ItemInfo"]:
+        classifications = item["ItemInfo"]["Classifications"]
+        result["product_group"] = classifications.get("ProductGroup", {}).get("DisplayValue")
+        result["binding"] = classifications.get("Binding", {}).get("DisplayValue")
+
+    # Get customer reviews (popularity indicator)
+    if "CustomerReviews" in item:
+        reviews = item["CustomerReviews"]
+        result["review_count"] = reviews.get("Count")
+        if "StarRating" in reviews:
+            result["star_rating"] = reviews["StarRating"].get("Value")
 
     # Get image
     if "Images" in item and "Primary" in item["Images"]:
