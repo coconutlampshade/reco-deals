@@ -32,5 +32,8 @@ reports/
 substack_export/
 *.zip
 
+# WordPress export data
+*.xml
+
 # Cruft folder
 cruft/

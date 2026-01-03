@@ -529,21 +529,30 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 indicator_html = f'<div class="deal-indicator">{savings_pct:.0f}% off list price</div>'
 
         # Build meta info with issue links
-        meta_parts = []
+        # Priority: Recomendo over Cool Tools (if both exist, only show Recomendo)
+        meta_html = ""
         issues = deal.get("issues", [])
         if issues:
-            # Link to the first issue
-            first_issue = issues[0]
-            issue_url = first_issue.get("url", "")
-            issue_date = first_issue.get("date", "")
-            issue_num = calculate_issue_number(issue_date)
+            recomendo_issues = [i for i in issues if i.get("source") != "cooltools"]
+            cooltools_issues = [i for i in issues if i.get("source") == "cooltools"]
 
-            if issue_url and issue_num:
-                meta_parts.append(f'Reviewed in <a href="{issue_url}" target="_blank">Recomendo #{issue_num}</a>')
-            elif issue_url:
-                meta_parts.append(f'Reviewed in <a href="{issue_url}" target="_blank">Recomendo</a>')
+            if recomendo_issues:
+                # Show Recomendo link (prioritized)
+                first_issue = recomendo_issues[0]
+                issue_url = first_issue.get("url", "")
+                issue_date = first_issue.get("date", "")
+                issue_num = calculate_issue_number(issue_date)
 
-        meta_html = " ".join(meta_parts) if meta_parts else ""
+                if issue_url and issue_num:
+                    meta_html = f'Reviewed in <a href="{issue_url}" target="_blank">Recomendo #{issue_num}</a>'
+                elif issue_url:
+                    meta_html = f'Reviewed in <a href="{issue_url}" target="_blank">Recomendo</a>'
+            elif cooltools_issues:
+                # Only show Cool Tools if no Recomendo source
+                first_ct = cooltools_issues[0]
+                ct_url = first_ct.get("url", "")
+                if ct_url:
+                    meta_html = f'Reviewed in <a href="{ct_url}" target="_blank">Cool Tools</a>'
 
         # Image HTML - prefer PA API image if available
         actual_image = live_price.get("image_url") or image_url
