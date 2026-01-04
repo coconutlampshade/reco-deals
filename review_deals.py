@@ -1,0 +1,803 @@
+#!/usr/bin/env python3
+"""
+Interactive deal review interface.
+
+Opens a local web page showing top deals from Keepa.
+User selects which deals to include, then confirms to generate newsletter.
+
+Usage:
+    python review_deals.py                    # Review top 50 deals
+    python review_deals.py --top 100          # Review top 100 deals
+    python review_deals.py --fresh 200        # Fresh Keepa check on 200 random products
+"""
+
+import argparse
+import json
+import math
+import random
+import webbrowser
+import threading
+import time
+from datetime import datetime
+from pathlib import Path
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import parse_qs
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+import config
+from pa_api import get_prices_for_asins, PA_API_PARTNER_TAG
+from generate_report import (
+    load_deals, filter_and_sort_deals, load_featured_history,
+    COOLDOWN_DAYS, get_media_category, calculate_issue_number
+)
+
+# Server state
+selected_asins = []
+server_should_stop = False
+live_prices = {}
+
+
+def load_full_catalog() -> dict:
+    """Load the full product catalog."""
+    catalog_file = config.CATALOG_DIR / "products.json"
+    with open(catalog_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def check_keepa_prices(asins: list) -> dict:
+    """Check current prices via Keepa API."""
+    import os
+    import requests
+
+    api_key = os.getenv("KEEPA_API_KEY")
+    if not api_key:
+        raise ValueError("KEEPA_API_KEY not set")
+
+    results = {}
+    batch_size = 20  # Keepa limit
+
+    for i in range(0, len(asins), batch_size):
+        batch = asins[i:i + batch_size]
+        print(f"  Keepa batch {i // batch_size + 1}/{(len(asins) + batch_size - 1) // batch_size}: {len(batch)} products...")
+
+        url = "https://api.keepa.com/product"
+        params = {
+            "key": api_key,
+            "domain": 1,  # Amazon.com
+            "asin": ",".join(batch),
+            "stats": 180,  # 180-day stats
+        }
+
+        resp = requests.get(url, params=params)
+        data = resp.json()
+
+        if "products" not in data:
+            print(f"    Warning: No products in response")
+            continue
+
+        for product in data["products"]:
+            asin = product.get("asin")
+            if not asin:
+                continue
+
+            # Parse price data (Keepa uses cents, -1 means unavailable)
+            current = None
+            if product.get("csv") and len(product["csv"]) > 0:
+                # Index 0 is Amazon price, index 1 is marketplace
+                amazon_prices = product["csv"][0] if product["csv"][0] else []
+                if amazon_prices and len(amazon_prices) >= 2:
+                    last_price = amazon_prices[-1]
+                    if last_price and last_price > 0:
+                        current = last_price / 100.0
+
+            stats = product.get("stats", {})
+
+            # Stats are arrays where index 0 is Amazon price, index 1 is marketplace
+            def get_stat(stat_list):
+                if isinstance(stat_list, list) and len(stat_list) > 0:
+                    val = stat_list[0]
+                    if val and isinstance(val, (int, float)) and val > 0:
+                        return val / 100.0
+                elif isinstance(stat_list, (int, float)) and stat_list > 0:
+                    return stat_list / 100.0
+                return None
+
+            results[asin] = {
+                "current_price": current,
+                "avg_price": get_stat(stats.get("avg")),
+                "avg_price_90": get_stat(stats.get("avg90")),
+                "min_price": get_stat(stats.get("min")),
+                "max_price": get_stat(stats.get("max")),
+                "title": product.get("title"),
+            }
+
+        # Rate limiting - Keepa allows ~20 tokens/minute
+        tokens_used = data.get("tokensConsumed", len(batch))
+        tokens_left = data.get("tokensLeft", 0)
+        print(f"    Tokens: used {tokens_used}, remaining {tokens_left}")
+
+        if tokens_left < 20 and i + batch_size < len(asins):
+            wait_time = 60
+            print(f"    Rate limit - waiting {wait_time}s...")
+            time.sleep(wait_time)
+
+    return results
+
+
+def fetch_fresh_candidates(sample_size: int = 200, top_n: int = 50) -> list:
+    """
+    Fresh approach: Sample random products from catalog, check Keepa, then PA API.
+    """
+    global live_prices
+
+    # Load full catalog
+    catalog = load_full_catalog()
+    all_asins = list(catalog.keys())
+    print(f"Loaded {len(all_asins)} products from catalog")
+
+    # Random sample
+    sample_asins = random.sample(all_asins, min(sample_size, len(all_asins)))
+    print(f"Selected {len(sample_asins)} random products to check")
+
+    # Check Keepa for current prices
+    print(f"\nChecking Keepa for fresh prices...")
+    keepa_data = check_keepa_prices(sample_asins)
+    print(f"Got Keepa data for {len(keepa_data)} products")
+
+    # Rank ALL products by deal rating (current vs average)
+    potential_deals = []
+    for asin, kdata in keepa_data.items():
+        current = kdata.get("current_price")
+        avg = kdata.get("avg_price_90") or kdata.get("avg_price")
+
+        if not current:
+            continue
+
+        # Calculate savings (negative means price is above average)
+        if avg and avg > 0:
+            savings_pct = ((avg - current) / avg) * 100
+        else:
+            savings_pct = 0
+
+        potential_deals.append({
+            "asin": asin,
+            "keepa_current": current,
+            "keepa_avg": avg or current,
+            "keepa_savings_pct": savings_pct,
+            "catalog": catalog.get(asin, {}),
+        })
+
+    # Sort by savings (best deals first)
+    potential_deals.sort(key=lambda x: x["keepa_savings_pct"], reverse=True)
+    deals_count = sum(1 for d in potential_deals if d["keepa_savings_pct"] > 0)
+    print(f"Found {len(potential_deals)} products ({deals_count} are deals, rest ranked by price vs avg)")
+
+    # Take all candidates and enrich with PA API
+    candidates_to_verify = potential_deals[:top_n]
+    asins_to_verify = [d["asin"] for d in candidates_to_verify]
+
+    print(f"\nEnriching {len(asins_to_verify)} products with PA API...")
+    pa_prices = get_prices_for_asins(asins_to_verify)
+    live_prices.update(pa_prices)
+
+    # Build final results - include ALL products, use Keepa data as fallback
+    result = []
+    for deal_info in candidates_to_verify:
+        asin = deal_info["asin"]
+        catalog_entry = deal_info["catalog"]
+        pa_info = pa_prices.get(asin, {})
+
+        # Use PA API price if available, otherwise Keepa price
+        current_price = pa_info.get("current_price") or deal_info["keepa_current"]
+
+        deal = {
+            "asin": asin,
+            "live_price": current_price,
+            "live_title": pa_info.get("title") or catalog_entry.get("title", asin),
+            "live_image": pa_info.get("image_url") or catalog_entry.get("image_url", ""),
+            "review_count": pa_info.get("review_count", 0),
+            "star_rating": pa_info.get("star_rating", 0),
+            "product_group": pa_info.get("product_group", ""),
+            "binding": pa_info.get("binding", ""),
+            "issues": catalog_entry.get("issues", []),
+            "keepa_avg": deal_info["keepa_avg"],
+        }
+
+        # Calculate savings - prefer PA API list price, fall back to Keepa avg
+        if pa_info.get("list_price") and pa_info["list_price"] > current_price:
+            deal["live_list_price"] = pa_info["list_price"]
+            savings_pct = ((pa_info["list_price"] - current_price) / pa_info["list_price"]) * 100
+        else:
+            deal["live_list_price"] = deal_info["keepa_avg"]
+            savings_pct = deal_info["keepa_savings_pct"]
+
+        deal["savings_percent"] = savings_pct
+        result.append((asin, deal))
+
+    result.sort(key=lambda x: x[1].get("savings_percent", 0), reverse=True)
+    print(f"Final: {len(result)} products ranked by deal quality")
+
+    return result
+
+
+def fetch_candidates(top_n: int = 50) -> list:
+    """Fetch top deal candidates with live prices from cached deals.json."""
+    global live_prices
+
+    data = load_deals()
+    deals_dict = data.get("deals", {})
+    print(f"Loaded {len(deals_dict)} deals from Keepa cache")
+
+    # Get more candidates than needed to account for unavailable items
+    candidates = filter_and_sort_deals(deals_dict, top_n=top_n * 5)
+
+    # Fetch live prices in batches until we have enough
+    result = []
+    batch_size = 50
+    fetched = 0
+
+    while len(result) < top_n and fetched < len(candidates):
+        batch = candidates[fetched:fetched + batch_size]
+        asins = [asin for asin, _ in batch]
+        print(f"Fetching live prices for batch {fetched // batch_size + 1} ({len(asins)} products)...")
+
+        batch_prices = get_prices_for_asins(asins)
+        live_prices.update(batch_prices)
+
+        for asin, deal in batch:
+            if asin not in batch_prices:
+                continue
+            price_info = batch_prices[asin]
+
+            # Only require current price (item is available)
+            if not price_info.get("current_price"):
+                continue
+
+            # Merge live price data into deal
+            deal["live_price"] = price_info["current_price"]
+            deal["live_title"] = price_info.get("title") or deal.get("catalog_title", "")
+            deal["live_image"] = price_info.get("image_url") or deal.get("image_url", "")
+            deal["review_count"] = price_info.get("review_count", 0)
+            deal["star_rating"] = price_info.get("star_rating", 0)
+            deal["product_group"] = price_info.get("product_group", "")
+            deal["binding"] = price_info.get("binding", "")
+
+            # Use PA API list_price if available, otherwise use Keepa's average price
+            if price_info.get("list_price") and price_info["list_price"] > price_info["current_price"]:
+                deal["live_list_price"] = price_info["list_price"]
+                savings_pct = ((price_info["list_price"] - price_info["current_price"])
+                              / price_info["list_price"]) * 100
+            elif deal.get("avg_price") and deal["avg_price"] > price_info["current_price"]:
+                # Fall back to Keepa's average price
+                deal["live_list_price"] = deal["avg_price"]
+                savings_pct = ((deal["avg_price"] - price_info["current_price"])
+                              / deal["avg_price"]) * 100
+            else:
+                # No reliable discount data - skip this item
+                # (percent_below_high alone doesn't mean it's a deal)
+                continue
+
+            deal["savings_percent"] = savings_pct
+            result.append((asin, deal))
+
+            if len(result) >= top_n:
+                break
+
+        fetched += batch_size
+        print(f"  Found {len(result)} valid deals so far")
+
+    # Sort by savings percentage
+    result.sort(key=lambda x: x[1].get("savings_percent", 0), reverse=True)
+
+    return result[:top_n]
+
+
+def generate_review_html(candidates: list) -> str:
+    """Generate the review HTML page."""
+    history = load_featured_history()
+    today = datetime.now()
+
+    html = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Review Deals - Recomendo Deals</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; margin-bottom: 5px; }
+        .subtitle { color: #666; margin-bottom: 20px; }
+        .controls {
+            position: sticky;
+            top: 0;
+            background: #4384F3;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .controls button {
+            background: white;
+            color: #4384F3;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .controls button:hover { background: #f0f0f0; }
+        .controls button:disabled { background: #ccc; color: #666; cursor: not-allowed; }
+        .selected-count { font-size: 18px; font-weight: 600; }
+        .filters {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .filters label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .deal {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .deal:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .deal.selected { background: #e8f4e8; border: 2px solid #27ae60; }
+        .deal.cooldown { opacity: 0.6; }
+        .deal-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .deal-image {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .deal-content { flex: 1; min-width: 0; }
+        .deal-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .deal-title a { color: inherit; text-decoration: none; }
+        .deal-title a:hover { color: #4384F3; }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+        }
+        .deal-price .was {
+            font-size: 14px;
+            color: #999;
+            text-decoration: line-through;
+            font-weight: normal;
+            margin-left: 8px;
+        }
+        .deal-savings {
+            display: inline-block;
+            background: #27ae60;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a { color: #4384F3; }
+        .deal-tags { margin-top: 8px; }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+        .tag.media { background: #f0e6ff; color: #7c3aed; }
+        .tag.cooldown { background: #fee2e2; color: #dc2626; }
+        .tag.popular { background: #dbeafe; color: #2563eb; }
+        .tag.rating { background: #fef3c7; color: #d97706; }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Review Deals</h1>
+    <p class="subtitle">Select which deals to include in today's newsletter</p>
+
+    <div class="controls">
+        <span class="selected-count"><span id="count">0</span> deals selected</span>
+        <div>
+            <button onclick="selectAll()">Select All</button>
+            <button onclick="selectNone()">Select None</button>
+            <button id="confirmBtn" onclick="confirmSelection()" disabled>Confirm & Send</button>
+        </div>
+    </div>
+
+    <div class="filters">
+        <label><input type="checkbox" id="hideCooldown" onchange="applyFilters()"> Hide recently featured</label>
+        <label><input type="checkbox" id="hideMedia" onchange="applyFilters()"> Hide books/movies/TV</label>
+    </div>
+
+    <div id="deals">
+"""
+
+    for asin, deal in candidates:
+        title = deal.get("live_title") or deal.get("catalog_title") or asin
+        image = deal.get("live_image") or ""
+        price = deal.get("live_price", 0)
+        list_price = deal.get("live_list_price", 0)
+        savings_pct = deal.get("savings_percent", 0)
+        review_count = deal.get("review_count", 0)
+        star_rating = deal.get("star_rating", 0)
+
+        # Check cooldown
+        last_featured = history.get(asin)
+        in_cooldown = False
+        days_since = None
+        if last_featured:
+            last_date = datetime.fromisoformat(last_featured)
+            days_since = (today - last_date).days
+            in_cooldown = days_since < COOLDOWN_DAYS
+
+        # Check media type
+        media_type = get_media_category(deal)
+
+        # Get source info
+        issues = deal.get("issues", [])
+        source_html = ""
+        if issues:
+            recomendo = [i for i in issues if i.get("source") != "cooltools"]
+            cooltools = [i for i in issues if i.get("source") == "cooltools"]
+            if recomendo:
+                issue = recomendo[0]
+                issue_num = calculate_issue_number(issue.get("date", ""))
+                if issue_num:
+                    source_html = f'<a href="{issue.get("url", "")}" target="_blank">Recomendo #{issue_num}</a>'
+            elif cooltools:
+                issue = cooltools[0]
+                source_html = f'<a href="{issue.get("url", "")}" target="_blank">Cool Tools</a>'
+
+        # Build tags
+        tags_html = ""
+        if media_type:
+            tags_html += f'<span class="tag media">{media_type.title()}</span>'
+        if in_cooldown:
+            tags_html += f'<span class="tag cooldown">Featured {days_since}d ago</span>'
+        if review_count and review_count > 1000:
+            tags_html += f'<span class="tag popular">{review_count:,} reviews</span>'
+        if star_rating and star_rating >= 4.5:
+            tags_html += f'<span class="tag rating">★ {star_rating}</span>'
+
+        amazon_url = f"https://amazon.com/dp/{asin}"
+
+        classes = "deal"
+        if in_cooldown:
+            classes += " cooldown"
+        data_attrs = f'data-asin="{asin}" data-media="{media_type or ""}" data-cooldown="{str(in_cooldown).lower()}"'
+
+        html += f"""
+        <div class="{classes}" {data_attrs}>
+            <input type="checkbox" class="deal-checkbox" value="{asin}" onchange="updateCount()">
+            <img src="{image}" alt="" class="deal-image" onerror="this.style.display='none'">
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{amazon_url}" target="_blank">{title}</a>
+                </div>
+                <div class="deal-price">
+                    ${price:.2f}
+                    <span class="was">${list_price:.2f}</span>
+                    <span class="deal-savings">{savings_pct:.0f}% off</span>
+                </div>
+                <div class="deal-tags">{tags_html}</div>
+                <div class="deal-meta">{source_html}</div>
+            </div>
+        </div>
+"""
+
+    html += """
+    </div>
+
+    <script>
+        function updateCount() {
+            const checked = document.querySelectorAll('.deal-checkbox:checked').length;
+            document.getElementById('count').textContent = checked;
+            document.getElementById('confirmBtn').disabled = checked === 0;
+
+            // Update selected styling
+            document.querySelectorAll('.deal').forEach(deal => {
+                const cb = deal.querySelector('.deal-checkbox');
+                deal.classList.toggle('selected', cb.checked);
+            });
+        }
+
+        function selectAll() {
+            document.querySelectorAll('.deal:not([style*="display: none"]) .deal-checkbox').forEach(cb => cb.checked = true);
+            updateCount();
+        }
+
+        function selectNone() {
+            document.querySelectorAll('.deal-checkbox').forEach(cb => cb.checked = false);
+            updateCount();
+        }
+
+        function applyFilters() {
+            const hideCooldown = document.getElementById('hideCooldown').checked;
+            const hideMedia = document.getElementById('hideMedia').checked;
+
+            document.querySelectorAll('.deal').forEach(deal => {
+                const isCooldown = deal.dataset.cooldown === 'true';
+                const isMedia = deal.dataset.media !== '';
+
+                let hide = false;
+                if (hideCooldown && isCooldown) hide = true;
+                if (hideMedia && isMedia) hide = true;
+
+                deal.style.display = hide ? 'none' : 'flex';
+            });
+        }
+
+        function confirmSelection() {
+            const selected = Array.from(document.querySelectorAll('.deal-checkbox:checked'))
+                .map(cb => cb.value);
+
+            if (selected.length === 0) {
+                alert('Please select at least one deal');
+                return;
+            }
+
+            document.getElementById('confirmBtn').disabled = true;
+            document.getElementById('confirmBtn').textContent = 'Sending...';
+
+            fetch('/confirm', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({asins: selected})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Newsletter created and sent to Mailchimp!\\n\\nCampaign: ' + data.campaign_url);
+                    window.close();
+                } else {
+                    alert('Error: ' + data.error);
+                    document.getElementById('confirmBtn').disabled = false;
+                    document.getElementById('confirmBtn').textContent = 'Confirm & Send';
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err);
+                document.getElementById('confirmBtn').disabled = false;
+                document.getElementById('confirmBtn').textContent = 'Confirm & Send';
+            });
+        }
+
+        // Auto-select non-cooldown, non-media items up to 10
+        window.onload = function() {
+            const deals = document.querySelectorAll('.deal');
+            let selected = 0;
+            deals.forEach(deal => {
+                if (selected >= 10) return;
+                const isCooldown = deal.dataset.cooldown === 'true';
+                const isMedia = deal.dataset.media !== '';
+                if (!isCooldown && !isMedia) {
+                    deal.querySelector('.deal-checkbox').checked = true;
+                    selected++;
+                }
+            });
+            // If we don't have 10, add some media items
+            if (selected < 10) {
+                deals.forEach(deal => {
+                    if (selected >= 10) return;
+                    const isCooldown = deal.dataset.cooldown === 'true';
+                    const cb = deal.querySelector('.deal-checkbox');
+                    if (!isCooldown && !cb.checked) {
+                        cb.checked = true;
+                        selected++;
+                    }
+                });
+            }
+            updateCount();
+        };
+    </script>
+</body>
+</html>
+"""
+    return html
+
+
+class ReviewHandler(BaseHTTPRequestHandler):
+    """HTTP handler for the review interface."""
+
+    html_content = ""
+    candidates = []
+
+    def log_message(self, format, *args):
+        pass  # Suppress HTTP logs
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(self.html_content.encode())
+
+    def do_POST(self):
+        global selected_asins, server_should_stop
+
+        if self.path == "/confirm":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            selected_asins = data.get("asins", [])
+
+            # Generate newsletter with selected items
+            try:
+                result = generate_and_send(selected_asins, self.candidates)
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+                server_should_stop = True
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+
+
+def generate_and_send(asins: list, candidates: list) -> dict:
+    """Generate newsletter with selected ASINs and send to Mailchimp."""
+    from generate_report import (
+        generate_html_report, update_featured_history, LOGO_URL
+    )
+    from mailchimp_send import create_campaign
+
+    # Filter candidates to selected ASINs
+    selected = [(asin, deal) for asin, deal in candidates if asin in asins]
+
+    # Order by the selection order (preserve user's implicit ranking by savings)
+    asin_order = {asin: i for i, asin in enumerate(asins)}
+    selected.sort(key=lambda x: asin_order.get(x[0], 999))
+
+    print(f"\nGenerating newsletter with {len(selected)} selected deals...")
+
+    # Build live_prices dict for report generation
+    prices = {}
+    for asin, deal in selected:
+        prices[asin] = {
+            "current_price": deal.get("live_price"),
+            "list_price": deal.get("live_list_price"),
+            "title": deal.get("live_title"),
+            "image_url": deal.get("live_image"),
+            "detail_page_url": f"https://amazon.com/dp/{asin}?tag={PA_API_PARTNER_TAG}",
+            "review_count": deal.get("review_count"),
+            "star_rating": deal.get("star_rating"),
+            "product_group": deal.get("product_group"),
+            "binding": deal.get("binding"),
+        }
+
+    # Generate HTML
+    html = generate_html_report(selected, "Recomendo Deals", prices, datetime.now())
+
+    # Save report
+    report_path = config.PROJECT_ROOT / "reports" / f"deals-{datetime.now().strftime('%Y-%m-%d')}.html"
+    report_path.parent.mkdir(exist_ok=True)
+    with open(report_path, "w") as f:
+        f.write(html)
+    print(f"Report saved to: {report_path}")
+
+    # Update featured history
+    update_featured_history(asins)
+    print(f"Updated featured history for {len(asins)} items")
+
+    # Send to Mailchimp
+    print("Creating Mailchimp campaign...")
+    subject = f"Recomendo Deals - {datetime.now().strftime('%B %d, %Y')}"
+    campaign = create_campaign(subject, html)
+    campaign_url = campaign.get("web_id", "")
+    if campaign_url:
+        campaign_url = f"https://admin.mailchimp.com/campaigns/edit?id={campaign_url}"
+
+    print(f"Campaign created: {campaign_url}")
+
+    return {
+        "success": True,
+        "campaign_url": campaign_url,
+        "deals_count": len(selected)
+    }
+
+
+def run_server(html: str, candidates: list, port: int = 8765):
+    """Run the local review server."""
+    global server_should_stop
+    server_should_stop = False
+
+    ReviewHandler.html_content = html
+    ReviewHandler.candidates = candidates
+
+    server = HTTPServer(("localhost", port), ReviewHandler)
+    server.timeout = 1
+
+    print(f"\nReview interface ready at http://localhost:{port}")
+    print("Select deals and click 'Confirm & Send' when ready.")
+    print("Press Ctrl+C to cancel.\n")
+
+    webbrowser.open(f"http://localhost:{port}")
+
+    while not server_should_stop:
+        server.handle_request()
+
+    server.server_close()
+    print("\nDone!")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Review and select deals for newsletter")
+    parser.add_argument("--top", type=int, default=50, help="Number of deals to show in review")
+    parser.add_argument("--fresh", type=int, help="Fresh Keepa check on N random products (e.g., --fresh 200)")
+    parser.add_argument("--thorough", action="store_true", help="Check ALL products in catalog (takes ~2 hours)")
+    parser.add_argument("--port", type=int, default=8765, help="Local server port")
+    args = parser.parse_args()
+
+    if args.thorough:
+        print("Running THOROUGH check on entire catalog...")
+        print("This will check all 3500+ products via Keepa (takes ~2 hours)")
+        # Run check_deals.py first to refresh deals.json
+        import subprocess
+        subprocess.run(["python3", "check_deals.py"], check=True)
+        print("\nNow fetching top deals from fresh data...")
+        candidates = fetch_candidates(args.top)
+    elif args.fresh:
+        print(f"Running fresh Keepa check on {args.fresh} random products...")
+        # Show all products from fresh check, ranked by deal quality
+        candidates = fetch_fresh_candidates(sample_size=args.fresh, top_n=args.fresh)
+    else:
+        print("Fetching deal candidates from cache...")
+        candidates = fetch_candidates(args.top)
+
+    if not candidates:
+        print("No deals found!")
+        return
+
+    print(f"Found {len(candidates)} deals to review")
+
+    html = generate_review_html(candidates)
+    run_server(html, candidates, args.port)
+
+
+if __name__ == "__main__":
+    main()

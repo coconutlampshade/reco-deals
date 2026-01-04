@@ -176,7 +176,7 @@ def limit_media_items(deals: list, live_prices: dict, max_total: int = 1) -> lis
 
 def score_deal(deal: dict) -> float:
     """
-    Calculate a deal score for ranking.
+    Calculate a deal score for ranking (Keepa data).
     Higher score = better deal.
     """
     score = 0
@@ -199,6 +199,39 @@ def score_deal(deal: dict) -> float:
         score += min(deal["savings_dollars"], 20)  # Cap at 20 points
 
     return score
+
+
+def score_live_deal(asin: str, live_prices: dict) -> float:
+    """
+    Calculate deal score using PA API live price data.
+    Higher score = better deal.
+    """
+    price_info = live_prices.get(asin, {})
+    if not price_info.get("list_price") or not price_info.get("current_price"):
+        return 0
+
+    # Savings percentage (0-100 scale)
+    savings_pct = ((price_info["list_price"] - price_info["current_price"])
+                  / price_info["list_price"]) * 100
+
+    # Popularity score based on review count (log scale, 0-30 points)
+    review_count = price_info.get("review_count") or 0
+    if review_count > 0:
+        popularity = min(math.log10(review_count + 1) * 10, 30)
+    else:
+        popularity = 0
+
+    # Quality bonus for high ratings (0-10 points)
+    star_rating = price_info.get("star_rating") or 0
+    if star_rating >= 4.5:
+        quality = 10
+    elif star_rating >= 4.0:
+        quality = 5
+    else:
+        quality = 0
+
+    # Composite: savings is primary, popularity and quality are secondary
+    return savings_pct + (popularity * 0.5) + (quality * 0.5)
 
 
 def filter_and_sort_deals(deals: dict, min_savings: float = 0, top_n: int = None) -> list:
@@ -746,7 +779,10 @@ def main():
     final_deals = []
 
     if not args.no_live_prices:
-        # Start with initial batch, expand if needed to meet minimum
+        # Sort all deals ONCE by Keepa score
+        all_sorted = filter_and_sort_deals(deals_dict, min_savings=args.min_savings)
+
+        # Expand in batches until we have enough confirmed deals
         batch_size = args.top or 50
         max_batches = 10  # Safety limit
         processed_asins = set()
@@ -755,9 +791,6 @@ def main():
             # Get next batch of candidates
             start_idx = batch_num * batch_size
             end_idx = start_idx + batch_size
-
-            # Filter and sort all deals, then slice
-            all_sorted = filter_and_sort_deals(deals_dict, min_savings=args.min_savings)
             batch_deals = [d for d in all_sorted[start_idx:end_idx] if d[0] not in processed_asins]
 
             if not batch_deals:
@@ -793,18 +826,7 @@ def main():
             final_deals.extend(confirmed)
 
             # Check if we have enough after applying media limits
-            def deal_score(item):
-                asin = item[0]
-                price_info = live_prices[asin]
-                savings_pct = ((price_info["list_price"] - price_info["current_price"])
-                              / price_info["list_price"]) * 100
-                review_count = price_info.get("review_count") or 0
-                popularity = min(math.log10(review_count + 1) * 10, 30) if review_count > 0 else 0
-                star_rating = price_info.get("star_rating") or 0
-                quality = 10 if star_rating >= 4.5 else (5 if star_rating >= 4.0 else 0)
-                return savings_pct + (popularity * 0.5) + (quality * 0.5)
-
-            final_deals.sort(key=deal_score, reverse=True)
+            final_deals.sort(key=lambda x: score_live_deal(x[0], live_prices), reverse=True)
             test_deals = limit_media_items(final_deals, live_prices, max_total=1)
 
             if len(test_deals) >= MIN_DEALS:
@@ -814,18 +836,7 @@ def main():
                 print(f"  Need more deals ({len(test_deals)} < {MIN_DEALS}), fetching next batch...")
 
         # Final processing
-        def deal_score(item):
-            asin = item[0]
-            price_info = live_prices[asin]
-            savings_pct = ((price_info["list_price"] - price_info["current_price"])
-                          / price_info["list_price"]) * 100
-            review_count = price_info.get("review_count") or 0
-            popularity = min(math.log10(review_count + 1) * 10, 30) if review_count > 0 else 0
-            star_rating = price_info.get("star_rating") or 0
-            quality = 10 if star_rating >= 4.5 else (5 if star_rating >= 4.0 else 0)
-            return savings_pct + (popularity * 0.5) + (quality * 0.5)
-
-        final_deals.sort(key=deal_score, reverse=True)
+        final_deals.sort(key=lambda x: score_live_deal(x[0], live_prices), reverse=True)
         deals = limit_media_items(final_deals, live_prices, max_total=1)
         print(f"\nAfter media limits: {len(deals)} deals")
 

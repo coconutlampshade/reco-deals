@@ -236,27 +236,32 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     # Determine if this is a deal
     deal_reasons = []
 
-    # Check: Current price is X% below 90-day average
+    # Check: Current price is X% below 90-day average (PRIMARY deal indicator)
     if result["percent_below_avg"] and result["percent_below_avg"] >= config.DEAL_PERCENT_BELOW_AVG:
         deal_reasons.append(f"{result['percent_below_avg']:.0f}% below 90-day avg")
 
-    # Check: Current price is X% below 90-day high
+    # Check: Current price is X% below 90-day high (ONLY if also below average)
+    # Being below a high alone doesn't make it a deal - it could still be above typical price
     if result["percent_below_high"] and result["percent_below_high"] >= config.DEAL_PERCENT_BELOW_HIGH:
-        deal_reasons.append(f"{result['percent_below_high']:.0f}% below 90-day high")
+        # Only count this if we also have positive percent_below_avg (i.e., price is below average)
+        if result["percent_below_avg"] and result["percent_below_avg"] > 0:
+            deal_reasons.append(f"{result['percent_below_high']:.0f}% below 90-day high")
 
-    # Check: Current price is near all-time low
+    # Check: Current price is near all-time low (only if also at or below average)
     if result["all_time_low"] and result["all_time_low"] > 0:
         percent_above_low = ((current_price - result["all_time_low"]) / result["all_time_low"]) * 100
-        if percent_above_low <= config.DEAL_NEAR_LOW_PERCENT:
+        # Only count all-time low if price is also at or below average
+        if percent_above_low <= config.DEAL_NEAR_LOW_PERCENT and (result["percent_below_avg"] or 0) >= 0:
             if current_price <= result["all_time_low"]:
                 deal_reasons.append("At all-time low!")
             else:
                 deal_reasons.append(f"Within {percent_above_low:.0f}% of all-time low")
 
-    # Check: Minimum dollar savings
+    # Check: Minimum dollar savings (only if meaningfully below average - at least 10%)
     if result["savings_dollars"] and result["savings_dollars"] >= config.DEAL_MIN_DISCOUNT_DOLLARS:
-        if not deal_reasons:  # Only add if no other reason yet
-            deal_reasons.append(f"${result['savings_dollars']:.2f} savings")
+        if (result["percent_below_avg"] or 0) >= 10:  # Must be at least 10% below avg
+            if not deal_reasons:  # Only add if no other reason yet
+                deal_reasons.append(f"${result['savings_dollars']:.2f} savings")
 
     if deal_reasons:
         result["is_deal"] = True

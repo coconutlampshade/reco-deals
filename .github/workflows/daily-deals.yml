@@ -57,14 +57,14 @@ jobs:
         run: |
           python mailchimp_send.py --html reports/deals-$(date +%Y-%m-%d).html
 
-      - name: Commit featured history (30-day cooldown tracking)
+      - name: Commit updated data files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add catalog/featured_history.json
-          git diff --staged --quiet || git commit -m "Update featured history
+          git add catalog/deals.json catalog/featured_history.json
+          git diff --staged --quiet || git commit -m "Update deals and featured history
 
-          🤖 Automated cooldown tracking"
+          🤖 Automated daily update"
           git push
 
       - name: Upload report as artifact
