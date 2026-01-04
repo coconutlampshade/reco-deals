@@ -2,9 +2,9 @@ name: Daily Deals Report
 
 on:
   schedule:
-    # Run at 6:00 AM PST (14:00 UTC) every day
-    # GitHub Actions uses UTC, so 6am PST = 14:00 UTC (or 13:00 UTC during DST)
-    - cron: '0 14 * * *'
+    # Run at 3:00 AM PST (11:00 UTC) every day
+    # GitHub Actions uses UTC, so 3am PST = 11:00 UTC (or 10:00 UTC during DST)
+    - cron: '0 11 * * *'
 
   # Allow manual trigger from GitHub UI
   workflow_dispatch:
