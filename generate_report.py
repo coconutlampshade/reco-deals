@@ -56,6 +56,7 @@ def calculate_issue_number(date_str: str) -> int:
 
 FEATURED_HISTORY_FILE = Path(__file__).parent / "catalog" / "featured_history.json"
 COOLDOWN_DAYS = 30
+MIN_DEALS = 5  # Minimum number of deals per newsletter
 
 
 def load_featured_history() -> dict:
@@ -493,7 +494,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         <div class="subtitle">{today}</div>
 
         <div class="intro">
-            Today, we've found <strong>{len(deals)}</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a>.
+            Today, we've found <strong>{len(deals)}</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
         </div>
 
         <div class="disclosure">
@@ -739,73 +740,102 @@ def main():
 
     print(f"Loaded {len(deals_dict)} deals from {data.get('generated_at', 'unknown')}")
 
-    # Filter and sort
-    deals = filter_and_sort_deals(deals_dict, min_savings=args.min_savings, top_n=args.top)
-    print(f"After filtering: {len(deals)} deals")
-
-    if not deals:
-        print("No deals to report!")
-        return
-
     # Fetch live prices from PA API (Amazon Associates compliant)
     live_prices = {}
     price_timestamp = None
+    final_deals = []
+
     if not args.no_live_prices:
-        asins = [asin for asin, _ in deals]
-        price_timestamp = datetime.now()
-        live_prices = fetch_live_prices(asins)
+        # Start with initial batch, expand if needed to meet minimum
+        batch_size = args.top or 50
+        max_batches = 10  # Safety limit
+        processed_asins = set()
 
-        # Filter to only include items PA API confirms are on sale (list_price > current_price)
-        deals = [
-            (asin, deal) for asin, deal in deals
-            if live_prices.get(asin, {}).get("list_price") and
-               live_prices.get(asin, {}).get("current_price") and
-               live_prices[asin]["list_price"] > live_prices[asin]["current_price"]
-        ]
-        print(f"After PA API filter (confirmed discounts): {len(deals)} deals")
+        for batch_num in range(max_batches):
+            # Get next batch of candidates
+            start_idx = batch_num * batch_size
+            end_idx = start_idx + batch_size
 
-        # Filter out items featured in the last 30 days
-        deals = filter_recently_featured(deals, cooldown_days=COOLDOWN_DAYS)
-        print(f"After 30-day cooldown filter: {len(deals)} deals")
+            # Filter and sort all deals, then slice
+            all_sorted = filter_and_sort_deals(deals_dict, min_savings=args.min_savings)
+            batch_deals = [d for d in all_sorted[start_idx:end_idx] if d[0] not in processed_asins]
 
-        # Re-sort by composite score: savings percentage + popularity
+            if not batch_deals:
+                print(f"No more candidates available")
+                break
+
+            print(f"\nBatch {batch_num + 1}: Processing {len(batch_deals)} candidates...")
+
+            # Fetch live prices
+            asins = [asin for asin, _ in batch_deals]
+            processed_asins.update(asins)
+
+            if batch_num == 0:
+                price_timestamp = datetime.now()
+
+            batch_prices = fetch_live_prices(asins)
+            live_prices.update(batch_prices)
+
+            # Filter to confirmed discounts
+            confirmed = [
+                (asin, deal) for asin, deal in batch_deals
+                if batch_prices.get(asin, {}).get("list_price") and
+                   batch_prices.get(asin, {}).get("current_price") and
+                   batch_prices[asin]["list_price"] > batch_prices[asin]["current_price"]
+            ]
+            print(f"  Confirmed discounts: {len(confirmed)}")
+
+            # Filter 30-day cooldown
+            confirmed = filter_recently_featured(confirmed, cooldown_days=COOLDOWN_DAYS)
+            print(f"  After cooldown: {len(confirmed)}")
+
+            # Add to final list
+            final_deals.extend(confirmed)
+
+            # Check if we have enough after applying media limits
+            def deal_score(item):
+                asin = item[0]
+                price_info = live_prices[asin]
+                savings_pct = ((price_info["list_price"] - price_info["current_price"])
+                              / price_info["list_price"]) * 100
+                review_count = price_info.get("review_count") or 0
+                popularity = min(math.log10(review_count + 1) * 10, 30) if review_count > 0 else 0
+                star_rating = price_info.get("star_rating") or 0
+                quality = 10 if star_rating >= 4.5 else (5 if star_rating >= 4.0 else 0)
+                return savings_pct + (popularity * 0.5) + (quality * 0.5)
+
+            final_deals.sort(key=deal_score, reverse=True)
+            test_deals = limit_media_items(final_deals, live_prices, max_total=1)
+
+            if len(test_deals) >= MIN_DEALS:
+                print(f"  Found enough deals ({len(test_deals)} >= {MIN_DEALS})")
+                break
+            else:
+                print(f"  Need more deals ({len(test_deals)} < {MIN_DEALS}), fetching next batch...")
+
+        # Final processing
         def deal_score(item):
             asin = item[0]
             price_info = live_prices[asin]
-
-            # Savings percentage (0-100 scale)
             savings_pct = ((price_info["list_price"] - price_info["current_price"])
                           / price_info["list_price"]) * 100
-
-            # Popularity score based on review count (log scale, 0-30 points)
             review_count = price_info.get("review_count") or 0
-            if review_count > 0:
-                # log10(1000) = 3, log10(10000) = 4, etc.
-                popularity = min(math.log10(review_count + 1) * 10, 30)
-            else:
-                popularity = 0
-
-            # Quality bonus for high ratings (0-10 points)
+            popularity = min(math.log10(review_count + 1) * 10, 30) if review_count > 0 else 0
             star_rating = price_info.get("star_rating") or 0
-            if star_rating >= 4.5:
-                quality = 10
-            elif star_rating >= 4.0:
-                quality = 5
-            else:
-                quality = 0
-
-            # Composite: savings is primary, popularity and quality are secondary
+            quality = 10 if star_rating >= 4.5 else (5 if star_rating >= 4.0 else 0)
             return savings_pct + (popularity * 0.5) + (quality * 0.5)
 
-        deals.sort(key=deal_score, reverse=True)
-
-        # Limit media items: max 1 total (books + movies + TV combined)
-        deals = limit_media_items(deals, live_prices, max_total=1)
-        print(f"After media limits: {len(deals)} deals")
+        final_deals.sort(key=deal_score, reverse=True)
+        deals = limit_media_items(final_deals, live_prices, max_total=1)
+        print(f"\nAfter media limits: {len(deals)} deals")
 
         # Final limit to top 10
         deals = deals[:10]
         print(f"Final top deals: {len(deals)}")
+    else:
+        # No live prices mode
+        deals = filter_and_sort_deals(deals_dict, min_savings=args.min_savings, top_n=args.top)
+        print(f"After filtering: {len(deals)} deals")
 
     if not deals:
         print("No confirmed deals to report!")
