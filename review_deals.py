@@ -365,6 +365,18 @@ def generate_review_html(candidates: list) -> str:
         .deal:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .deal.selected { background: #e8f4e8; border: 2px solid #27ae60; }
         .deal.cooldown { opacity: 0.6; }
+        .deal.dragging { opacity: 0.5; transform: scale(1.02); }
+        .deal.drag-over { border-top: 3px solid #4384F3; }
+        .drag-handle {
+            cursor: grab;
+            color: #ccc;
+            font-size: 20px;
+            padding: 5px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .drag-handle:hover { color: #999; }
+        .drag-handle:active { cursor: grabbing; }
         .deal-checkbox {
             width: 24px;
             height: 24px;
@@ -384,9 +396,30 @@ def generate_review_html(candidates: list) -> str:
             font-weight: 600;
             margin-bottom: 8px;
             color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .deal-title a { color: inherit; text-decoration: none; }
-        .deal-title a:hover { color: #4384F3; }
+        .title-edit {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px 8px;
+            background: transparent;
+            min-width: 0;
+        }
+        .title-edit:hover { border-color: #ddd; background: #fafafa; }
+        .title-edit:focus { border-color: #4384F3; background: white; outline: none; }
+        .title-link {
+            color: #999;
+            text-decoration: none;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .title-link:hover { color: #4384F3; }
         .deal-price {
             font-size: 20px;
             font-weight: 700;
@@ -510,13 +543,18 @@ def generate_review_html(candidates: list) -> str:
             classes += " cooldown"
         data_attrs = f'data-asin="{asin}" data-media="{media_type or ""}" data-cooldown="{str(in_cooldown).lower()}"'
 
+        # Escape title for HTML attribute
+        title_escaped = title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+
         html += f"""
-        <div class="{classes}" {data_attrs}>
+        <div class="{classes}" {data_attrs} draggable="true">
+            <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
             <input type="checkbox" class="deal-checkbox" value="{asin}" onchange="updateCount()">
             <img src="{image}" alt="" class="deal-image" onerror="this.style.display='none'">
             <div class="deal-content">
                 <div class="deal-title">
-                    <a href="{amazon_url}" target="_blank">{title}</a>
+                    <input type="text" class="title-edit" data-asin="{asin}" value="{title_escaped}">
+                    <a href="{amazon_url}" target="_blank" class="title-link" title="View on Amazon">↗</a>
                 </div>
                 <div class="deal-price">
                     ${price:.2f}
@@ -571,14 +609,72 @@ def generate_review_html(candidates: list) -> str:
             });
         }
 
+        // Drag and drop reordering
+        let draggedElement = null;
+
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.classList.contains('deal')) {
+                draggedElement = e.target;
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            }
+        });
+
+        document.addEventListener('dragend', function(e) {
+            if (e.target.classList.contains('deal')) {
+                e.target.classList.remove('dragging');
+                document.querySelectorAll('.deal').forEach(d => d.classList.remove('drag-over'));
+                draggedElement = null;
+            }
+        });
+
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            const deal = e.target.closest('.deal');
+            if (deal && deal !== draggedElement) {
+                document.querySelectorAll('.deal').forEach(d => d.classList.remove('drag-over'));
+                deal.classList.add('drag-over');
+            }
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const targetDeal = e.target.closest('.deal');
+            if (targetDeal && draggedElement && targetDeal !== draggedElement) {
+                const container = document.getElementById('deals');
+                const deals = Array.from(container.querySelectorAll('.deal'));
+                const draggedIdx = deals.indexOf(draggedElement);
+                const targetIdx = deals.indexOf(targetDeal);
+
+                if (draggedIdx < targetIdx) {
+                    targetDeal.parentNode.insertBefore(draggedElement, targetDeal.nextSibling);
+                } else {
+                    targetDeal.parentNode.insertBefore(draggedElement, targetDeal);
+                }
+            }
+            document.querySelectorAll('.deal').forEach(d => d.classList.remove('drag-over'));
+        });
+
         function confirmSelection() {
-            const selected = Array.from(document.querySelectorAll('.deal-checkbox:checked'))
-                .map(cb => cb.value);
+            // Get deals in current DOM order (respects drag reordering)
+            const allDeals = Array.from(document.querySelectorAll('#deals .deal'));
+            const selectedDeals = allDeals.filter(deal => deal.querySelector('.deal-checkbox').checked);
+            const selected = selectedDeals.map(deal => deal.querySelector('.deal-checkbox').value);
 
             if (selected.length === 0) {
                 alert('Please select at least one deal');
                 return;
             }
+
+            // Collect custom titles for selected items
+            const titles = {};
+            selectedDeals.forEach(deal => {
+                const asin = deal.querySelector('.deal-checkbox').value;
+                const titleInput = deal.querySelector('.title-edit');
+                if (titleInput) {
+                    titles[asin] = titleInput.value;
+                }
+            });
 
             document.getElementById('confirmBtn').disabled = true;
             document.getElementById('confirmBtn').textContent = 'Sending...';
@@ -586,7 +682,7 @@ def generate_review_html(candidates: list) -> str:
             fetch('/confirm', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({asins: selected})
+                body: JSON.stringify({asins: selected, titles: titles})
             })
             .then(r => r.json())
             .then(data => {
@@ -663,10 +759,11 @@ class ReviewHandler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
             selected_asins = data.get("asins", [])
+            custom_titles = data.get("titles", {})
 
             # Generate newsletter with selected items
             try:
-                result = generate_and_send(selected_asins, self.candidates)
+                result = generate_and_send(selected_asins, self.candidates, custom_titles)
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
@@ -679,12 +776,15 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
 
 
-def generate_and_send(asins: list, candidates: list) -> dict:
+def generate_and_send(asins: list, candidates: list, custom_titles: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
         generate_html_report, update_featured_history, LOGO_URL
     )
     from mailchimp_send import create_campaign
+
+    if custom_titles is None:
+        custom_titles = {}
 
     # Filter candidates to selected ASINs
     selected = [(asin, deal) for asin, deal in candidates if asin in asins]
@@ -698,10 +798,12 @@ def generate_and_send(asins: list, candidates: list) -> dict:
     # Build live_prices dict for report generation
     prices = {}
     for asin, deal in selected:
+        # Use custom title if provided, otherwise fall back to live_title
+        title = custom_titles.get(asin) or deal.get("live_title")
         prices[asin] = {
             "current_price": deal.get("live_price"),
             "list_price": deal.get("live_list_price"),
-            "title": deal.get("live_title"),
+            "title": title,
             "image_url": deal.get("live_image"),
             "detail_page_url": f"https://amazon.com/dp/{asin}?tag={PA_API_PARTNER_TAG}",
             "review_count": deal.get("review_count"),
@@ -724,10 +826,34 @@ def generate_and_send(asins: list, candidates: list) -> dict:
     update_featured_history(asins)
     print(f"Updated featured history for {len(asins)} items")
 
+    # Generate preview text: "Product1 $XX • Product2 $XX • Product3 XX% off • N deals total"
+    preview_parts = []
+    for asin, deal in selected[:3]:  # First 3 deals for preview
+        title = prices[asin].get("title", "")
+        # Shorten title to first few words
+        short_title = " ".join(title.split()[:3]) if title else "Deal"
+
+        current = prices[asin].get("current_price")
+        list_price = prices[asin].get("list_price")
+
+        if current and list_price and list_price > current:
+            savings_pct = int(((list_price - current) / list_price) * 100)
+            # Alternate between showing price and percentage
+            if len(preview_parts) % 2 == 0:
+                preview_parts.append(f"{short_title} ${current:.0f}")
+            else:
+                preview_parts.append(f"{short_title} {savings_pct}% off")
+        elif current:
+            preview_parts.append(f"{short_title} ${current:.0f}")
+
+    preview_parts.append(f"{len(selected)} deals total")
+    preview_text = " • ".join(preview_parts)
+    print(f"Preview text: {preview_text}")
+
     # Send to Mailchimp
     print("Creating Mailchimp campaign...")
     subject = f"Recomendo Deals - {datetime.now().strftime('%B %d, %Y')}"
-    campaign = create_campaign(subject, html)
+    campaign = create_campaign(subject, html, preview_text)
     campaign_url = campaign.get("web_id", "")
     if campaign_url:
         campaign_url = f"https://admin.mailchimp.com/campaigns/edit?id={campaign_url}"

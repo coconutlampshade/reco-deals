@@ -93,7 +93,7 @@ def get_list_info():
     return result
 
 
-def create_campaign(subject, html_content):
+def create_campaign(subject, html_content, preview_text=None):
     """Create a draft campaign in Mailchimp."""
 
     # Step 1: Create the campaign
@@ -109,6 +109,10 @@ def create_campaign(subject, html_content):
             "title": f"Recomendo Deals - {datetime.now().strftime('%Y-%m-%d')}",
         }
     }
+
+    # Add preview text if provided
+    if preview_text:
+        campaign_data["settings"]["preview_text"] = preview_text
 
     print("Creating campaign...")
     campaign = mailchimp_request("POST", "/campaigns", campaign_data)
