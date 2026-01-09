@@ -827,11 +827,85 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None)
     print(f"Updated featured history for {len(asins)} items")
 
     # Generate preview text: "Product1 $XX • Product2 $XX • Product3 XX% off • N deals total"
+    def shorten_title(title):
+        """Create a clean, short product name for preview text."""
+        import re
+        if not title:
+            return "Deal"
+
+        # Remove parenthetical content (model numbers, sizes, etc.)
+        title = re.sub(r'\([^)]*\)', '', title)
+        # Remove bracketed content
+        title = re.sub(r'\[[^\]]*\]', '', title)
+
+        # Remove common filler phrases
+        filler = [
+            r'\d+\s*sheet\s*capacity', r'jam\s*free', r'heavy\s*duty',
+            r'\d+\s*count', r'\d+\s*pack', r'\d+\s*piece', r'\d+\s*ct\b',
+            r'\d+"\s*', r'\d+\s*inch', r'\d+\s*"', r'\d+\s*ft\b',
+            r'business\s*', r'professional\s*', r'premium\s*',
+            r'classic\s*', r'original\s*', r'standard\s*',
+            r'non-stick\s*', r'ceramic\s*', r'stainless\s*steel\s*',
+        ]
+        for f in filler:
+            title = re.sub(f, '', title, flags=re.IGNORECASE)
+
+        # Clean up punctuation
+        title = re.sub(r'\s*-\s*$', '', title)  # trailing dash
+        title = re.sub(r'\s*,\s*,+', ',', title)  # multiple commas
+        title = re.sub(r'\s+', ' ', title)  # multiple spaces
+        title = title.strip(' ,-')
+
+        # Words to skip
+        skip_words = {'and', 'or', 'the', 'a', 'an', 'in', 'on', 'of', 'for', 'with', 'to'}
+
+        # Product type words we want to keep (ensures name makes sense)
+        product_types = {
+            'stapler', 'fryer', 'slicer', 'pan', 'trimmer', 'steamer', 'microscope',
+            'knife', 'scissors', 'cutter', 'grinder', 'blender', 'mixer', 'cooker',
+            'grill', 'toaster', 'maker', 'press', 'opener', 'peeler', 'grater',
+            'thermometer', 'scale', 'timer', 'clock', 'light', 'lamp', 'flashlight',
+            'charger', 'cable', 'adapter', 'speaker', 'headphones', 'earbuds',
+            'bag', 'case', 'pouch', 'wallet', 'holder', 'stand', 'rack', 'organizer',
+            'brush', 'comb', 'razor', 'clipper', 'tweezer', 'file',
+            'tape', 'glue', 'pen', 'pencil', 'pencils', 'marker', 'notebook', 'planner',
+            'tool', 'wrench', 'pliers', 'screwdriver', 'hammer', 'drill',
+            'game', 'puzzle', 'toy', 'book', 'guide', 'kit', 'set',
+            'pills', 'tablets', 'chewables', 'capsules', 'cream', 'lotion',
+            'stripper', 'sealer', 'dispenser', 'sharpener',
+            'lock', 'twister', 'grips', 'mat', 'pad', 'bed', 'seat',
+        }
+
+        # Split and remove duplicates while preserving order
+        words = []
+        seen = set()
+        for word in title.replace(',', ' ').replace('-', ' ').split():
+            word_lower = word.lower()
+            if word_lower not in seen and word_lower not in skip_words and len(word) > 1:
+                words.append(word)
+                seen.add(word_lower)
+
+        # Find if there's a product type word and ensure we include it
+        result_words = []
+        found_product_type = False
+        for i, word in enumerate(words):
+            if len(result_words) < 4:
+                result_words.append(word)
+                if word.lower() in product_types:
+                    found_product_type = True
+            elif not found_product_type and word.lower() in product_types:
+                # Replace last word with the product type
+                result_words.append(word)
+                found_product_type = True
+                break
+
+        result = " ".join(result_words[:5] if not found_product_type else result_words)
+        return result if result else "Deal"
+
     preview_parts = []
     for asin, deal in selected[:3]:  # First 3 deals for preview
         title = prices[asin].get("title", "")
-        # Shorten title to first few words
-        short_title = " ".join(title.split()[:3]) if title else "Deal"
+        short_title = shorten_title(title)
 
         current = prices[asin].get("current_price")
         list_price = prices[asin].get("list_price")
