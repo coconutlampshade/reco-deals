@@ -517,6 +517,8 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 width: 100%;
             }}
         }}
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br {{ display: none; }}
     </style>
 </head>
 <body>
