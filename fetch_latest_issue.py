@@ -32,7 +32,10 @@ CATALOG_FILE = PROJECT_DIR / "catalog" / "products.json"
 def fetch_rss_feed():
     """Fetch and parse the Recomendo RSS feed."""
     print(f"Fetching RSS feed: {RECOMENDO_FEED}")
-    response = requests.get(RECOMENDO_FEED, timeout=30)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    response = requests.get(RECOMENDO_FEED, headers=headers, timeout=30)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.content, "xml")
