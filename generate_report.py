@@ -546,10 +546,10 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         # Prefer PA API title (accurate) over catalog title (from newsletter link text)
         title_text = live_price.get("title") or deal.get("catalog_title") or deal.get("title") or f"Product {asin}"
 
-        # Use PA API's detail_page_url when showing PA API prices (compliance requirement)
-        # The URL must come from the same API call as the price data
-        if live_price.get("detail_page_url"):
-            buy_link = live_price["detail_page_url"]
+        # Use original affiliate URL from catalog (for accounting purposes)
+        # Only fall back to constructed URL if no original exists
+        if live_price.get("affiliate_url"):
+            buy_link = live_price["affiliate_url"]
         else:
             buy_link = get_buy_link(deal)
 
@@ -564,9 +564,11 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 savings_pct = ((live_price["list_price"] - current) / live_price["list_price"]) * 100
                 indicator_html = f'<div class="deal-indicator">{savings_pct:.0f}% off list price</div>'
 
-        # Build meta info with issue links
+        # Build meta info with issue links and benefits
         # Priority: Recomendo over Cool Tools (if both exist, only show Recomendo)
+        # Format: "Reviewed in [Source]: [benefits sentence]"
         meta_html = ""
+        benefits = live_price.get("benefits", "")
         issues = deal.get("issues", [])
         if issues:
             recomendo_issues = [i for i in issues if i.get("source") != "cooltools"]
@@ -589,6 +591,13 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 ct_url = first_ct.get("url", "")
                 if ct_url:
                     meta_html = f'Reviewed in <a href="{ct_url}" target="_blank">Cool Tools</a>'
+
+        # Append benefits description if provided
+        if benefits:
+            if meta_html:
+                meta_html += f': {benefits}'
+            else:
+                meta_html = benefits
 
         # Image HTML - prefer PA API image if available
         actual_image = live_price.get("image_url") or image_url

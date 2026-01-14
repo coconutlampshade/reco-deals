@@ -23,14 +23,24 @@ from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).parent))
 import config
-from pa_api import get_prices_for_asins, PA_API_PARTNER_TAG
+from pa_api import get_prices_for_asins
 from generate_report import (
     load_deals, filter_and_sort_deals, load_featured_history,
     COOLDOWN_DAYS, get_media_category, calculate_issue_number
 )
+
+# Anthropic client for benefit generation
+try:
+    import anthropic
+    ANTHROPIC_CLIENT = anthropic.Anthropic()
+except Exception:
+    ANTHROPIC_CLIENT = None
 
 # Server state
 selected_asins = []
@@ -38,11 +48,345 @@ server_should_stop = False
 live_prices = {}
 
 
+def shorten_title(title):
+    """Create a clean, short product name (3-5 words)."""
+    import re
+    if not title:
+        return "Deal"
+
+    # Remove parenthetical content (model numbers, sizes, etc.)
+    title = re.sub(r'\([^)]*\)', '', title)
+    # Remove bracketed content
+    title = re.sub(r'\[[^\]]*\]', '', title)
+
+    # Remove common filler phrases
+    filler = [
+        r'\d+\s*sheet\s*capacity', r'jam\s*free', r'heavy\s*duty',
+        r'\d+\s*count', r'\d+\s*pack', r'\d+\s*piece', r'\d+\s*ct\b',
+        r'\d+"\s*', r'\d+\s*inch', r'\d+\s*"', r'\d+\s*ft\b',
+        r'business\s*', r'professional\s*', r'premium\s*',
+        r'classic\s*', r'original\s*', r'standard\s*',
+        r'non-stick\s*', r'ceramic\s*', r'stainless\s*steel\s*',
+        r'america\'s\s*#?\d*\s*favorite\s*', r'canary\s*yellow\s*',
+        r'clean\s*removal\s*', r'recyclable\s*', r'portable\s*',
+        r'low\s*profile\s*', r'replaces\s*\d+\s*', r'black\s*$',
+        r'diy\s*', r'hobby\s*', r'tool\s*painting\s*',
+    ]
+    for f in filler:
+        title = re.sub(f, '', title, flags=re.IGNORECASE)
+
+    # Clean up punctuation
+    title = re.sub(r'\s*-\s*$', '', title)  # trailing dash
+    title = re.sub(r'\s*,\s*,+', ',', title)  # multiple commas
+    title = re.sub(r'\s+', ' ', title)  # multiple spaces
+    title = title.strip(' ,-')
+
+    # Words to skip
+    skip_words = {'and', 'or', 'the', 'a', 'an', 'in', 'on', 'of', 'for', 'with', 'to'}
+
+    # Product type words we want to keep (ensures name makes sense)
+    product_types = {
+        'stapler', 'fryer', 'slicer', 'pan', 'trimmer', 'steamer', 'microscope',
+        'knife', 'scissors', 'cutter', 'grinder', 'blender', 'mixer', 'cooker',
+        'grill', 'toaster', 'maker', 'press', 'opener', 'peeler', 'grater',
+        'thermometer', 'scale', 'timer', 'clock', 'light', 'lamp', 'flashlight',
+        'charger', 'cable', 'adapter', 'speaker', 'headphones', 'earbuds',
+        'bag', 'case', 'pouch', 'wallet', 'holder', 'stand', 'rack', 'organizer',
+        'brush', 'comb', 'razor', 'clipper', 'tweezer', 'file',
+        'tape', 'glue', 'pen', 'pencil', 'pencils', 'marker', 'notebook', 'planner',
+        'tool', 'wrench', 'pliers', 'screwdriver', 'hammer', 'drill',
+        'game', 'puzzle', 'toy', 'book', 'guide', 'kit', 'set',
+        'pills', 'tablets', 'chewables', 'capsules', 'cream', 'lotion',
+        'stripper', 'sealer', 'dispenser', 'sharpener',
+        'lock', 'twister', 'grips', 'mat', 'pad', 'bed', 'seat',
+        'notes', 'pads', 'plate', 'shelter', 'booth', 'anchor', 'bowl', 'bowls',
+        'cubes', 'stick', 'sticks', 'bottle', 'mop', 'sprayer', 'nozzle',
+    }
+
+    # Split and remove duplicates while preserving order
+    words = []
+    seen = set()
+    for word in title.replace(',', ' ').replace('-', ' ').split():
+        word_lower = word.lower()
+        if word_lower not in seen and word_lower not in skip_words and len(word) > 1:
+            words.append(word)
+            seen.add(word_lower)
+
+    # Find if there's a product type word and ensure we include it
+    result_words = []
+    found_product_type = False
+    for i, word in enumerate(words):
+        if len(result_words) < 4:
+            result_words.append(word)
+            if word.lower() in product_types:
+                found_product_type = True
+        elif not found_product_type and word.lower() in product_types:
+            # Add the product type
+            result_words.append(word)
+            found_product_type = True
+            break
+
+    result = " ".join(result_words[:5] if not found_product_type else result_words)
+    return result if result else "Deal"
+
+
 def load_full_catalog() -> dict:
     """Load the full product catalog."""
     catalog_file = config.CATALOG_DIR / "products.json"
     with open(catalog_file, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def save_catalog(catalog: dict):
+    """Save the product catalog."""
+    catalog_file = config.CATALOG_DIR / "products.json"
+    with open(catalog_file, "w", encoding="utf-8") as f:
+        json.dump(catalog, f, indent=2)
+
+
+def fetch_article_html(url: str) -> str:
+    """Fetch article HTML with proper headers."""
+    import requests
+
+    headers = {
+        "User-Agent": config.SHORTLINK_USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        return resp.text
+    except Exception as e:
+        print(f"    Warning: Failed to fetch article: {e}")
+        return ""
+
+
+def extract_product_context(html: str, asin: str, product_title: str) -> str:
+    """Extract text around the Amazon product link from article HTML."""
+    import re
+    from html.parser import HTMLParser
+
+    if not html:
+        return ""
+
+    # Simple HTML to text conversion
+    class HTMLTextExtractor(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.text_parts = []
+            self.in_script = False
+            self.in_style = False
+
+        def handle_starttag(self, tag, attrs):
+            if tag in ('script', 'style'):
+                self.in_script = True
+            elif tag in ('p', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'):
+                self.text_parts.append('\n')
+
+        def handle_endtag(self, tag):
+            if tag in ('script', 'style'):
+                self.in_script = False
+            elif tag in ('p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'):
+                self.text_parts.append('\n')
+
+        def handle_data(self, data):
+            if not self.in_script:
+                self.text_parts.append(data)
+
+        def get_text(self):
+            return ''.join(self.text_parts)
+
+    try:
+        extractor = HTMLTextExtractor()
+        extractor.feed(html)
+        text = extractor.get_text()
+    except Exception:
+        # Fallback: just strip tags
+        text = re.sub(r'<[^>]+>', ' ', html)
+
+    # Clean up whitespace
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+
+    # Find the product mention - look for ASIN, product title, or Amazon link
+    patterns = [
+        rf'amazon\.com/dp/{asin}',
+        rf'amazon\.com.*?{asin}',
+        rf'amzn\.to/\w+',
+        rf'geni\.us/\w+',
+    ]
+
+    # Also search for product title words
+    if product_title:
+        # Use first few significant words of title
+        title_words = [w for w in product_title.split()[:4] if len(w) > 3]
+        if title_words:
+            patterns.append(r'\b' + r'\b.*?\b'.join(re.escape(w) for w in title_words) + r'\b')
+
+    # Search HTML for link context (more reliable for finding the exact mention)
+    link_match = re.search(rf'<a[^>]*href=["\'][^"\']*{asin}[^"\']*["\'][^>]*>([^<]+)</a>', html, re.IGNORECASE)
+    link_text = link_match.group(1) if link_match else ""
+
+    # Find position in text
+    best_pos = -1
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            best_pos = match.start()
+            break
+
+    # If we found it in HTML link, search for link text in plain text
+    if best_pos < 0 and link_text:
+        match = re.search(re.escape(link_text[:30]), text, re.IGNORECASE)
+        if match:
+            best_pos = match.start()
+
+    # Extract surrounding context (about 500 chars before and after)
+    if best_pos >= 0:
+        start = max(0, best_pos - 500)
+        end = min(len(text), best_pos + 500)
+
+        # Try to start/end at sentence boundaries
+        if start > 0:
+            sentence_start = text.rfind('.', start - 200, start)
+            if sentence_start > 0:
+                start = sentence_start + 1
+        if end < len(text):
+            sentence_end = text.find('.', end, end + 200)
+            if sentence_end > 0:
+                end = sentence_end + 1
+
+        return text[start:end].strip()
+
+    # Fallback: return first ~1000 chars of article body
+    # Try to find start of article content
+    body_markers = ['<article', '<main', 'class="post"', 'class="content"', '<body']
+    for marker in body_markers:
+        pos = html.lower().find(marker)
+        if pos >= 0:
+            return text[:1500].strip()
+
+    return text[:1500].strip()
+
+
+def generate_benefit_description(asin: str, deal: dict, catalog: dict) -> str:
+    """
+    Generate a one-sentence benefit description for a product.
+
+    Uses cached description if available, otherwise fetches source article
+    and uses Claude API to generate description.
+
+    Returns empty string if generation fails.
+    """
+    # Check cache first
+    if asin in catalog and catalog[asin].get("benefit_description"):
+        return catalog[asin]["benefit_description"]
+
+    if not ANTHROPIC_CLIENT:
+        print(f"    Warning: Anthropic client not available for {asin}")
+        return ""
+
+    # Get source article URL
+    issues = deal.get("issues", [])
+    if not issues:
+        # Try catalog
+        if asin in catalog:
+            issues = catalog[asin].get("issues", [])
+
+    if not issues:
+        print(f"    Warning: No source article for {asin}")
+        return ""
+
+    # Prefer Recomendo over Cool Tools
+    recomendo_issues = [i for i in issues if i.get("source") != "cooltools"]
+    source_issue = recomendo_issues[0] if recomendo_issues else issues[0]
+    article_url = source_issue.get("url", "")
+
+    if not article_url:
+        return ""
+
+    # Get product title
+    product_title = deal.get("live_title") or deal.get("catalog_title") or catalog.get(asin, {}).get("title", "")
+
+    print(f"    Fetching article for {asin}: {product_title[:40]}...")
+
+    # Fetch article HTML
+    html = fetch_article_html(article_url)
+    if not html:
+        return ""
+
+    # Extract context around product mention
+    context = extract_product_context(html, asin, product_title)
+    if not context:
+        print(f"    Warning: Could not extract context for {asin}")
+        return ""
+
+    # Generate benefit description using Claude
+    try:
+        prompt = f"""Given this excerpt from a product review, write ONE sentence describing the key benefit of this product. Focus on what makes it useful or special. Be specific and concrete.
+
+Rules:
+- Do NOT mention the product name or brand
+- Do NOT mention the price
+- Start directly with what the product does or why it's useful
+
+Product: {product_title}
+Review excerpt: {context}
+
+Write only the benefit sentence, no preamble."""
+
+        response = ANTHROPIC_CLIENT.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=150,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        benefit = response.content[0].text.strip()
+
+        # Cache the result
+        if asin in catalog:
+            catalog[asin]["benefit_description"] = benefit
+            save_catalog(catalog)
+
+        print(f"    Generated: {benefit[:60]}...")
+        return benefit
+
+    except Exception as e:
+        print(f"    Warning: Claude API error for {asin}: {e}")
+        return ""
+
+
+def generate_benefits_for_deals(candidates: list, catalog: dict) -> dict:
+    """
+    Generate benefit descriptions for a list of deal candidates.
+
+    Returns dict mapping ASIN to benefit description.
+    """
+    benefits = {}
+
+    print(f"\nGenerating benefit descriptions for {len(candidates)} deals...")
+
+    for i, (asin, deal) in enumerate(candidates):
+        # Check if already cached
+        if asin in catalog and catalog[asin].get("benefit_description"):
+            benefits[asin] = catalog[asin]["benefit_description"]
+            continue
+
+        # Rate limit: small delay between API calls
+        if i > 0:
+            time.sleep(0.5)
+
+        benefit = generate_benefit_description(asin, deal, catalog)
+        if benefit:
+            benefits[asin] = benefit
+
+    cached_count = sum(1 for a in benefits if a in catalog and catalog[a].get("benefit_description"))
+    new_count = len(benefits) - cached_count
+    print(f"Benefits: {cached_count} cached, {new_count} newly generated, {len(candidates) - len(benefits)} failed")
+
+    return benefits
 
 
 def check_keepa_prices(asins: list) -> dict:
@@ -202,6 +546,8 @@ def fetch_fresh_candidates(sample_size: int = 200, top_n: int = 50) -> list:
             "binding": pa_info.get("binding", ""),
             "issues": catalog_entry.get("issues", []),
             "keepa_avg": deal_info["keepa_avg"],
+            "affiliate_url": catalog_entry.get("affiliate_url"),
+            "amazon_url": catalog_entry.get("amazon_url"),
         }
 
         # Calculate savings - prefer PA API list price, fall back to Keepa avg
@@ -293,8 +639,10 @@ def fetch_candidates(top_n: int = 50) -> list:
     return result[:top_n]
 
 
-def generate_review_html(candidates: list) -> str:
+def generate_review_html(candidates: list, benefits: dict = None) -> str:
     """Generate the review HTML page."""
+    if benefits is None:
+        benefits = {}
     history = load_featured_history()
     today = datetime.now()
 
@@ -448,6 +796,21 @@ def generate_review_html(candidates: list) -> str:
             margin-top: 8px;
         }
         .deal-meta a { color: #4384F3; }
+        .benefits-edit {
+            width: 100%;
+            font-size: 13px;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 8px;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+            line-height: 1.4;
+        }
+        .benefits-edit:focus { border-color: #4384F3; outline: none; }
+        .benefits-edit::placeholder { color: #999; }
         .deal-tags { margin-top: 8px; }
         .tag {
             display: inline-block;
@@ -490,7 +853,8 @@ def generate_review_html(candidates: list) -> str:
 """
 
     for asin, deal in candidates:
-        title = deal.get("live_title") or deal.get("catalog_title") or asin
+        full_title = deal.get("live_title") or deal.get("catalog_title") or asin
+        title = shorten_title(full_title)
         image = deal.get("live_image") or ""
         price = deal.get("live_price", 0)
         list_price = deal.get("live_list_price", 0)
@@ -563,6 +927,7 @@ def generate_review_html(candidates: list) -> str:
                 </div>
                 <div class="deal-tags">{tags_html}</div>
                 <div class="deal-meta">{source_html}</div>
+                <textarea class="benefits-edit" data-asin="{asin}" placeholder="One sentence describing the product's benefits from the original review...">{benefits.get(asin, "")}</textarea>
             </div>
         </div>
 """
@@ -666,13 +1031,18 @@ def generate_review_html(candidates: list) -> str:
                 return;
             }
 
-            // Collect custom titles for selected items
+            // Collect custom titles and benefits for selected items
             const titles = {};
+            const benefits = {};
             selectedDeals.forEach(deal => {
                 const asin = deal.querySelector('.deal-checkbox').value;
                 const titleInput = deal.querySelector('.title-edit');
+                const benefitsInput = deal.querySelector('.benefits-edit');
                 if (titleInput) {
                     titles[asin] = titleInput.value;
+                }
+                if (benefitsInput && benefitsInput.value.trim()) {
+                    benefits[asin] = benefitsInput.value.trim();
                 }
             });
 
@@ -682,7 +1052,7 @@ def generate_review_html(candidates: list) -> str:
             fetch('/confirm', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({asins: selected, titles: titles})
+                body: JSON.stringify({asins: selected, titles: titles, benefits: benefits})
             })
             .then(r => r.json())
             .then(data => {
@@ -760,10 +1130,11 @@ class ReviewHandler(BaseHTTPRequestHandler):
             data = json.loads(post_data)
             selected_asins = data.get("asins", [])
             custom_titles = data.get("titles", {})
+            custom_benefits = data.get("benefits", {})
 
             # Generate newsletter with selected items
             try:
-                result = generate_and_send(selected_asins, self.candidates, custom_titles)
+                result = generate_and_send(selected_asins, self.candidates, custom_titles, custom_benefits)
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
@@ -776,7 +1147,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
 
 
-def generate_and_send(asins: list, candidates: list, custom_titles: dict = None) -> dict:
+def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
         generate_html_report, update_featured_history, LOGO_URL
@@ -785,6 +1156,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None)
 
     if custom_titles is None:
         custom_titles = {}
+    if custom_benefits is None:
+        custom_benefits = {}
 
     # Filter candidates to selected ASINs
     selected = [(asin, deal) for asin, deal in candidates if asin in asins]
@@ -800,12 +1173,26 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None)
     for asin, deal in selected:
         # Use custom title if provided, otherwise fall back to live_title
         title = custom_titles.get(asin) or deal.get("live_title")
+
+        # Use original affiliate URL from catalog (for accounting purposes)
+        # Priority: affiliate_url (geni.us, amzn.to) > amazon_url with tag > construct with recomendos-20
+        original_url = deal.get("affiliate_url")
+        if not original_url:
+            amazon_url = deal.get("amazon_url", "")
+            # Check if amazon_url already has an affiliate tag
+            if "tag=" in amazon_url:
+                original_url = amazon_url
+            else:
+                # Add recomendos-20 tag
+                original_url = f"https://www.amazon.com/dp/{asin}?tag=recomendos-20"
+
         prices[asin] = {
             "current_price": deal.get("live_price"),
             "list_price": deal.get("live_list_price"),
             "title": title,
             "image_url": deal.get("live_image"),
-            "detail_page_url": f"https://amazon.com/dp/{asin}?tag={PA_API_PARTNER_TAG}",
+            "affiliate_url": original_url,
+            "benefits": custom_benefits.get(asin),
             "review_count": deal.get("review_count"),
             "star_rating": deal.get("star_rating"),
             "product_group": deal.get("product_group"),
@@ -827,81 +1214,6 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None)
     print(f"Updated featured history for {len(asins)} items")
 
     # Generate preview text: "Product1 $XX • Product2 $XX • Product3 XX% off • N deals total"
-    def shorten_title(title):
-        """Create a clean, short product name for preview text."""
-        import re
-        if not title:
-            return "Deal"
-
-        # Remove parenthetical content (model numbers, sizes, etc.)
-        title = re.sub(r'\([^)]*\)', '', title)
-        # Remove bracketed content
-        title = re.sub(r'\[[^\]]*\]', '', title)
-
-        # Remove common filler phrases
-        filler = [
-            r'\d+\s*sheet\s*capacity', r'jam\s*free', r'heavy\s*duty',
-            r'\d+\s*count', r'\d+\s*pack', r'\d+\s*piece', r'\d+\s*ct\b',
-            r'\d+"\s*', r'\d+\s*inch', r'\d+\s*"', r'\d+\s*ft\b',
-            r'business\s*', r'professional\s*', r'premium\s*',
-            r'classic\s*', r'original\s*', r'standard\s*',
-            r'non-stick\s*', r'ceramic\s*', r'stainless\s*steel\s*',
-        ]
-        for f in filler:
-            title = re.sub(f, '', title, flags=re.IGNORECASE)
-
-        # Clean up punctuation
-        title = re.sub(r'\s*-\s*$', '', title)  # trailing dash
-        title = re.sub(r'\s*,\s*,+', ',', title)  # multiple commas
-        title = re.sub(r'\s+', ' ', title)  # multiple spaces
-        title = title.strip(' ,-')
-
-        # Words to skip
-        skip_words = {'and', 'or', 'the', 'a', 'an', 'in', 'on', 'of', 'for', 'with', 'to'}
-
-        # Product type words we want to keep (ensures name makes sense)
-        product_types = {
-            'stapler', 'fryer', 'slicer', 'pan', 'trimmer', 'steamer', 'microscope',
-            'knife', 'scissors', 'cutter', 'grinder', 'blender', 'mixer', 'cooker',
-            'grill', 'toaster', 'maker', 'press', 'opener', 'peeler', 'grater',
-            'thermometer', 'scale', 'timer', 'clock', 'light', 'lamp', 'flashlight',
-            'charger', 'cable', 'adapter', 'speaker', 'headphones', 'earbuds',
-            'bag', 'case', 'pouch', 'wallet', 'holder', 'stand', 'rack', 'organizer',
-            'brush', 'comb', 'razor', 'clipper', 'tweezer', 'file',
-            'tape', 'glue', 'pen', 'pencil', 'pencils', 'marker', 'notebook', 'planner',
-            'tool', 'wrench', 'pliers', 'screwdriver', 'hammer', 'drill',
-            'game', 'puzzle', 'toy', 'book', 'guide', 'kit', 'set',
-            'pills', 'tablets', 'chewables', 'capsules', 'cream', 'lotion',
-            'stripper', 'sealer', 'dispenser', 'sharpener',
-            'lock', 'twister', 'grips', 'mat', 'pad', 'bed', 'seat',
-        }
-
-        # Split and remove duplicates while preserving order
-        words = []
-        seen = set()
-        for word in title.replace(',', ' ').replace('-', ' ').split():
-            word_lower = word.lower()
-            if word_lower not in seen and word_lower not in skip_words and len(word) > 1:
-                words.append(word)
-                seen.add(word_lower)
-
-        # Find if there's a product type word and ensure we include it
-        result_words = []
-        found_product_type = False
-        for i, word in enumerate(words):
-            if len(result_words) < 4:
-                result_words.append(word)
-                if word.lower() in product_types:
-                    found_product_type = True
-            elif not found_product_type and word.lower() in product_types:
-                # Replace last word with the product type
-                result_words.append(word)
-                found_product_type = True
-                break
-
-        result = " ".join(result_words[:5] if not found_product_type else result_words)
-        return result if result else "Deal"
-
     preview_parts = []
     for asin, deal in selected[:3]:  # First 3 deals for preview
         title = prices[asin].get("title", "")
@@ -995,7 +1307,11 @@ def main():
 
     print(f"Found {len(candidates)} deals to review")
 
-    html = generate_review_html(candidates)
+    # Load catalog and generate benefit descriptions
+    catalog = load_full_catalog()
+    benefits = generate_benefits_for_deals(candidates, catalog)
+
+    html = generate_review_html(candidates, benefits)
     run_server(html, candidates, args.port)
 
 
