@@ -240,18 +240,18 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     if result["percent_below_avg"] and result["percent_below_avg"] >= config.DEAL_PERCENT_BELOW_AVG:
         deal_reasons.append(f"{result['percent_below_avg']:.0f}% below 90-day avg")
 
-    # Check: Current price is X% below 90-day high (ONLY if also below average)
-    # Being below a high alone doesn't make it a deal - it could still be above typical price
+    # Check: Current price is X% below 90-day high (ONLY if meaningfully below average)
+    # Being below a high alone doesn't make it a deal - it could still be near typical price
     if result["percent_below_high"] and result["percent_below_high"] >= config.DEAL_PERCENT_BELOW_HIGH:
-        # Only count this if we also have positive percent_below_avg (i.e., price is below average)
-        if result["percent_below_avg"] and result["percent_below_avg"] > 0:
+        # Only count this if price is at least 10% below average (not just marginally below)
+        if result["percent_below_avg"] and result["percent_below_avg"] >= 10:
             deal_reasons.append(f"{result['percent_below_high']:.0f}% below 90-day high")
 
-    # Check: Current price is near all-time low (only if also at or below average)
+    # Check: Current price is near all-time low (only if meaningfully below average)
     if result["all_time_low"] and result["all_time_low"] > 0:
         percent_above_low = ((current_price - result["all_time_low"]) / result["all_time_low"]) * 100
-        # Only count all-time low if price is also at or below average
-        if percent_above_low <= config.DEAL_NEAR_LOW_PERCENT and (result["percent_below_avg"] or 0) >= 0:
+        # Only count all-time low if price is at least 5% below average
+        if percent_above_low <= config.DEAL_NEAR_LOW_PERCENT and (result["percent_below_avg"] or 0) >= 5:
             if current_price <= result["all_time_low"]:
                 deal_reasons.append("At all-time low!")
             else:
