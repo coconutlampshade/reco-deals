@@ -2,15 +2,10 @@
 """
 Mailchimp integration for Recomendo Deals.
 
-Creates a draft campaign in Mailchimp with the deals report.
-You review and send manually.
-
-Usage:
-    python mailchimp_send.py                    # Create draft from latest report
-    python mailchimp_send.py --html report.html # Create draft from specific file
+Provides the create_campaign() function used by review_deals.py
+to create draft campaigns in Mailchimp.
 """
 
-import argparse
 import hashlib
 import json
 import os
@@ -149,72 +144,3 @@ def create_campaign(subject, html_content, preview_text=None):
     }
 
 
-def load_html_report(html_path=None):
-    """Load HTML report from file."""
-    if html_path:
-        path = Path(html_path)
-    else:
-        # Find the most recent report
-        reports_dir = Path(__file__).parent / "reports"
-        if not reports_dir.exists():
-            print(f"Reports directory not found: {reports_dir}")
-            return None
-
-        html_files = list(reports_dir.glob("*.html"))
-        if not html_files:
-            print("No HTML reports found")
-            return None
-
-        # Get most recent
-        path = max(html_files, key=lambda p: p.stat().st_mtime)
-
-    if not path.exists():
-        print(f"File not found: {path}")
-        return None
-
-    print(f"Loading report: {path}")
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Create Mailchimp draft campaign")
-    parser.add_argument("--html", type=str, help="Path to HTML report file")
-    parser.add_argument("--subject", type=str, help="Email subject line")
-    parser.add_argument("--test", action="store_true", help="Test API connection only")
-    args = parser.parse_args()
-
-    if not check_config():
-        sys.exit(1)
-
-    if args.test:
-        print("Testing Mailchimp API connection...")
-        print(f"Data Center: {MAILCHIMP_DC}")
-        get_list_info()
-        return
-
-    # Load HTML content
-    html_content = load_html_report(args.html)
-    if not html_content:
-        sys.exit(1)
-
-    # Generate subject line
-    today = datetime.now().strftime("%B %d, %Y")
-    subject = args.subject or f"Recomendo Deals - {today}"
-
-    # Create the draft campaign
-    result = create_campaign(subject, html_content)
-
-    if result:
-        print("\n" + "=" * 50)
-        print("Draft campaign created successfully!")
-        print("=" * 50)
-        print(f"\nReview and send here:\n{result['url']}")
-        print("\nThe campaign is saved as a DRAFT. Review it and click Send when ready.")
-    else:
-        print("\nFailed to create campaign")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

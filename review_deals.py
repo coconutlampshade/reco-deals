@@ -360,31 +360,18 @@ Write only the benefit sentence, no preamble."""
 
 def generate_benefits_for_deals(candidates: list, catalog: dict) -> dict:
     """
-    Generate benefit descriptions for a list of deal candidates.
+    Load pre-generated benefit descriptions for a list of deal candidates.
 
+    Benefits are pre-populated in the catalog by generate_all_benefits.py.
     Returns dict mapping ASIN to benefit description.
     """
     benefits = {}
 
-    print(f"\nGenerating benefit descriptions for {len(candidates)} deals...")
-
-    for i, (asin, deal) in enumerate(candidates):
-        # Check if already cached
+    for asin, deal in candidates:
         if asin in catalog and catalog[asin].get("benefit_description"):
             benefits[asin] = catalog[asin]["benefit_description"]
-            continue
 
-        # Rate limit: small delay between API calls
-        if i > 0:
-            time.sleep(0.5)
-
-        benefit = generate_benefit_description(asin, deal, catalog)
-        if benefit:
-            benefits[asin] = benefit
-
-    cached_count = sum(1 for a in benefits if a in catalog and catalog[a].get("benefit_description"))
-    new_count = len(benefits) - cached_count
-    print(f"Benefits: {cached_count} cached, {new_count} newly generated, {len(candidates) - len(benefits)} failed")
+    print(f"Loaded {len(benefits)}/{len(candidates)} benefit descriptions from catalog")
 
     return benefits
 
@@ -1020,6 +1007,22 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
             document.querySelectorAll('.deal').forEach(d => d.classList.remove('drag-over'));
         });
 
+        function showSuccessModal(campaignUrl) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;';
+            modal.innerHTML = `
+                <div style="background:white;padding:30px;border-radius:12px;max-width:500px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+                    <div style="font-size:48px;margin-bottom:15px;">✅</div>
+                    <h2 style="margin:0 0 15px;color:#333;">Newsletter Created!</h2>
+                    <p style="color:#666;margin-bottom:20px;">Your Mailchimp draft is ready for review.</p>
+                    <a href="${campaignUrl}" target="_blank" style="display:inline-block;background:#4384F3;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;margin-bottom:15px;">Open in Mailchimp →</a>
+                    <br><br>
+                    <button onclick="window.close()" style="background:#eee;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;color:#666;">Close Window</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
         function confirmSelection() {
             // Get deals in current DOM order (respects drag reordering)
             const allDeals = Array.from(document.querySelectorAll('#deals .deal'));
@@ -1057,8 +1060,7 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    alert('Newsletter created and sent to Mailchimp!\\n\\nCampaign: ' + data.campaign_url);
-                    window.close();
+                    showSuccessModal(data.campaign_url);
                 } else {
                     alert('Error: ' + data.error);
                     document.getElementById('confirmBtn').disabled = false;
