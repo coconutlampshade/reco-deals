@@ -1398,7 +1398,7 @@ def run_server(html: str, candidates: list, port: int = 8765):
 
 def main():
     parser = argparse.ArgumentParser(description="Review and select deals for newsletter")
-    parser.add_argument("--top", type=int, default=50, help="Number of deals to show in review")
+    parser.add_argument("--top", type=int, default=100, help="Number of deals to show in review")
     parser.add_argument("--fresh", type=int, help="Fresh Keepa check on N random products (e.g., --fresh 200)")
     parser.add_argument("--thorough", action="store_true", help="Check ALL products in catalog (takes ~2 hours)")
     parser.add_argument("--port", type=int, default=8765, help="Local server port")
