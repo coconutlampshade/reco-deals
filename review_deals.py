@@ -35,6 +35,32 @@ from generate_report import (
     COOLDOWN_DAYS, get_media_category, calculate_issue_number
 )
 
+# URL pattern to GeniusLink group name mapping
+URL_TO_GROUP = {
+    "recomendo.substack.com": "Recomendo",
+    "kk.org/cooltools": "Recomendo",
+    "bookfreak.substack.com": "Book Freak",
+    "booksthatbelongonpaper.substack.com": "Books-on-Paper",
+    "nomadico.substack.com": "Nomadico",
+    "toolsforpossibilities.substack.com": "Possibilities-Tools",
+    "garstips.substack.com": "Tips Tools Shoptales",
+    "whatsinmynow.substack.com": "Whats in my NOW",
+}
+
+
+def get_affiliate_group(deal: dict) -> str:
+    """Determine the GeniusLink group name based on product's source article URL."""
+    issues = deal.get("issues", [])
+    if not issues:
+        return "Recomendo"
+
+    first_url = issues[0].get("url", "")
+    for pattern, group_name in URL_TO_GROUP.items():
+        if pattern in first_url:
+            return group_name
+
+    return "Recomendo"
+
 # Anthropic client for benefit generation
 try:
     import anthropic
@@ -631,6 +657,7 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
     if benefits is None:
         benefits = {}
     history = load_featured_history()
+    catalog = load_full_catalog()
     today = datetime.now()
 
     html = """<!DOCTYPE html>
@@ -798,6 +825,37 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
         }
         .benefits-edit:focus { border-color: #4384F3; outline: none; }
         .benefits-edit::placeholder { color: #999; }
+        .affiliate-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        .affiliate-label {
+            color: #999;
+            flex-shrink: 0;
+        }
+        .affiliate-edit {
+            flex: 1;
+            font-size: 12px;
+            font-family: monospace;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            min-width: 0;
+        }
+        .affiliate-edit:hover { border-color: #ccc; }
+        .affiliate-edit:focus { border-color: #4384F3; outline: none; }
+        .affiliate-group {
+            background: #f0f0f0;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
         .deal-tags { margin-top: 8px; }
         .tag {
             display: inline-block;
@@ -889,6 +947,23 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
 
         amazon_url = f"https://amazon.com/dp/{asin}"
 
+        # Get affiliate URL and group (check deal first, then catalog)
+        catalog_entry = catalog.get(asin, {})
+        affiliate_url = deal.get("affiliate_url") or catalog_entry.get("affiliate_url") or ""
+        # Handle case where affiliate_url is a dict (GeniusLink API response)
+        if isinstance(affiliate_url, dict):
+            # Extract URL from GeniusLink response: https://geni.us/{code}
+            code = affiliate_url.get("code", "")
+            domain = affiliate_url.get("domain", "geni.us")
+            if code:
+                affiliate_url = f"https://{domain}/{code}"
+            else:
+                affiliate_url = ""
+        elif not isinstance(affiliate_url, str):
+            affiliate_url = ""
+        # Use catalog for group since it has the issues array
+        affiliate_group = get_affiliate_group(catalog_entry if catalog_entry else deal)
+
         classes = "deal"
         if in_cooldown:
             classes += " cooldown"
@@ -896,6 +971,7 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
 
         # Escape title for HTML attribute
         title_escaped = title.replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+        affiliate_escaped = affiliate_url.replace('"', '&quot;')
 
         html += f"""
         <div class="{classes}" {data_attrs} draggable="true">
@@ -914,6 +990,11 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
                 </div>
                 <div class="deal-tags">{tags_html}</div>
                 <div class="deal-meta">{source_html}</div>
+                <div class="affiliate-row">
+                    <span class="affiliate-label">Link:</span>
+                    <input type="text" class="affiliate-edit" data-asin="{asin}" value="{affiliate_escaped}" placeholder="geni.us or amzn.to URL">
+                    <span class="affiliate-group">{affiliate_group}</span>
+                </div>
                 <textarea class="benefits-edit" data-asin="{asin}" placeholder="One sentence describing the product's benefits from the original review...">{benefits.get(asin, "")}</textarea>
             </div>
         </div>
@@ -1034,18 +1115,23 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
                 return;
             }
 
-            // Collect custom titles and benefits for selected items
+            // Collect custom titles, benefits, and affiliate URLs for selected items
             const titles = {};
             const benefits = {};
+            const affiliateUrls = {};
             selectedDeals.forEach(deal => {
                 const asin = deal.querySelector('.deal-checkbox').value;
                 const titleInput = deal.querySelector('.title-edit');
                 const benefitsInput = deal.querySelector('.benefits-edit');
+                const affiliateInput = deal.querySelector('.affiliate-edit');
                 if (titleInput) {
                     titles[asin] = titleInput.value;
                 }
                 if (benefitsInput && benefitsInput.value.trim()) {
                     benefits[asin] = benefitsInput.value.trim();
+                }
+                if (affiliateInput && affiliateInput.value.trim()) {
+                    affiliateUrls[asin] = affiliateInput.value.trim();
                 }
             });
 
@@ -1055,7 +1141,7 @@ def generate_review_html(candidates: list, benefits: dict = None) -> str:
             fetch('/confirm', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({asins: selected, titles: titles, benefits: benefits})
+                body: JSON.stringify({asins: selected, titles: titles, benefits: benefits, affiliateUrls: affiliateUrls})
             })
             .then(r => r.json())
             .then(data => {
@@ -1133,10 +1219,11 @@ class ReviewHandler(BaseHTTPRequestHandler):
             selected_asins = data.get("asins", [])
             custom_titles = data.get("titles", {})
             custom_benefits = data.get("benefits", {})
+            custom_affiliate_urls = data.get("affiliateUrls", {})
 
             # Generate newsletter with selected items
             try:
-                result = generate_and_send(selected_asins, self.candidates, custom_titles, custom_benefits)
+                result = generate_and_send(selected_asins, self.candidates, custom_titles, custom_benefits, custom_affiliate_urls)
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
@@ -1149,7 +1236,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
 
 
-def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None) -> dict:
+def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
         generate_html_report, update_featured_history, LOGO_URL
@@ -1160,6 +1247,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
         custom_titles = {}
     if custom_benefits is None:
         custom_benefits = {}
+    if custom_affiliate_urls is None:
+        custom_affiliate_urls = {}
 
     # Filter candidates to selected ASINs
     selected = [(asin, deal) for asin, deal in candidates if asin in asins]
@@ -1176,9 +1265,17 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
         # Use custom title if provided, otherwise fall back to live_title
         title = custom_titles.get(asin) or deal.get("live_title")
 
-        # Use original affiliate URL from catalog (for accounting purposes)
-        # Priority: affiliate_url (geni.us, amzn.to) > amazon_url with tag > construct with recomendos-20
-        original_url = deal.get("affiliate_url")
+        # Use custom affiliate URL if provided, otherwise fall back to catalog
+        # Priority: custom_affiliate_url > affiliate_url (geni.us, amzn.to) > amazon_url with tag > construct with recomendos-20
+        original_url = custom_affiliate_urls.get(asin) or deal.get("affiliate_url")
+        # Handle case where affiliate_url is a dict (GeniusLink API response)
+        if isinstance(original_url, dict):
+            code = original_url.get("code", "")
+            domain = original_url.get("domain", "geni.us")
+            if code:
+                original_url = f"https://{domain}/{code}"
+            else:
+                original_url = None
         if not original_url:
             amazon_url = deal.get("amazon_url", "")
             # Check if amazon_url already has an affiliate tag
@@ -1214,6 +1311,26 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     # Update featured history
     update_featured_history(asins)
     print(f"Updated featured history for {len(asins)} items")
+
+    # Save any edited benefit descriptions and affiliate URLs back to catalog
+    if custom_benefits or custom_affiliate_urls:
+        catalog = load_full_catalog()
+        benefits_updated = 0
+        urls_updated = 0
+        for asin, benefit in custom_benefits.items():
+            if asin in catalog and benefit:
+                catalog[asin]["benefit_description"] = benefit
+                benefits_updated += 1
+        for asin, url in custom_affiliate_urls.items():
+            if asin in catalog and url:
+                catalog[asin]["affiliate_url"] = url
+                urls_updated += 1
+        if benefits_updated > 0 or urls_updated > 0:
+            save_catalog(catalog)
+            if benefits_updated > 0:
+                print(f"Updated {benefits_updated} benefit descriptions in catalog")
+            if urls_updated > 0:
+                print(f"Updated {urls_updated} affiliate URLs in catalog")
 
     # Generate preview text: "Product1 $XX • Product2 $XX • Product3 XX% off • N deals total"
     preview_parts = []
