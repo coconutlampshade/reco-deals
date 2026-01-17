@@ -73,11 +73,11 @@ def fetch_group_ids() -> dict:
         resp.raise_for_status()
         data = resp.json()
 
-        # Build name -> id mapping
+        # Build name -> id mapping (API uses capitalized keys)
         groups = {}
-        for group in data.get("groups", []):
-            name = group.get("name", "")
-            group_id = group.get("id")
+        for group in data.get("Groups", []):
+            name = group.get("Name", "")
+            group_id = group.get("Id")
             if name and group_id:
                 groups[name] = group_id
 
