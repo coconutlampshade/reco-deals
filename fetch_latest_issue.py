@@ -18,6 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
+import cloudscraper
 import requests
 from bs4 import BeautifulSoup
 
@@ -33,27 +34,16 @@ def fetch_rss_feed():
     """Fetch and parse the Recomendo RSS feed."""
     print(f"Fetching RSS feed: {RECOMENDO_FEED}")
 
-    # Use comprehensive browser headers to avoid 403 blocks
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "application/rss+xml, application/xml, text/xml, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
-    }
+    # Use cloudscraper to bypass bot protection (Cloudflare, etc.)
+    scraper = cloudscraper.create_scraper(
+        browser={
+            'browser': 'chrome',
+            'platform': 'darwin',
+            'desktop': True
+        }
+    )
 
-    # Create a session and try the request
-    session = requests.Session()
-
-    # First visit the main site to get any cookies
-    try:
-        session.get("https://recomendo.substack.com", headers=headers, timeout=10)
-    except:
-        pass  # Continue even if this fails
-
-    response = session.get(RECOMENDO_FEED, headers=headers, timeout=30)
+    response = scraper.get(RECOMENDO_FEED, timeout=30)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.content, "xml")
