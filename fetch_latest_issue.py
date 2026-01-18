@@ -24,6 +24,8 @@ from bs4 import BeautifulSoup
 
 # RSS feed URL
 RECOMENDO_FEED = "https://recomendo.substack.com/feed"
+# RSS proxy for when direct access is blocked
+RSS_PROXY_URL = "https://api.rss2json.com/v1/api.json?rss_url="
 
 # Project paths
 PROJECT_DIR = Path(__file__).parent
@@ -34,7 +36,23 @@ def fetch_rss_feed():
     """Fetch and parse the Recomendo RSS feed."""
     print(f"Fetching RSS feed: {RECOMENDO_FEED}")
 
-    # Use cloudscraper to bypass bot protection (Cloudflare, etc.)
+    # Try RSS proxy first (works around IP blocks)
+    try:
+        print("Trying RSS proxy...")
+        import urllib.parse
+        proxy_url = RSS_PROXY_URL + urllib.parse.quote(RECOMENDO_FEED, safe='')
+        response = requests.get(proxy_url, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("status") == "ok" and data.get("items"):
+            print(f"Found {len(data['items'])} items via proxy")
+            # Convert proxy format to RSS-like items
+            return [ProxyItem(item) for item in data["items"]]
+    except Exception as e:
+        print(f"Proxy failed: {e}, trying direct...")
+
+    # Fallback to direct fetch with cloudscraper
     scraper = cloudscraper.create_scraper(
         browser={
             'browser': 'chrome',
@@ -51,6 +69,35 @@ def fetch_rss_feed():
 
     print(f"Found {len(items)} items in feed")
     return items
+
+
+class ProxyItem:
+    """Wrapper to make rss2json items look like BeautifulSoup RSS items."""
+
+    def __init__(self, item_dict):
+        self._data = item_dict
+
+    def find(self, tag):
+        """Simulate BeautifulSoup find() method."""
+        mapping = {
+            "title": "title",
+            "link": "link",
+            "pubDate": "pubDate",
+            "content:encoded": "content",
+            "description": "description",
+        }
+        key = mapping.get(tag, tag)
+        value = self._data.get(key)
+        if value:
+            return ProxyText(value)
+        return None
+
+
+class ProxyText:
+    """Wrapper to provide .text attribute like BeautifulSoup."""
+
+    def __init__(self, text):
+        self.text = text
 
 
 def get_latest_issue(items):
