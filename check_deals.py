@@ -6,11 +6,13 @@ Usage:
     python check_deals.py              # Check all products
     python check_deals.py --limit 50   # Check first 50 products
     python check_deals.py --asin B09V3KXJPB  # Check specific ASIN
+    python check_deals.py --random 1000  # Random sample of 1000 products (weighted toward unfeatured)
 """
 
 import argparse
 import json
 import os
+import random
 import sys
 import time
 from datetime import datetime, timedelta
@@ -233,39 +235,10 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     if result["high_90_day"] and result["high_90_day"] > 0:
         result["percent_below_high"] = ((result["high_90_day"] - current_price) / result["high_90_day"]) * 100
 
-    # Determine if this is a deal
-    deal_reasons = []
-
-    # Check: Current price is X% below 90-day average (PRIMARY deal indicator)
+    # Determine if this is a deal: single criterion - must be 20%+ below 90-day average
     if result["percent_below_avg"] and result["percent_below_avg"] >= config.DEAL_PERCENT_BELOW_AVG:
-        deal_reasons.append(f"{result['percent_below_avg']:.0f}% below 90-day avg")
-
-    # Check: Current price is X% below 90-day high (ONLY if meaningfully below average)
-    # Being below a high alone doesn't make it a deal - it could still be near typical price
-    if result["percent_below_high"] and result["percent_below_high"] >= config.DEAL_PERCENT_BELOW_HIGH:
-        # Only count this if price is at least 10% below average (not just marginally below)
-        if result["percent_below_avg"] and result["percent_below_avg"] >= 10:
-            deal_reasons.append(f"{result['percent_below_high']:.0f}% below 90-day high")
-
-    # Check: Current price is near all-time low (only if meaningfully below average)
-    if result["all_time_low"] and result["all_time_low"] > 0:
-        percent_above_low = ((current_price - result["all_time_low"]) / result["all_time_low"]) * 100
-        # Only count all-time low if price is at least 5% below average
-        if percent_above_low <= config.DEAL_NEAR_LOW_PERCENT and (result["percent_below_avg"] or 0) >= 5:
-            if current_price <= result["all_time_low"]:
-                deal_reasons.append("At all-time low!")
-            else:
-                deal_reasons.append(f"Within {percent_above_low:.0f}% of all-time low")
-
-    # Check: Minimum dollar savings (only if meaningfully below average - at least 10%)
-    if result["savings_dollars"] and result["savings_dollars"] >= config.DEAL_MIN_DISCOUNT_DOLLARS:
-        if (result["percent_below_avg"] or 0) >= 10:  # Must be at least 10% below avg
-            if not deal_reasons:  # Only add if no other reason yet
-                deal_reasons.append(f"${result['savings_dollars']:.2f} savings")
-
-    if deal_reasons:
         result["is_deal"] = True
-        result["deal_reasons"] = deal_reasons
+        result["deal_reasons"] = [f"{result['percent_below_avg']:.0f}% below 90-day avg"]
 
     return result
 
@@ -349,14 +322,20 @@ def check_products(asins: list[str], catalog: dict) -> dict:
 
 def save_deals(results: dict, output_path: Path):
     """Save deal analysis results to JSON file."""
-    # Separate deals from non-deals
-    deals = {asin: data for asin, data in results.items() if data.get("is_deal")}
+    # Include all products with valid prices (gives review UI more options)
+    # Products still have is_deal flag to indicate strict deals (20%+ below avg)
+    products_with_prices = {
+        asin: data for asin, data in results.items()
+        if data.get("current_price") is not None
+    }
+    strict_deals = {asin: data for asin, data in products_with_prices.items() if data.get("is_deal")}
 
     output = {
         "generated_at": datetime.now().isoformat(),
         "total_checked": len(results),
-        "deals_found": len(deals),
-        "deals": deals,
+        "deals_found": len(strict_deals),
+        "products_with_prices": len(products_with_prices),
+        "deals": products_with_prices,  # Include all priced products for review UI
         "all_results": results,
     }
 
@@ -365,7 +344,8 @@ def save_deals(results: dict, output_path: Path):
         json.dump(output, f, indent=2, ensure_ascii=False)
 
     print(f"\nResults saved to: {output_path}")
-    return deals
+    print(f"Products with valid prices: {len(products_with_prices)}")
+    return strict_deals
 
 
 def load_catalog() -> dict:
@@ -379,10 +359,21 @@ def load_catalog() -> dict:
         return json.load(f)
 
 
+def load_featured_history() -> set:
+    """Load set of ASINs that have been featured in newsletters."""
+    history_file = config.PROJECT_ROOT / "catalog" / "featured_history.json"
+    if history_file.exists():
+        with open(history_file, "r", encoding="utf-8") as f:
+            return set(json.load(f).keys())
+    return set()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Check prices and find deals")
     parser.add_argument("--limit", type=int, help="Limit number of products to check")
     parser.add_argument("--asin", type=str, help="Check a specific ASIN")
+    parser.add_argument("--random", type=int, metavar="N",
+                        help="Randomly sample N products (weighted toward unfeatured)")
     parser.add_argument("--output", type=str, default="catalog/deals.json",
                         help="Output file path")
     args = parser.parse_args()
@@ -395,6 +386,26 @@ def main():
         asins = [args.asin]
         if args.asin not in catalog:
             print(f"Warning: ASIN {args.asin} not in catalog, checking anyway")
+    elif args.random:
+        # Weighted random sampling: 70% unfeatured, 30% featured
+        featured = load_featured_history()
+        all_asins = list(catalog.keys())
+        unfeatured_asins = [a for a in all_asins if a not in featured]
+        featured_asins = [a for a in all_asins if a in featured]
+
+        n_unfeatured = min(int(args.random * 0.7), len(unfeatured_asins))
+        n_featured = min(args.random - n_unfeatured, len(featured_asins))
+
+        # If not enough unfeatured, take more featured
+        if n_unfeatured + n_featured < args.random:
+            n_featured = min(args.random - n_unfeatured, len(featured_asins))
+
+        sampled = random.sample(unfeatured_asins, n_unfeatured) if n_unfeatured > 0 else []
+        sampled += random.sample(featured_asins, n_featured) if n_featured > 0 else []
+        random.shuffle(sampled)
+        asins = sampled
+
+        print(f"Random sample: {n_unfeatured} unfeatured + {n_featured} featured = {len(asins)} products")
     else:
         asins = list(catalog.keys())
         if args.limit:

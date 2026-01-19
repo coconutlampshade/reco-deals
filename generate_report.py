@@ -233,11 +233,12 @@ def filter_and_sort_deals(deals: dict, min_savings: float = 0, top_n: int = None
     Filter and sort deals by score.
 
     Returns list of (asin, deal_data) tuples.
+    Includes all products with valid prices (not just strict deals).
     """
-    # Filter out deals without prices
+    # Include all products with valid prices
     valid_deals = [
         (asin, data) for asin, data in deals.items()
-        if data.get("current_price") and data.get("is_deal")
+        if data.get("current_price")
     ]
 
     # Filter by minimum savings
@@ -247,7 +248,7 @@ def filter_and_sort_deals(deals: dict, min_savings: float = 0, top_n: int = None
             if (data.get("savings_dollars") or 0) >= min_savings
         ]
 
-    # Sort by score (highest first)
+    # Sort by score (highest first) - strict deals will rank higher due to better savings
     valid_deals.sort(key=lambda x: score_deal(x[1]), reverse=True)
 
     # Limit to top N

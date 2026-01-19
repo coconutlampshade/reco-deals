@@ -32,7 +32,7 @@ jobs:
         env:
           KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
         run: |
-          python check_deals.py
+          python check_deals.py --random 1000
 
       - name: Generate HTML report (PA API)
         env:
