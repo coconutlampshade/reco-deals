@@ -42,7 +42,7 @@ KEEPA_DOMAIN_ID = 1  # 1 = amazon.com (US)
 
 # Deal thresholds
 # A product is considered a "deal" if ANY of these conditions are met:
-DEAL_PERCENT_BELOW_AVG = 20      # Current price is 20%+ below 90-day average
+DEAL_PERCENT_BELOW_AVG = 10      # Current price is 10%+ below 90-day average
 DEAL_PERCENT_BELOW_HIGH = 30    # Current price is 30%+ below 90-day high
 DEAL_NEAR_LOW_PERCENT = 5       # Current price is within 5% of all-time low
 DEAL_MIN_DISCOUNT_DOLLARS = 5   # Minimum dollar savings to qualify as deal
