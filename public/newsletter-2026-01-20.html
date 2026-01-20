@@ -174,217 +174,183 @@
         }
         /* Hide Mailchimp's extra line breaks before footer */
         center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
     </style>
 
     <script>
         async function fetchPrices() {
             const deals = document.querySelectorAll('.deal[data-asin]');
             const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
             if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
             for (let i = 0; i < asins.length; i += 10) {
                 const batch = asins.slice(i, i + 10);
                 try {
                     const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
                     if (!response.ok) throw new Error('API error');
                     const prices = await response.json();
+
                     for (const [asin, data] of Object.entries(prices)) {
                         const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
                         if (!deal) continue;
+
                         const priceEl = deal.querySelector('.deal-price');
                         const indicatorEl = deal.querySelector('.deal-indicator');
+
                         if (data.current_price && priceEl) {
                             priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
                         }
+
                         if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
                             const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
                             indicatorEl.textContent = `${savingsPct}% off list price`;
                         }
                     }
-                } catch (e) { console.error('Error fetching prices:', e); }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
             }
         }
+
         document.addEventListener('DOMContentLoaded', fetchPrices);
     </script>
+
 </head>
 <body>
     <div class="container">
+
         <div class="logo">
             <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
         </div>
         <div class="subtitle">January 20, 2026</div>
 
         <div class="intro">
-            Today, we've found <strong>9</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+            Today, we've found <strong>5</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
         </div>
 
         <div class="disclosure">
-            As an Amazon Associate we earn from qualifying purchases. 
+            As an Amazon Associate we earn from qualifying purchases.
         </div>
 
-        <div class="deal" data-asin="B000F9B712" data-asin="B000F9B712">
+        <div class="deal" data-asin="B0011MIQUM">
             
         <div class="deal-image">
-            <a href="https://geni.us/YHXKXy" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/415zOOInq8S._SL160_.jpg" alt="Vari-Speed Fan Speed Controller" loading="lazy">
+            <a href="https://geni.us/1dtQoF" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41OcTZasjlL._SL160_.jpg" alt="ADC Medicut Shears" loading="lazy">
             </a>
         </div>
             <div class="deal-content">
                 <div class="deal-title">
-                    <a href="https://geni.us/YHXKXy" target="_blank">Vari-Speed Fan Speed Controller</a>
+                    <a href="https://geni.us/1dtQoF" target="_blank">ADC Medicut Shears</a>
                 </div>
-                <div class="deal-price">$15.99</div>
-                <div class="deal-indicator">50% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/vari-speed-fan-speed-controller/" target="_blank">Cool Tools</a>: Allows you to precisely adjust the speed of any fan or blower to create just the right amount of airflow without the excess noise and wind that comes from standard low-speed settings.</div>
-                <a href="https://geni.us/YHXKXy" class="buy-button" target="_blank">SEE DEAL</a>
-            </div>
-        </div>
-
-        <div class="deal" data-asin="B0088RL2QI" data-asin="B0088RL2QI">
-            
-        <div class="deal-image">
-            <a href="https://geni.us/Wzk1" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/311nlEjZaHL._SL160_.jpg" alt="Scotch Wrinkle Free Glue" loading="lazy">
-            </a>
-        </div>
-            <div class="deal-content">
-                <div class="deal-title">
-                    <a href="https://geni.us/Wzk1" target="_blank">Scotch Wrinkle Free Glue</a>
-                </div>
-                <div class="deal-price">$3.29</div>
+                <div class="deal-price">$5.35</div>
                 <div class="deal-indicator">34% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/manage-attention-magnetsbetter-glue-22-04-10" target="_blank">Recomendo #322</a>: These adhesive sticks prevent thin materials from wrinkling during application, making them ideal for delicate paper crafts and precision projects.</div>
-                <a href="https://geni.us/Wzk1" class="buy-button" target="_blank">SEE DEAL</a>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/trauma-shears/" target="_blank">Cool Tools</a>: Safely and easily cut through both plastic and thin sheet metal while withstanding constant heavy use without breaking.</div>
+                <a href="https://geni.us/1dtQoF" class="buy-button" target="_blank">SEE DEAL</a>
             </div>
         </div>
 
-        <div class="deal" data-asin="B0CXXQN8NS" data-asin="B0CXXQN8NS">
+        <div class="deal" data-asin="B002Y6B4A8">
             
         <div class="deal-image">
-            <a href="https://geni.us/nmgXFgG" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/41y9r8+4IvL._SL160_.jpg" alt="Ring Sizers Loose Rings Glue" loading="lazy">
+            <a href="https://geni.us/x73zi" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/31fGp0QNQjL._SL160_.jpg" alt="Delta Dust Pest Control" loading="lazy">
             </a>
         </div>
             <div class="deal-content">
                 <div class="deal-title">
-                    <a href="https://geni.us/nmgXFgG" target="_blank">Ring Sizers Loose Rings Glue</a>
+                    <a href="https://geni.us/x73zi" target="_blank">Delta Dust Pest Control</a>
                 </div>
-                <div class="deal-price">$13.94</div>
-                <div class="deal-indicator">30% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/how-to-find-purposekagitrack-your" target="_blank">Recomendo #489</a>: This resin solution allows people with smaller fingers to resize rings that are too large by building up layers inside the band until achieving a perfect fit.</div>
-                <a href="https://geni.us/nmgXFgG" class="buy-button" target="_blank">SEE DEAL</a>
+                <div class="deal-price">$25.25</div>
+                <div class="deal-indicator">18% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/pesticide-powder-duster/" target="_blank">Cool Tools</a>: Eliminates large pest infestations like yellow-jacket nests and bedbugs by delivering powder treatments precisely where needed, offering a more targeted alternative to messy aerosol sprays.</div>
+                <a href="https://geni.us/x73zi" class="buy-button" target="_blank">SEE DEAL</a>
             </div>
         </div>
 
-        <div class="deal" data-asin="B0016KHW2W" data-asin="B0016KHW2W">
+        <div class="deal" data-asin="B00FJFJDGS">
             
         <div class="deal-image">
-            <a href="https://geni.us/tv0Dvyq" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/416pcM9qawL._SL160_.jpg" alt="Gerber Gear EAB Pocket Knife" loading="lazy">
+            <a href="https://geni.us/IL71hfH" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/31NOoLgzVzL._SL160_.jpg" alt="Smart Weigh USPS Postal Scale" loading="lazy">
             </a>
         </div>
             <div class="deal-content">
                 <div class="deal-title">
-                    <a href="https://geni.us/tv0Dvyq" target="_blank">Gerber Gear EAB Pocket Knife</a>
+                    <a href="https://geni.us/IL71hfH" target="_blank">Smart Weigh USPS Postal Scale</a>
                 </div>
-                <div class="deal-price">$12.60</div>
-                <div class="deal-indicator">30% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/its-amazon-prime-day-find-out-if-our-top-cool-tools-are-on-sale/" target="_blank">Cool Tools</a>: A compact stainless steel utility knife with swappable contractor-grade blades and a handle that doubles as a money clip.</div>
-                <a href="https://geni.us/tv0Dvyq" class="buy-button" target="_blank">SEE DEAL</a>
+                <div class="deal-price">$22.99</div>
+                <div class="deal-indicator">18% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/archive-downloaderscience-newssunshinefyi-19-07-07" target="_blank">Recomendo #178</a>: Accurately weighs packages up to 11 pounds, making it essential for calculating exact shipping costs when selling items online.</div>
+                <a href="https://geni.us/IL71hfH" class="buy-button" target="_blank">SEE DEAL</a>
             </div>
         </div>
 
-        <div class="deal" data-asin="B0006VO194" data-asin="B0006VO194">
+        <div class="deal" data-asin="B000V5VGHU">
             
         <div class="deal-image">
-            <a href="https://geni.us/OEQD6n" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/41iL4vqZmWL._SL160_.jpg" alt="Paper Mate Flair Felt" loading="lazy">
+            <a href="https://geni.us/FvBItJ" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/31lBoKW0DzL._SL160_.jpg" alt="Bodum Schiuma Battery Operated" loading="lazy">
             </a>
         </div>
             <div class="deal-content">
                 <div class="deal-title">
-                    <a href="https://geni.us/OEQD6n" target="_blank">Paper Mate Flair Felt</a>
+                    <a href="https://geni.us/FvBItJ" target="_blank">Bodum Schiuma Battery Operated</a>
                 </div>
-                <div class="deal-price">$13.95</div>
-                <div class="deal-indicator">29% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/kurzgesagthvpersteelcase-gesture-17-08-13" target="_blank">Recomendo #79</a>: These felt-tip pens create smooth lines with variable line weight that changes based on the angle between pen and paper, making them ideal for sketching and design work.</div>
-                <a href="https://geni.us/OEQD6n" class="buy-button" target="_blank">SEE DEAL</a>
+                <div class="deal-price">$9.99</div>
+                <div class="deal-indicator">17% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/best-milk-frothers-compared/" target="_blank">Cool Tools</a>: Creates rich, creamy foam for coffee drinks by rapidly whipping milk through handheld or electric mechanisms.</div>
+                <a href="https://geni.us/FvBItJ" class="buy-button" target="_blank">SEE DEAL</a>
             </div>
         </div>
 
-        <div class="deal" data-asin="B01B1VC13K">
+        <div class="deal" data-asin="B0176B8N2W">
             
         <div class="deal-image">
-            <a href="http://amzn.to/2CBoxnq" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/41LfLkQTAIL._SL160_.jpg" alt="Instant Pot Duo Electric Cooker" loading="lazy">
+            <a href="https://geni.us/UbadRkN" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/21bGnL5xSxL._SL160_.jpg" alt="Sabatier Short Turner Silver" loading="lazy">
             </a>
         </div>
             <div class="deal-content">
                 <div class="deal-title">
-                    <a href="http://amzn.to/2CBoxnq" target="_blank">Instant Pot Duo Electric Cooker</a>
+                    <a href="https://geni.us/UbadRkN" target="_blank">Sabatier Short Turner Silver</a>
                 </div>
-                <div class="deal-price">$99.99</div>
-                <div class="deal-indicator">23% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/carol-tilley-information-science-professor/" target="_blank">Cool Tools</a>: This multi-function electric pressure cooker streamlines meal preparation by allowing you to make yogurt, rice, dry beans, and other dishes all in one appliance, eliminating the need for multiple kitchen gadgets.</div>
-                <a href="http://amzn.to/2CBoxnq" class="buy-button" target="_blank">SEE DEAL</a>
-            </div>
-        </div>
-
-        <div class="deal" data-asin="B012YYFVC6" data-asin="B012YYFVC6">
-            
-        <div class="deal-image">
-            <a href="https://geni.us/l5pJ" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/3136docH8VL._SL160_.jpg" alt="HeadBlade Moto Men's Head Razor" loading="lazy">
-            </a>
-        </div>
-            <div class="deal-content">
-                <div class="deal-title">
-                    <a href="https://geni.us/l5pJ" target="_blank">HeadBlade Moto Men's Head Razor</a>
-                </div>
-                <div class="deal-price">$13.35</div>
-                <div class="deal-indicator">21% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/headblade-moto-head-and-skull-shaving-razor/" target="_blank">Cool Tools</a>: This specialized razor allows you to safely shave your head down to the skin without the thousands of nicks and cuts that occur when using regular face razors.</div>
-                <a href="https://geni.us/l5pJ" class="buy-button" target="_blank">SEE DEAL</a>
-            </div>
-        </div>
-
-        <div class="deal" data-asin="B000079XW2" data-asin="B000079XW2">
-            
-        <div class="deal-image">
-            <a href="https://geni.us/T5TQWG" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/215pfjHcC2L._SL160_.jpg" alt="OXO Good Grips Smooth" loading="lazy">
-            </a>
-        </div>
-            <div class="deal-content">
-                <div class="deal-title">
-                    <a href="https://geni.us/T5TQWG" target="_blank">OXO Good Grips Smooth</a>
-                </div>
-                <div class="deal-price">$19.99</div>
-                <div class="deal-indicator">20% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/oxo-good-grips-smooth-edge-can-opener-2/" target="_blank">Cool Tools</a>: This can opener eliminates the risk of cutting your fingers by creating smooth, safe edges instead of sharp metal discs when opening cans.</div>
-                <a href="https://geni.us/T5TQWG" class="buy-button" target="_blank">SEE DEAL</a>
-            </div>
-        </div>
-
-        <div class="deal" data-asin="B002BA5WJ6" data-asin="B002BA5WJ6">
-            
-        <div class="deal-image">
-            <a href="https://geni.us/p99ZB" target="_blank">
-                <img src="https://m.media-amazon.com/images/I/318ogIiN1tL._SL160_.jpg" alt="Sharpie Retractable Permanent Markers" loading="lazy">
-            </a>
-        </div>
-            <div class="deal-content">
-                <div class="deal-title">
-                    <a href="https://geni.us/p99ZB" target="_blank">Sharpie Retractable Permanent Markers</a>
-                </div>
-                <div class="deal-price">$4.79</div>
-                <div class="deal-indicator">20% off list price</div>
-                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/over-sized-post/" target="_blank">Cool Tools</a>: The larger 4" x 4" size with lined format provides substantially more writing space and better tactile feedback for detailed daily planning and note-taking compared to standard smaller sticky notes.</div>
-                <a href="https://geni.us/p99ZB" class="buy-button" target="_blank">SEE DEAL</a>
+                <div class="deal-price">$9.98</div>
+                <div class="deal-indicator">17% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/workshop-tipsliving-on-one-dollarquest-18-06-24" target="_blank">Recomendo #124</a>: Provide the firm structure needed to properly flip and maneuver food in pans without scratching nonstick surfaces, unlike flimsy alternatives that bend and fail during use.</div>
+                <a href="https://geni.us/UbadRkN" class="buy-button" target="_blank">SEE DEAL</a>
             </div>
         </div>
 
         <div class="footer">
             <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            
             <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
             <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
         </div>
