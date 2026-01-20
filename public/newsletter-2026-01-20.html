@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">January 20, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>10</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases. Product prices and availability are accurate as of today at 14:21 PST and are subject to change. Any price and availability information displayed on Amazon at the time of purchase applies to your purchase.
+        </div>
+
+        <div class="deal" data-asin="B00R6MKDDE">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': '7ujR', 'productUrl': 'https://www.amazon.com/dp/B00R6MKDDE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': '7ujR'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41-mA-Nni-L._SL300_.jpg" alt="Trezor and it costs about $85" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': '7ujR', 'productUrl': 'https://www.amazon.com/dp/B00R6MKDDE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': '7ujR'}" target="_blank">Trezor and it costs about $85</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/best-gift-guidefranzghostery-17-11-26" target="_blank">Recomendo #94</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': '7ujR', 'productUrl': 'https://www.amazon.com/dp/B00R6MKDDE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': '7ujR'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B015J1821I">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2M8q34b" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61CIhkDxQHL._SL300_.jpg" alt="Adam Fisher, Author of Valley of Genius" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2M8q34b" target="_blank">Adam Fisher, Author of Valley of Genius</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/adam-fisher-author-of-valley-of-genius/" target="_blank">Cool Tools</a></div>
+                <a href="https://amzn.to/2M8q34b" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0001V489W">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': 'OiEf', 'productUrl': 'https://www.amazon.com/dp/B0001V489W?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'OiEf'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51WZ2LiyYpL._SL300_.jpg" alt="Jimmy DiResta, Designer" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': 'OiEf', 'productUrl': 'https://www.amazon.com/dp/B0001V489W?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'OiEf'}" target="_blank">Jimmy DiResta, Designer</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/jimmy-diresta-designer/" target="_blank">Cool Tools</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': 'OiEf', 'productUrl': 'https://www.amazon.com/dp/B0001V489W?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'OiEf'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B017NEYOQQ">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': 'cQf6o', 'productUrl': 'https://www.amazon.com/dp/B017NEYOQQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'cQf6o'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61Fy7sJ5yrL._SL300_.jpg" alt="mesh bags" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': 'cQf6o', 'productUrl': 'https://www.amazon.com/dp/B017NEYOQQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'cQf6o'}" target="_blank">mesh bags</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/text-only-cnncheap-mobile-homeyoutube-17-09-17" target="_blank">Recomendo #84</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': 'cQf6o', 'productUrl': 'https://www.amazon.com/dp/B017NEYOQQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'cQf6o'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B001KYTQ8W">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': 'F1Xr44', 'productUrl': 'https://www.amazon.com/dp/B001KYTQ8W?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'F1Xr44'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61RaYKK9oVL._SL300_.jpg" alt="What's in my bag? — Dennis Nishi" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': 'F1Xr44', 'productUrl': 'https://www.amazon.com/dp/B001KYTQ8W?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'F1Xr44'}" target="_blank">What's in my bag? — Dennis Nishi</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-dennis-nishi/" target="_blank">Cool Tools</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': 'F1Xr44', 'productUrl': 'https://www.amazon.com/dp/B001KYTQ8W?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'F1Xr44'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0016HM7SE">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': 'fMX5iT', 'productUrl': 'https://www.amazon.com/dp/B0016HM7SE?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'fMX5iT'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81uqQsix-oL._SL300_.jpg" alt="3M VHB Heavy Duty Mounting Tape" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': 'fMX5iT', 'productUrl': 'https://www.amazon.com/dp/B0016HM7SE?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'fMX5iT'}" target="_blank">3M VHB Heavy Duty Mounting Tape</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/3m-vhb-heavy-duty-mounting-tape/" target="_blank">Cool Tools</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': 'fMX5iT', 'productUrl': 'https://www.amazon.com/dp/B0016HM7SE?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'fMX5iT'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0002KZMCO">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': '2R1XTE', 'productUrl': 'https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': '2R1XTE'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51yl-JzNJgL._SL300_.jpg" alt="Microwaveable Bowls With Handles" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': '2R1XTE', 'productUrl': 'https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': '2R1XTE'}" target="_blank">Microwaveable Bowls With Handles</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/microwaveable-bowls-with-handles/" target="_blank">Cool Tools</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': '2R1XTE', 'productUrl': 'https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': '2R1XTE'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B001SN8HOY">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': 'gx3gZb', 'productUrl': 'https://www.amazon.com/dp/B001SN8HOY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'gx3gZb'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/519W4u3FkDL._SL300_.jpg" alt="pencil grips" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': 'gx3gZb', 'productUrl': 'https://www.amazon.com/dp/B001SN8HOY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'gx3gZb'}" target="_blank">pencil grips</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/spider-and-webcheap-new-toolsbetter-18-11-04" target="_blank">Recomendo #143</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': 'gx3gZb', 'productUrl': 'https://www.amazon.com/dp/B001SN8HOY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'gx3gZb'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00FQQRRIQ">
+            
+        <div class="deal-image">
+            <a href="{'linkCreatorSetting': 'Simple', 'code': 'Az4rrp0', 'productUrl': 'https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'Az4rrp0'}" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71PnDh1JkOL._SL300_.jpg" alt="Making a Wire Clamper" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="{'linkCreatorSetting': 'Simple', 'code': 'Az4rrp0', 'productUrl': 'https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'Az4rrp0'}" target="_blank">Making a Wire Clamper</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/making-a-wire-clamper/" target="_blank">Cool Tools</a></div>
+                <a href="{'linkCreatorSetting': 'Simple', 'code': 'Az4rrp0', 'productUrl': 'https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US', 'domain': 'geni.us', 'username': 'cooltools', 'groupId': 113260, 'fetchMetadata': True, 'baseDomain': 'geni.us', 'baseCode': 'Az4rrp0'}" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000JI9JYQ">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/detangler" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61f2yWce+lL._SL300_.jpg" alt="battery-powered hair detangling brush" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/detangler" target="_blank">battery-powered hair detangling brush</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/100-foot-wavebuild-your-own-notebookhair" target="_blank">Recomendo #383</a></div>
+                <a href="https://geni.us/detangler" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
