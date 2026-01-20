@@ -720,7 +720,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         </div>
 
         <div class="disclosure">
-            As an Amazon Associate we earn from qualifying purchases. Product prices and availability are accurate as of today at {price_time_str} and are subject to change. Any price and availability information displayed on Amazon at the time of purchase applies to your purchase.
+            As an Amazon Associate we earn from qualifying purchases.{'' if web_mode else f' Product prices and availability are accurate as of today at {price_time_str} and are subject to change. Any price and availability information displayed on Amazon at the time of purchase applies to your purchase.'}
         </div>
 """
 
@@ -826,9 +826,13 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         </div>
 """
 
-    html += """
+    # Archive URL for past deals with live prices
+    archive_url = "https://vercel-deploy-two-lemon.vercel.app/"
+
+    html += f"""
         <div class="footer">
             <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            {'<p>Looking for past deals? <a href="' + archive_url + '">Browse our archive</a> for previous issues with up-to-date prices.</p>' if not web_mode else ''}
             <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
             <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
         </div>

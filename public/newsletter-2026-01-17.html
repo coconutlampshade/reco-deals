@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+            if (asins.length === 0) return;
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                        }
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) { console.error('Error fetching prices:', e); }
+            }
+        }
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">January 17, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>5</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases. 
+        </div>
+
+        <div class="deal" data-asin="B000UU6SR4" data-asin="B000UU6SR4">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/fgdANXd" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/2162+G4tn3L._SL160_.jpg" alt="Gingher Dressmaker's Fabric Scissors" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/fgdANXd" target="_blank">Gingher Dressmaker's Fabric Scissors</a>
+                </div>
+                <div class="deal-price">$34.94</div>
+                <div class="deal-indicator">34% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/gingher-sewing-shears/" target="_blank">Cool Tools</a>: Effortlessly cut through multiple layers of fabric while maintaining razor-sharp precision all the way to the tips, making them durable enough to last generations.</div>
+                <a href="https://geni.us/fgdANXd" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00006JNNE" data-asin="B00006JNNE">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2ypq7YS?utm_campaign=What%27s%20in%20my%20bag%3F&utm_medium=email&utm_source=Revue%20newsletter" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/31Z1qMtbSaL._SL160_.jpg" alt="Post it Notes 3x3" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2ypq7YS?utm_campaign=What%27s%20in%20my%20bag%3F&utm_medium=email&utm_source=Revue%20newsletter" target="_blank">Post it Notes 3x3</a>
+                </div>
+                <div class="deal-price">$10.19</div>
+                <div class="deal-indicator">54% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-j-young-2/" target="_blank">Cool Tools</a>: A reliable analog capture system for instantly recording thoughts, ideas, and reminders while on-the-move, allowing you to easily collect and reorganize them for later processing without needing digital devices.</div>
+                <a href="https://amzn.to/2ypq7YS?utm_campaign=What%27s%20in%20my%20bag%3F&utm_medium=email&utm_source=Revue%20newsletter" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01IKS0ANK" data-asin="B01IKS0ANK">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/QiDA6yU" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/513WwjVPDkS._SL160_.jpg" alt="Reusable Ice Packs for Injuries" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/QiDA6yU" target="_blank">Reusable Ice Packs for Injuries</a>
+                </div>
+                <div class="deal-price">$15.17</div>
+                <div class="deal-indicator">20% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/escape-room-tipsmagpipuddle-and-pile-18-09-16" target="_blank">Recomendo #136</a>: Reusable gel wrap provides both hot and cold therapy for sore muscles, holding heat longer than traditional ice packs and not cracking when microwaved.</div>
+                <a href="https://geni.us/QiDA6yU" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00932EPYI">
+            
+        <div class="deal-image">
+            <a href="http://amzn.to/2nxWHjg" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41opDRZhG5L._SL160_.jpg" alt="Victorinox Jetsetter Swiss Army Knife" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="http://amzn.to/2nxWHjg" target="_blank">Victorinox Jetsetter Swiss Army Knife</a>
+                </div>
+                <div class="deal-price">$23.99</div>
+                <div class="deal-indicator">17% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/victorinox-classic-sd-pocket-knife/" target="_blank">Cool Tools</a>: Seven essential functions including scissors, screwdriver, and blade in a pocket-sized design that's shorter than a pinkie finger, making it perfect for everyday tasks and adventures.</div>
+                <a href="http://amzn.to/2nxWHjg" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000BOB8P6" data-asin="B000BOB8P6">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/Mvvnu" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41iesknUOiS._SL160_.jpg" alt="Loctite Epoxy Multi Purpose Stick" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/Mvvnu" target="_blank">Loctite Epoxy Multi Purpose Stick</a>
+                </div>
+                <div class="deal-price">$7.66</div>
+                <div class="deal-indicator">10% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/henkel-solid-ri/" target="_blank">Cool Tools</a>: This putty allows you to make structural repairs in areas where traditional glue or tape cannot grip, such as broken hinges or irregular surfaces, by providing a moldable material that hardens into a strong bond.</div>
+                <a href="https://geni.us/Mvvnu" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
