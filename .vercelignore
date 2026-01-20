@@ -1,0 +1,24 @@
+# Large directories
+cruft/
+reports/
+substack_export/
+
+# Data files
+*.xml
+*.csv
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+.DS_Store

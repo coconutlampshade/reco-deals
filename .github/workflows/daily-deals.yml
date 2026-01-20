@@ -34,16 +34,23 @@ jobs:
         run: |
           python check_deals.py --random 1000
 
-      - name: Generate HTML report (PA API)
+      - name: Generate web version (for Vercel)
+        run: |
+          mkdir -p public
+          python generate_report.py --top 50 --web --output public/newsletter-$(date +%Y-%m-%d).html
+
+      - name: Generate email version (PA API with live prices)
         env:
           PA_API_ACCESS_KEY: ${{ secrets.PA_API_ACCESS_KEY }}
           PA_API_SECRET_KEY: ${{ secrets.PA_API_SECRET_KEY }}
           PA_API_PARTNER_TAG: ${{ secrets.PA_API_PARTNER_TAG }}
           PA_API_HOST: webservices.amazon.com
           PA_API_REGION: us-east-1
+          VERCEL_URL: ${{ vars.VERCEL_URL }}
         run: |
           mkdir -p reports
-          python generate_report.py --top 50 --output reports/deals-$(date +%Y-%m-%d).html
+          WEB_URL="${VERCEL_URL:-https://reco-deals.vercel.app}/newsletter-$(date +%Y-%m-%d).html"
+          python generate_report.py --top 50 --web-url "$WEB_URL" --output reports/deals-$(date +%Y-%m-%d).html
 
       - name: Create Mailchimp draft campaign
         env:
@@ -57,11 +64,11 @@ jobs:
         run: |
           python mailchimp_send.py --html reports/deals-$(date +%Y-%m-%d).html
 
-      - name: Commit updated data files
+      - name: Commit updated data files and web version
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add catalog/deals.json catalog/featured_history.json
+          git add catalog/deals.json catalog/featured_history.json public/
           git diff --staged --quiet || git commit -m "Update deals and featured history
 
           🤖 Automated daily update"

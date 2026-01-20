@@ -32,6 +32,105 @@ def load_deals() -> dict:
         return json.load(f)
 
 
+def shorten_title(title):
+    """Create a clean, short product name (3-5 words)."""
+    import re
+    if not title:
+        return "Deal"
+
+    # Remove parenthetical content (model numbers, sizes, etc.)
+    title = re.sub(r'\([^)]*\)', '', title)
+    # Remove bracketed content
+    title = re.sub(r'\[[^\]]*\]', '', title)
+
+    # Remove common filler phrases
+    filler = [
+        r'\d+\s*sheet\s*capacity', r'jam\s*free', r'heavy\s*duty',
+        r'\d+\s*count', r'\d+\s*pack', r'\d+\s*piece', r'\d+\s*ct\b',
+        r'\d+"\s*', r'\d+\s*inch', r'\d+\s*"', r'\d+\s*ft\b',
+        r'business\s*', r'professional\s*', r'premium\s*',
+        r'classic\s*', r'original\s*', r'standard\s*',
+        r'non-stick\s*', r'ceramic\s*', r'stainless\s*steel\s*',
+        r'america\'s\s*#?\d*\s*favorite\s*', r'canary\s*yellow\s*',
+        r'clean\s*removal\s*', r'recyclable\s*', r'portable\s*',
+        r'low\s*profile\s*', r'replaces\s*\d+\s*', r'black\s*$',
+        r'diy\s*', r'hobby\s*', r'tool\s*painting\s*',
+    ]
+    for f in filler:
+        title = re.sub(f, '', title, flags=re.IGNORECASE)
+
+    # Clean up punctuation
+    title = re.sub(r'\s*-\s*$', '', title)  # trailing dash
+    title = re.sub(r'\s*,\s*,+', ',', title)  # multiple commas
+    title = re.sub(r'\s+', ' ', title)  # multiple spaces
+    title = title.strip(' ,-')
+
+    # Words to skip
+    skip_words = {'and', 'or', 'the', 'a', 'an', 'in', 'on', 'of', 'for', 'with', 'to'}
+
+    # Product type words we want to keep (ensures name makes sense)
+    product_types = {
+        'stapler', 'fryer', 'slicer', 'pan', 'trimmer', 'steamer', 'microscope',
+        'knife', 'scissors', 'cutter', 'grinder', 'blender', 'mixer', 'cooker',
+        'grill', 'toaster', 'maker', 'press', 'opener', 'peeler', 'grater',
+        'thermometer', 'scale', 'timer', 'clock', 'light', 'lamp', 'flashlight',
+        'charger', 'cable', 'adapter', 'speaker', 'headphones', 'earbuds',
+        'bag', 'case', 'pouch', 'wallet', 'holder', 'stand', 'rack', 'organizer',
+        'brush', 'comb', 'razor', 'clipper', 'tweezer', 'file',
+        'tape', 'glue', 'pen', 'pencil', 'pencils', 'marker', 'notebook', 'planner',
+        'tool', 'wrench', 'pliers', 'screwdriver', 'hammer', 'drill',
+        'game', 'puzzle', 'toy', 'book', 'guide', 'kit', 'set',
+        'pills', 'tablets', 'chewables', 'capsules', 'cream', 'lotion',
+        'stripper', 'sealer', 'dispenser', 'sharpener',
+        'lock', 'twister', 'grips', 'mat', 'pad', 'bed', 'seat',
+        'notes', 'pads', 'plate', 'shelter', 'booth', 'anchor', 'bowl', 'bowls',
+        'cubes', 'stick', 'sticks', 'bottle', 'mop', 'sprayer', 'nozzle',
+    }
+
+    # Split and remove duplicates while preserving order
+    words = []
+    seen = set()
+    for word in title.replace(',', ' ').replace('-', ' ').split():
+        word_lower = word.lower()
+        if word_lower not in seen and word_lower not in skip_words and len(word) > 1:
+            words.append(word)
+            seen.add(word_lower)
+
+    # Find if there's a product type word and ensure we include it
+    result_words = []
+    found_product_type = False
+    for i, word in enumerate(words):
+        if len(result_words) < 4:
+            result_words.append(word)
+            if word.lower() in product_types:
+                found_product_type = True
+        elif not found_product_type and word.lower() in product_types:
+            # Add the product type
+            result_words.append(word)
+            found_product_type = True
+            break
+
+    result = " ".join(result_words[:5] if not found_product_type else result_words)
+    return result if result else "Deal"
+
+
+def load_catalog_benefits() -> dict:
+    """Load benefit descriptions from products.json catalog."""
+    catalog_file = config.CATALOG_DIR / "products.json"
+    if not catalog_file.exists():
+        return {}
+
+    with open(catalog_file, "r", encoding="utf-8") as f:
+        catalog = json.load(f)
+
+    # Extract benefit_description for each ASIN
+    benefits = {}
+    for asin, product in catalog.items():
+        if product.get("benefit_description"):
+            benefits[asin] = product["benefit_description"]
+    return benefits
+
+
 # Logo URL (hosted externally for smaller email size)
 LOGO_URL = "https://kk.org/cooltools/files/2026/01/recomendo-deals.png"
 
@@ -260,7 +359,11 @@ def filter_and_sort_deals(deals: dict, min_savings: float = 0, top_n: int = None
 
 def get_buy_link(deal: dict) -> str:
     """Get the best buy link for a deal (prefer affiliate URL)."""
-    return deal.get("affiliate_url") or deal.get("amazon_url") or ""
+    affiliate_url = deal.get("affiliate_url")
+    # Handle affiliate_url being a dict with productUrl key
+    if isinstance(affiliate_url, dict):
+        return affiliate_url.get("productUrl") or ""
+    return affiliate_url or deal.get("amazon_url") or ""
 
 
 def format_price(price: float) -> str:
@@ -311,7 +414,7 @@ def fetch_live_prices(asins: list[str]) -> dict[str, dict]:
         return {}
 
 
-def generate_html_report(deals: list, title: str = "Recomendo Deals", live_prices: dict = None, price_timestamp: str = None) -> str:
+def generate_html_report(deals: list, title: str = "Recomendo Deals", live_prices: dict = None, price_timestamp: str = None, web_mode: bool = False, web_url: str = None, catalog_benefits: dict = None) -> str:
     """
     Generate an HTML email report with Recomendo styling.
 
@@ -320,9 +423,14 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         title: Report title
         live_prices: Dict of ASIN -> live price info from PA API
         price_timestamp: Timestamp when prices were fetched from PA API
+        web_mode: If True, generate web version with dynamic price fetching
+        web_url: URL to the web version (for "View in browser" link in email)
+        catalog_benefits: Dict of ASIN -> benefit description from catalog
     """
     if live_prices is None:
         live_prices = {}
+    if catalog_benefits is None:
+        catalog_benefits = {}
     today = datetime.now().strftime("%B %d, %Y")
 
     # Format price timestamp for display (time only if same day per Amazon requirements)
@@ -514,15 +622,99 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         }}
         /* Hide Mailchimp's extra line breaks before footer */
         center > br {{ display: none; }}
+        .view-online {{
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }}
+        .view-online a {{
+            color: #4384F3;
+            text-decoration: none;
+        }}
+        .view-online a:hover {{
+            text-decoration: underline;
+        }}
+        .price-loading {{
+            color: #999;
+            font-style: italic;
+        }}
     </style>
+"""
+
+    # Add JavaScript for web mode (dynamic price fetching)
+    if web_mode:
+        html += """
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \\d+:\\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+"""
+
+    html += """
 </head>
 <body>
     <div class="container">
+"""
+    html += f"""
         <div class="logo">
             <img src="{LOGO_URL}" alt="Recomendo Deals">
         </div>
         <div class="subtitle">{today}</div>
+"""
 
+    # Add "View in browser" link for email mode
+    if not web_mode and web_url:
+        html += f"""
+        <div class="view-online">
+            <a href="{web_url}" target="_blank">View online for live prices</a>
+        </div>
+"""
+
+    html += f"""
         <div class="intro">
             Today, we've found <strong>{len(deals)}</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
         </div>
@@ -538,8 +730,9 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         # Get live price from PA API (Amazon Associates compliant)
         live_price = live_prices.get(asin, {})
 
-        # Prefer PA API title (accurate) over catalog title (from newsletter link text)
-        title_text = live_price.get("title") or deal.get("catalog_title") or deal.get("title") or f"Product {asin}"
+        # Title: use full title then shorten it (same as Mailchimp workflow)
+        full_title = live_price.get("title") or deal.get("title") or deal.get("catalog_title") or f"Product {asin}"
+        title_text = shorten_title(full_title)
 
         # Use original affiliate URL from catalog (for accounting purposes)
         # Only fall back to constructed URL if no original exists
@@ -563,7 +756,8 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         # Priority: Recomendo over Cool Tools (if both exist, only show Recomendo)
         # Format: "Reviewed in [Source]: [benefits sentence]"
         meta_html = ""
-        benefits = live_price.get("benefits", "")
+        # Benefits priority: live_prices > catalog_benefits
+        benefits = live_price.get("benefits") or catalog_benefits.get(asin, "")
         issues = deal.get("issues", [])
         if issues:
             recomendo_issues = [i for i in issues if i.get("source") != "cooltools"]
@@ -608,8 +802,17 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         # Simple button text
         button_text = "SEE DEAL"
 
+        # For web mode, add data-asin attribute and placeholder for prices
+        if web_mode:
+            # In web mode, show loading placeholder for price
+            price_class = 'deal-price price-loading' if not live_price.get("current_price") else 'deal-price'
+            if not price_html:
+                price_html = f'<div class="{price_class}">Loading...</div>'
+            if not indicator_html:
+                indicator_html = '<div class="deal-indicator"></div>'
+
         html += f"""
-        <div class="deal">
+        <div class="deal" data-asin="{asin}">
             {image_html}
             <div class="deal-content">
                 <div class="deal-title">
@@ -758,4 +961,71 @@ def generate_markdown_report(deals: list, title: str = "Recomendo Deals", live_p
 
     return "\n".join(lines)
 
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate Recomendo Deals reports")
+    parser.add_argument("--top", type=int, default=10, help="Number of top deals to include")
+    parser.add_argument("--output", "-o", type=str, help="Output file path")
+    parser.add_argument("--web", action="store_true", help="Generate web version with dynamic price fetching")
+    parser.add_argument("--web-url", type=str, help="URL to web version (for 'View in browser' link)")
+    parser.add_argument("--format", choices=["html", "text", "markdown"], default="html", help="Output format")
+
+    args = parser.parse_args()
+
+    # Load deals
+    deals_data = load_deals()
+    if not deals_data:
+        print("No deals found. Run check_deals.py first.")
+        sys.exit(1)
+
+    # Handle nested structure (deals.json has 'deals' key)
+    if isinstance(deals_data, dict) and "deals" in deals_data:
+        deals_data = deals_data["deals"]
+
+    # Filter and sort deals
+    deals = filter_and_sort_deals(deals_data, top_n=args.top)
+    if not deals:
+        print("No valid deals after filtering.")
+        sys.exit(1)
+
+    print(f"Found {len(deals)} deals")
+
+    # Load catalog benefits for all modes
+    catalog_benefits = load_catalog_benefits()
+    print(f"Loaded {len(catalog_benefits)} benefit descriptions from catalog")
+
+    # Fetch live prices for HTML output (email mode)
+    live_prices = {}
+    price_timestamp = None
+    if args.format == "html" and not args.web:
+        asins = [asin for asin, _ in deals]
+        live_prices = fetch_live_prices(asins)
+        price_timestamp = datetime.now()
+
+    # Generate report
+    if args.format == "html":
+        content = generate_html_report(
+            deals,
+            live_prices=live_prices,
+            price_timestamp=price_timestamp,
+            web_mode=args.web,
+            web_url=args.web_url,
+            catalog_benefits=catalog_benefits
+        )
+    elif args.format == "markdown":
+        content = generate_markdown_report(deals, live_prices=live_prices)
+    else:
+        content = generate_text_report(deals, live_prices=live_prices)
+
+    # Output
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"Report written to {output_path}")
+    else:
+        print(content)
 

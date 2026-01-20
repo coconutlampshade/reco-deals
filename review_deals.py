@@ -1236,12 +1236,144 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
 
 
+def update_archive_index(public_dir):
+    """Update the archive index.html with links to all newsletters."""
+    from pathlib import Path
+
+    # Find all newsletter files
+    newsletters = sorted(public_dir.glob("newsletter-*.html"), reverse=True)
+
+    # Generate archive HTML
+    archive_html = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals Archive</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #363737;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 280px;
+        }
+        h1 {
+            text-align: center;
+            color: #363737;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .newsletter-list {
+            list-style: none;
+            padding: 0;
+        }
+        .newsletter-list li {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .newsletter-list li:last-child {
+            border-bottom: none;
+        }
+        .newsletter-list a {
+            color: #4384F3;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .newsletter-list a:hover {
+            text-decoration: underline;
+        }
+        .date {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .subscribe {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .subscribe a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .subscribe a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <h1>Newsletter Archive</h1>
+        <p class="subtitle">Past issues with live Amazon prices</p>
+        <ul class="newsletter-list">
+"""
+
+    for newsletter in newsletters:
+        # Extract date from filename (newsletter-YYYY-MM-DD.html)
+        date_str = newsletter.stem.replace("newsletter-", "")
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            formatted_date = date_obj.strftime("%B %d, %Y")
+        except ValueError:
+            formatted_date = date_str
+
+        archive_html += f"""            <li>
+                <a href="{newsletter.name}">{formatted_date}</a>
+                <div class="date">View deals with live prices</div>
+            </li>
+"""
+
+    archive_html += """        </ul>
+        <div class="subscribe">
+            <p>Get deals delivered to your inbox: <a href="https://mailchi.mp/cool-tools/recomendo-deals">Subscribe free</a></p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+    # Write archive index
+    index_path = public_dir / "index.html"
+    with open(index_path, "w") as f:
+        f.write(archive_html)
+    print(f"Archive index updated: {index_path}")
+
+
 def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
-        generate_html_report, update_featured_history, LOGO_URL
+        generate_html_report, update_featured_history, LOGO_URL,
+        load_catalog_benefits
     )
     from mailchimp_send import create_campaign
+    import os
+
+    # Web version URL (configurable via environment)
+    VERCEL_URL = os.getenv("VERCEL_URL", "https://vercel-deploy-two-lemon.vercel.app")
 
     if custom_titles is None:
         custom_titles = {}
@@ -1298,15 +1430,43 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
             "binding": deal.get("binding"),
         }
 
-    # Generate HTML
-    html = generate_html_report(selected, "Recomendo Deals", prices, datetime.now())
+    # Load catalog benefits for web version
+    catalog_benefits = load_catalog_benefits()
 
-    # Save report
-    report_path = config.PROJECT_ROOT / "reports" / f"deals-{datetime.now().strftime('%Y-%m-%d')}.html"
+    # Date string for file naming
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    web_filename = f"newsletter-{date_str}.html"
+    web_url = f"{VERCEL_URL}/{web_filename}"
+
+    # Generate web version (dynamic prices via JavaScript)
+    web_html = generate_html_report(
+        selected, "Recomendo Deals", prices, datetime.now(),
+        web_mode=True, catalog_benefits=catalog_benefits
+    )
+
+    # Save web version to public/ for Vercel
+    public_dir = config.PROJECT_ROOT / "public"
+    public_dir.mkdir(exist_ok=True)
+    web_path = public_dir / web_filename
+    with open(web_path, "w") as f:
+        f.write(web_html)
+    print(f"Web version saved to: {web_path}")
+
+    # Update archive index
+    update_archive_index(public_dir)
+
+    # Generate email version (static prices, with link to web version)
+    html = generate_html_report(
+        selected, "Recomendo Deals", prices, datetime.now(),
+        web_mode=False, web_url=web_url, catalog_benefits=catalog_benefits
+    )
+
+    # Save email report
+    report_path = config.PROJECT_ROOT / "reports" / f"deals-{date_str}.html"
     report_path.parent.mkdir(exist_ok=True)
     with open(report_path, "w") as f:
         f.write(html)
-    print(f"Report saved to: {report_path}")
+    print(f"Email report saved to: {report_path}")
 
     # Update featured history
     update_featured_history(asins)

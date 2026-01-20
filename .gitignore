@@ -37,3 +37,8 @@ substack_export/
 
 # Cruft folder
 cruft/
+
+# Vercel
+.vercel/
+.vercel
+.env*.local
