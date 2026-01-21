@@ -827,7 +827,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
 """
 
     # Archive URL for past deals with live prices
-    archive_url = "https://vercel-deploy-two-lemon.vercel.app/"
+    archive_url = "https://reco-deals.vercel.app/"
 
     html += f"""
         <div class="footer">

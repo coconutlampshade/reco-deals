@@ -1374,7 +1374,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     import os
 
     # Web version URL (configurable via environment)
-    VERCEL_URL = os.getenv("VERCEL_URL", "https://vercel-deploy-two-lemon.vercel.app")
+    VERCEL_URL = os.getenv("VERCEL_URL", "https://reco-deals.vercel.app")
 
     if custom_titles is None:
         custom_titles = {}
@@ -1526,8 +1526,15 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
 
     print(f"Campaign created: {campaign_url}")
 
-    # Push to git so Vercel deploys the web version
-    print("Pushing to git for Vercel deployment...")
+    # Deploy to Vercel and push to git
+    print("Deploying to Vercel...")
+    try:
+        subprocess.run(["vercel", "--prod", "--yes"], check=True, capture_output=True)
+        print("Deployed to Vercel")
+    except subprocess.CalledProcessError as e:
+        print(f"Vercel deploy failed: {e}")
+
+    print("Pushing to git...")
     try:
         subprocess.run(["git", "add", "-A"], check=True, capture_output=True)
         subprocess.run(
@@ -1535,7 +1542,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
             check=True, capture_output=True
         )
         subprocess.run(["git", "push"], check=True, capture_output=True)
-        print("Pushed to git - Vercel will deploy shortly")
+        print("Pushed to git")
     except subprocess.CalledProcessError as e:
         print(f"Git push failed: {e}")
 

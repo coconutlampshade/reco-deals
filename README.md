@@ -46,7 +46,7 @@ When you click "Confirm & Send", two versions are created:
 - Footer links to the archive for past deals
 
 ### 2. Web Version (Vercel)
-- Live at: **https://vercel-deploy-two-lemon.vercel.app/**
+- Live at: **https://reco-deals.vercel.app/**
 - Prices update in real-time from Amazon
 - Archive of all past issues
 
@@ -106,7 +106,7 @@ Check that your Mailchimp API key is set correctly in the `.env` file.
 
 All past newsletters with live pricing are available at:
 
-**https://vercel-deploy-two-lemon.vercel.app/**
+**https://reco-deals.vercel.app/**
 
 This is linked from every email newsletter footer, so subscribers can browse past deals with up-to-date prices.
 
