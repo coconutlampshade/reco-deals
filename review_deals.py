@@ -1351,6 +1351,7 @@ def update_archive_index(public_dir):
     archive_html += """        </ul>
         <div class="subscribe">
             <p>Get deals delivered to your inbox: <a href="https://mailchi.mp/cool-tools/recomendo-deals">Subscribe free</a></p>
+            <p><a href="feed.xml">RSS Feed</a></p>
         </div>
     </div>
 </body>
@@ -1362,6 +1363,81 @@ def update_archive_index(public_dir):
     with open(index_path, "w") as f:
         f.write(archive_html)
     print(f"Archive index updated: {index_path}")
+
+
+def update_rss_feed(public_dir):
+    """Generate RSS feed from newsletter archive."""
+    import re
+    from pathlib import Path
+    from email.utils import formatdate
+    from time import mktime
+
+    VERCEL_URL = "https://reco-deals.vercel.app"
+
+    # Find all newsletter files
+    newsletters = sorted(public_dir.glob("newsletter-*.html"), reverse=True)
+
+    rss_items = []
+    for newsletter in newsletters:
+        # Extract date from filename
+        date_str = newsletter.stem.replace("newsletter-", "")
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            formatted_date = date_obj.strftime("%B %d, %Y")
+            pub_date = formatdate(mktime(date_obj.timetuple()))
+        except ValueError:
+            formatted_date = date_str
+            pub_date = ""
+
+        # Parse deals from HTML
+        html_content = newsletter.read_text()
+
+        # Extract deal titles and prices
+        deals = []
+        # Match deal titles: <div class="deal-title">...<a ...>TITLE</a>
+        title_matches = re.findall(r'<div class="deal-title">\s*<a[^>]*>([^<]+)</a>', html_content)
+        # Match prices: <div class="deal-price">$XX.XX</div>
+        price_matches = re.findall(r'<div class="deal-price"[^>]*>([^<]+)</div>', html_content)
+
+        for i, title in enumerate(title_matches):
+            price = price_matches[i] if i < len(price_matches) else ""
+            deals.append(f"{title} - {price}" if price and "Loading" not in price else title)
+
+        # Build description
+        if deals:
+            description = "<ul>" + "".join(f"<li>{deal}</li>" for deal in deals) + "</ul>"
+        else:
+            description = "View deals with live prices"
+
+        link = f"{VERCEL_URL}/{newsletter.name}"
+
+        rss_items.append(f"""    <item>
+      <title>Recomendo Deals - {formatted_date}</title>
+      <link>{link}</link>
+      <guid>{link}</guid>
+      <pubDate>{pub_date}</pubDate>
+      <description><![CDATA[{description}]]></description>
+    </item>""")
+
+    # Build RSS feed
+    rss_feed = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Recomendo Deals</title>
+    <link>{VERCEL_URL}</link>
+    <description>Daily deals on products recommended by Recomendo and Cool Tools</description>
+    <language>en-us</language>
+    <atom:link href="{VERCEL_URL}/feed.xml" rel="self" type="application/rss+xml"/>
+{chr(10).join(rss_items)}
+  </channel>
+</rss>
+"""
+
+    # Write RSS feed
+    feed_path = public_dir / "feed.xml"
+    with open(feed_path, "w") as f:
+        f.write(rss_feed)
+    print(f"RSS feed updated: {feed_path}")
 
 
 def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None) -> dict:
@@ -1453,8 +1529,9 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
         f.write(web_html)
     print(f"Web version saved to: {web_path}")
 
-    # Update archive index
+    # Update archive index and RSS feed
     update_archive_index(public_dir)
+    update_rss_feed(public_dir)
 
     # Generate email version (static prices, with link to web version)
     html = generate_html_report(
