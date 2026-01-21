@@ -41,7 +41,7 @@ When you click "Confirm & Send", two versions are created:
 
 ### 1. Email Version (Mailchimp)
 - Sent to subscribers
-- Prices are locked at send time (required by Amazon)
+- Prices are locked at send time
 - Includes link to view online with live prices
 - Footer links to the archive for past deals
 
@@ -49,7 +49,6 @@ When you click "Confirm & Send", two versions are created:
 - Live at: **https://vercel-deploy-two-lemon.vercel.app/**
 - Prices update in real-time from Amazon
 - Archive of all past issues
-- Great for sharing on social media
 
 ---
 
@@ -81,8 +80,8 @@ Deals are scored and sorted by:
 | File/Folder | What It Does |
 |-------------|--------------|
 | `review_deals.py` | The main tool you use to select deals and send newsletters |
-| `catalog/products.json` | Database of 700+ recommended products |
-| `catalog/deals.json` | Today's deals (updated daily by automation) |
+| `catalog/products.json` | Database of 3000 products we've recommended |
+| `catalog/deals.json` | Today's deals (updated daily by automatically consulting with Keepa) |
 | `public/` | Web versions of newsletters (deployed to Vercel) |
 | `reports/` | Email versions of newsletters |
 
