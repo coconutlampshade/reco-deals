@@ -1389,23 +1389,55 @@ def update_rss_feed(public_dir):
             formatted_date = date_str
             pub_date = ""
 
-        # Parse deals from HTML
+        # Read full HTML content
         html_content = newsletter.read_text()
 
-        # Extract deal titles and prices
-        deals = []
-        # Match deal titles: <div class="deal-title">...<a ...>TITLE</a>
-        title_matches = re.findall(r'<div class="deal-title">\s*<a[^>]*>([^<]+)</a>', html_content)
-        # Match prices: <div class="deal-price">$XX.XX</div>
-        price_matches = re.findall(r'<div class="deal-price"[^>]*>([^<]+)</div>', html_content)
+        # Split by deal blocks - each deal starts with <div class="deal"
+        parts = re.split(r'(<div class="deal"[^>]*>)', html_content)
+        deal_blocks = []
+        for i, part in enumerate(parts):
+            if part.startswith('<div class="deal"'):
+                # Combine the opening tag with the content that follows
+                if i + 1 < len(parts):
+                    # Find where this deal ends (before next deal or footer)
+                    content = parts[i + 1]
+                    # Take content up to the next major section
+                    end_match = re.search(r'<div class="footer">', content)
+                    if end_match:
+                        content = content[:end_match.start()]
+                    deal_blocks.append(part + content)
 
-        for i, title in enumerate(title_matches):
-            price = price_matches[i] if i < len(price_matches) else ""
-            deals.append(f"{title} - {price}" if price and "Loading" not in price else title)
+        if deal_blocks:
+            # Build description with full deal HTML
+            description = '<div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">'
+            for block in deal_blocks:
+                # Extract key info from each deal
+                title_match = re.search(r'<div class="deal-title">\s*<a[^>]*href="([^"]+)"[^>]*>([^<]+)</a>', block)
+                price_match = re.search(r'<div class="deal-price"[^>]*>([^<]+)</div>', block)
+                indicator_match = re.search(r'<div class="deal-indicator">([^<]+)</div>', block)
+                meta_match = re.search(r'<div class="deal-meta">(.+?)</div>', block, re.DOTALL)
+                img_match = re.search(r'<img[^>]*src="([^"]+)"', block)
 
-        # Build description
-        if deals:
-            description = "<ul>" + "".join(f"<li>{deal}</li>" for deal in deals) + "</ul>"
+                if title_match:
+                    url, title = title_match.groups()
+                    price = price_match.group(1) if price_match else ""
+                    indicator = indicator_match.group(1) if indicator_match else ""
+                    meta = meta_match.group(1).strip() if meta_match else ""
+                    img = img_match.group(1) if img_match else ""
+
+                    description += f'''
+<div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+  <table><tr>
+    <td style="vertical-align: top; padding-right: 15px;">{"<img src='" + img + "' width='80' height='80' style='border-radius: 8px;'>" if img else ""}</td>
+    <td style="vertical-align: top;">
+      <a href="{url}" style="font-weight: 600; color: #363737; text-decoration: none; font-size: 16px;">{title}</a><br>
+      <span style="color: #27ae60; font-weight: 700; font-size: 18px;">{price}</span>
+      {f'<span style="color: #27ae60; font-size: 14px;"> · {indicator}</span>' if indicator else ''}
+      <div style="font-size: 13px; color: #666; margin-top: 5px;">{meta}</div>
+    </td>
+  </tr></table>
+</div>'''
+            description += '</div>'
         else:
             description = "View deals with live prices"
 
