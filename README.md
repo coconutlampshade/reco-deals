@@ -112,6 +112,16 @@ This is linked from every email newsletter footer, so subscribers can browse pas
 
 ---
 
+## RSS Feed
+
+Subscribe to the deals via RSS:
+
+**https://reco-deals.vercel.app/feed.xml**
+
+The feed includes full newsletter content with product images, prices, discounts, and descriptions.
+
+---
+
 ## Need Help?
 
 For technical issues or questions, the codebase is documented in detail. Ask Claude Code for help with:
