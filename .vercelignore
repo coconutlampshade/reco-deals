@@ -3,8 +3,9 @@ cruft/
 reports/
 substack_export/
 
-# Data files
+# Data files (except RSS feed)
 *.xml
+!public/feed.xml
 *.csv
 *.zip
 
