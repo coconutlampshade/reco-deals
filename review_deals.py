@@ -15,6 +15,7 @@ import argparse
 import json
 import math
 import random
+import subprocess
 import webbrowser
 import threading
 import time
@@ -1524,6 +1525,19 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
         campaign_url = f"https://admin.mailchimp.com/campaigns/edit?id={campaign_url}"
 
     print(f"Campaign created: {campaign_url}")
+
+    # Push to git so Vercel deploys the web version
+    print("Pushing to git for Vercel deployment...")
+    try:
+        subprocess.run(["git", "add", "-A"], check=True, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "Update deals and featured history\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"],
+            check=True, capture_output=True
+        )
+        subprocess.run(["git", "push"], check=True, capture_output=True)
+        print("Pushed to git - Vercel will deploy shortly")
+    except subprocess.CalledProcessError as e:
+        print(f"Git push failed: {e}")
 
     return {
         "success": True,
