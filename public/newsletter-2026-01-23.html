@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">January 23, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>50</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B00R6MKDDE">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B00R6MKDDE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41-mA-Nni-L._SL300_.jpg" alt="Trezor Model One Cryptocurrency Wallet" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B00R6MKDDE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Trezor Model One Cryptocurrency Wallet</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/best-gift-guidefranzghostery-17-11-26" target="_blank">Recomendo #94</a>: This hardware device provides secure offline storage for digital currencies, protecting thousands of different cryptocurrencies from online threats while maintaining an easy-to-use interface.</div>
+                <a href="https://www.amazon.com/dp/B00R6MKDDE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0001V489W">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0001V489W?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51WZ2LiyYpL._SL300_.jpg" alt="HIC Kitchen Ice Pick" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0001V489W?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">HIC Kitchen Ice Pick</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/jimmy-diresta-designer/" target="_blank">Cool Tools</a>: This tool combines two essential camping implements—a Bowie knife and a sharp saw—in one compact design that rotates 180 degrees with a simple trigger mechanism.</div>
+                <a href="https://www.amazon.com/dp/B0001V489W?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B004Y960MU">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B004Y960MU?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81Ewd5aI+aS._SL300_.jpg" alt="Loctite Super Glue Liquid" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B004Y960MU?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Loctite Super Glue Liquid</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/gareth-branwyn-former-editorial-director-of-make/" target="_blank">Cool Tools</a>: This adhesive creates an incredibly strong, carvable bond when mixed with baking soda, allowing users to cut and shape the hardened material for precise repairs and modifications.</div>
+                <a href="https://www.amazon.com/dp/B004Y960MU?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B017NEYOQQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B017NEYOQQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61Fy7sJ5yrL._SL300_.jpg" alt="BAGAIL Laundry Bags Mesh Bag" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B017NEYOQQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">BAGAIL Laundry Bags Mesh Bag</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/text-only-cnncheap-mobile-homeyoutube-17-09-17" target="_blank">Recomendo #84</a>: These mesh bags protect delicate clothing items like lingerie and intimates from damage during machine washing by containing them in a protective barrier while still allowing water and detergent to flow through.</div>
+                <a href="https://www.amazon.com/dp/B017NEYOQQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B001AX9HDW">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B001AX9HDW?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41a+XWY0iSL._SL300_.jpg" alt="Pilot Fountain Pen Capless" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B001AX9HDW?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Pilot Fountain Pen Capless</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-christopher-michel/" target="_blank">Cool Tools</a>: The second time zone hand allows travelers to easily keep track of the time back home while in different time zones.</div>
+                <a href="https://www.amazon.com/dp/B001AX9HDW?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0002KZMCO">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51yl-JzNJgL._SL300_.jpg" alt="Corningware Plastic 20 Ounce" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Corningware Plastic 20 Ounce</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/microwaveable-bowls-with-handles/" target="_blank">Cool Tools</a>: This container allows you to steam-cook vegetables like carrots and brussels sprouts while providing adjustable venting control through a toggle switch that lets you manage steam release during heating.</div>
+                <a href="https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B001SN8HOY">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B001SN8HOY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/519W4u3FkDL._SL300_.jpg" alt="Pencil Grip Grippers Pcs" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B001SN8HOY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Pencil Grip Grippers Pcs</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/spider-and-webcheap-new-toolsbetter-18-11-04" target="_blank">Recomendo #143</a>: These ergonomic grips slip onto writing instruments to guide proper finger placement and reduce hand strain, making handwriting more comfortable and legible for both children and adults.</div>
+                <a href="https://www.amazon.com/dp/B001SN8HOY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00FQQRRIQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71PnDh1JkOL._SL300_.jpg" alt="12 Pack Triangle Pencil" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">12 Pack Triangle Pencil</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/making-a-wire-clamper/" target="_blank">Cool Tools</a>: This tool allows craftspeople to securely hold and manipulate wires during detailed work, providing the precise control needed for delicate electrical or jewelry-making projects.</div>
+                <a href="https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000JI9JYQ">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/detangler" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61f2yWce+lL._SL300_.jpg" alt="Remington Tame Mane Thick Brush" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/detangler" target="_blank">Remington Tame Mane Thick Brush</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/100-foot-wavebuild-your-own-notebookhair" target="_blank">Recomendo #383</a>: Uses rotating paddles instead of traditional bristles to effortlessly glide through knots and mats in hair without the painful tugging of regular brushes.</div>
+                <a href="https://geni.us/detangler" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B007BKL6G4">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/34R1YJk" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/813mRzH-saL._SL300_.jpg" alt="Gerber Gear 31 001134 Tool" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/34R1YJk" target="_blank">Gerber Gear 31 001134 Tool</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/favorite-pocket-size-tools/" target="_blank">Cool Tools</a>: This compact multi-tool fits in a watch pocket and is small enough to carry everywhere while still providing essential functionality for daily tasks.</div>
+                <a href="https://amzn.to/34R1YJk" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0000225P9">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0000225P9?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51SL8nvfcEL._SL300_.jpg" alt="DEWALT Magnetic Bit Holder" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0000225P9?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">DEWALT Magnetic Bit Holder</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/gyroscopic-inline-screwdriver/" target="_blank">Cool Tools</a>: This magnetic bit holder enables precise screw driving and removal in tight corners by securely holding bits in place while working in confined spaces.</div>
+                <a href="https://www.amazon.com/dp/B0000225P9?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000BOB8P6">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/Mvvnu" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/612ZRGUmoiS._SL300_.jpg" alt="Loctite Epoxy Multi Purpose Stick" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/Mvvnu" target="_blank">Loctite Epoxy Multi Purpose Stick</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/henkel-solid-ri/" target="_blank">Cool Tools</a>: This putty allows you to make structural repairs in areas where traditional glue or tape cannot grip, such as broken hinges or irregular surfaces, by providing a moldable material that hardens into a strong bond.</div>
+                <a href="https://geni.us/Mvvnu" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0056FUC8O">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0056FUC8O?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61k9uAUUrZL._SL300_.jpg" alt="Mix Paint Bottle Brush" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0056FUC8O?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Mix Paint Bottle Brush</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/author-and-editor-gareth-branwyn-cool-tools-show-episode-006/" target="_blank">Cool Tools</a>: This podcast episode helps listeners identify which household tools are worth keeping long-term and how to curate a collection of durable, useful items that will serve future homeowners well.</div>
+                <a href="https://www.amazon.com/dp/B0056FUC8O?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0725GYNG6">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/am-baking-mats" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81IC5+bWDgL._SL300_.jpg" alt="Amazon Basics Silicone Rectangular Mat" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/am-baking-mats" target="_blank">Amazon Basics Silicone Rectangular Mat</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/nomad-landsdisappearing-emailsairpod-21-02-21" target="_blank">Recomendo #263</a>: This reusable silicone mat provides a non-stick surface that eliminates the need for parchment paper or cooking sprays when baking, making cleanup easier and reducing waste.</div>
+                <a href="https://geni.us/am-baking-mats" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B001KYTQ8W">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B001KYTQ8W?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61RaYKK9oVL._SL300_.jpg" alt="Carmex Lip Balm 0.35" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B001KYTQ8W?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Carmex Lip Balm 0.35</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-dennis-nishi/" target="_blank">Cool Tools</a>: This lip balm prevents chapped lips during extended outdoor photography and video shoots.</div>
+                <a href="https://www.amazon.com/dp/B001KYTQ8W?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B005FPCVFM">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B005FPCVFM?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71EoSmTikVL._SL300_.jpg" alt="Birkenstock Unisex Arizona Sandal" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B005FPCVFM?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Birkenstock Unisex Arizona Sandal</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-eric-mcclellan/" target="_blank">Cool Tools</a>: These sandals provide comfortable, durable footwear that can be worn casually even with socks for everyday activities.</div>
+                <a href="https://www.amazon.com/dp/B005FPCVFM?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00FLYWNYQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B00FLYWNYQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71Z401LjFFL._SL300_.jpg" alt="Instant Pot Duo Electric Cooker" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B00FLYWNYQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Instant Pot Duo Electric Cooker</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/talk-to-booksplastic-razor-bladesfuji-19-01-27" target="_blank">Recomendo #155</a>: This multi-functional kitchen appliance replaces seven separate cooking devices, allowing you to pressure cook, slow cook, steam, sauté, make rice and yogurt, and keep food warm all in one countertop unit.</div>
+                <a href="https://www.amazon.com/dp/B00FLYWNYQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B008MCUOH2">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2CvTXN3" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61e70sOzDaL._SL300_.jpg" alt="3M Ear Plugs Rsoft" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2CvTXN3" target="_blank">3M Ear Plugs Rsoft</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/daniel-pink-nyt-bestselling-author/" target="_blank">Cool Tools</a>: These disposable ear plugs provide reliable sound blocking for focused work and better sleep without the worry of dead batteries or losing expensive equipment.</div>
+                <a href="https://amzn.to/2CvTXN3" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B008MCU2M4">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2lseM7v?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81XYz9atgNL._SL300_.jpg" alt="3M Ear Plugs 200" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2lseM7v?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">3M Ear Plugs 200</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-charles-platt/" target="_blank">Cool Tools</a>: These foam ear plugs enable you to enjoy loud environments like live music venues without damaging your hearing, giving you the freedom to go anywhere regardless of noise levels.</div>
+                <a href="https://amzn.to/2lseM7v?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00HX704NG">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B00HX704NG?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61ieGRJgjeL._SL300_.jpg" alt="Tool International 90002 Bond" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B00HX704NG?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Tool International 90002 Bond</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/q-bond-qb2-repair-kit/" target="_blank">Cool Tools</a>: This repair kit provides a simple alternative to complex adhesive methods like cutting around foam tape, making it easier to reattach car emblems and other broken parts.</div>
+                <a href="https://www.amazon.com/dp/B00HX704NG?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B007TSYNG8">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B007TSYNG8?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61qWYzgvXrL._SL300_.jpg" alt="E6000 230010 Craft Adhesive" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B007TSYNG8?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">E6000 230010 Craft Adhesive</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/working-with-metal-infused-filaments/" target="_blank">Cool Tools</a>: These filaments allow you to create 3D printed objects with metallic properties and appearance by incorporating actual metal particles into the printing material.</div>
+                <a href="https://www.amazon.com/dp/B007TSYNG8?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00064C4V8">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/YEwa5" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61CcMIjcEKL._SL300_.jpg" alt="Little Giant Ladder Systems" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/YEwa5" target="_blank">Little Giant Ladder Systems</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/little-giant-ladders-with-work-platform/" target="_blank">Cool Tools</a>: This ladder allows you to adjust each side to different lengths independently, making it possible to work safely on uneven surfaces like stairs or sloped ground where a traditional ladder wouldn't be stable.</div>
+                <a href="https://geni.us/YEwa5" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B004Z10HMG">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B004Z10HMG?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/6169UnJRRxL._SL300_.jpg" alt="Stansport Folding Camp Stove Toaster" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B004Z10HMG?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Stansport Folding Camp Stove Toaster</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/camping-toaster/" target="_blank">Cool Tools</a>: This folding device allows you to make toast directly over a campfire or gas stovetop, providing a simple way to enjoy hot bread while camping or cooking outdoors.</div>
+                <a href="https://www.amazon.com/dp/B004Z10HMG?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000PS8JPU">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B000PS8JPU?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51IU97dolnL._SL300_.jpg" alt="Mead Memo Book College" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B000PS8JPU?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Mead Memo Book College</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/artist-and-author-douglas-coupland/" target="_blank">Cool Tools</a>: These compact spiral notebooks allow you to quickly capture ideas and observations anywhere by fitting conveniently in your pocket for instant access whenever inspiration strikes.</div>
+                <a href="https://www.amazon.com/dp/B000PS8JPU?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B008Z67JNM">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B008Z67JNM?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61ga9aD-hUL._SL300_.jpg" alt="Ullman 2M Magnifying Telescoping" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B008Z67JNM?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Ullman 2M Magnifying Telescoping</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/jamie-hyneman-gives-us-a-tour-of-his-dont-touch-toolkit/" target="_blank">Cool Tools</a>: This telescoping inspection tool allows users to visually examine hard-to-reach areas and tight spaces by extending its adjustable handle and angling the magnifying mirror for clear viewing of otherwise inaccessible components.</div>
+                <a href="https://www.amazon.com/dp/B008Z67JNM?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01B1VC13K">
+            
+        <div class="deal-image">
+            <a href="http://amzn.to/2CBoxnq" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71YfFzJ+ySL._SL300_.jpg" alt="Instant Pot Duo Electric Cooker" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="http://amzn.to/2CBoxnq" target="_blank">Instant Pot Duo Electric Cooker</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/carol-tilley-information-science-professor/" target="_blank">Cool Tools</a>: This multi-function electric pressure cooker streamlines meal preparation by allowing you to make yogurt, rice, dry beans, and other dishes all in one appliance, eliminating the need for multiple kitchen gadgets.</div>
+                <a href="http://amzn.to/2CBoxnq" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B008AGWNII">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B008AGWNII?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51zDAqrFwJL._SL300_.jpg" alt="Komelon SM5425 Speed Mark Tape" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B008AGWNII?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Komelon SM5425 Speed Mark Tape</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/paper-airplane-machine-maker-update/" target="_blank">Cool Tools</a>: This measuring tape features an acrylic-coated steel blade that provides durability and smooth operation for accurate measurements up to 25 feet.</div>
+                <a href="https://www.amazon.com/dp/B008AGWNII?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00004THXI">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/34ofDYx?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/814Z75k-dDL._SL300_.jpg" alt="Winsor Newton Cotman Watercolor Set" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/34ofDYx?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">Winsor Newton Cotman Watercolor Set</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-nicole-harkin/" target="_blank">Cool Tools</a>: This compact watercolor set with brush comes in a waterproof case that allows artists to carry quality paints everywhere and create artwork whenever the opportunity arises.</div>
+                <a href="https://amzn.to/34ofDYx?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07QJVPMGF">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/37G5CWY" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/6159ITK9V7L._SL300_.jpg" alt="Colored Overlays Transparency Color Light" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/37G5CWY" target="_blank">Colored Overlays Transparency Color Light</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/colored-gels-for-segmented-displays/" target="_blank">Cool Tools</a>: These transparent colored sheets allow DIY electronics enthusiasts to transform bare LED displays into professional-looking components by filtering the light with theatrical-quality colored gels.</div>
+                <a href="https://amzn.to/37G5CWY" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00T3ES1SC">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B00T3ES1SC?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81IwoVH-MWL._SL300_.jpg" alt="Morakniv Craftline Carbon Steel Knife" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B00T3ES1SC?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Morakniv Craftline Carbon Steel Knife</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/luke-khanlian-long-now-clock-engineer/" target="_blank">Cool Tools</a>: This chisel knife combines the cutting versatility of a straight blade with the precision chiseling capability of a squared-off tip, making it effective for both general cutting tasks like opening boxes and detailed woodworking projects.</div>
+                <a href="https://www.amazon.com/dp/B00T3ES1SC?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07DF5Z34N">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B07DF5Z34N?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71UYTAkw1eL._SL300_.jpg" alt="Fast Orange 23122 15" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B07DF5Z34N?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Fast Orange 23122 15</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/swedish-dish-clothsdiscounted-shippinggourmet" target="_blank">Recomendo #399</a>: This industrial-strength cleaner effectively removes sticky grease, paint, glue, ink, and grime from hands that ordinary soap cannot clean off.</div>
+                <a href="https://www.amazon.com/dp/B07DF5Z34N?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00R0I71S4">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2SmiNFy" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71PhCa-yYjL._SL300_.jpg" alt="Logitech Keys Go Super Light" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2SmiNFy" target="_blank">Logitech Keys Go Super Light</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/m-g-siegler-general-partner-at-gv/" target="_blank">Cool Tools</a>: This ultra-portable wireless keyboard allows you to type comfortably on tablets and phones while maintaining the tactile experience of physical keys instead of relying on touchscreen typing.</div>
+                <a href="https://amzn.to/2SmiNFy" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B004P5XOTA">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B004P5XOTA?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/819slvpj6fL._SL300_.jpg" alt="UCO Stormproof Match Kit" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B004P5XOTA?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">UCO Stormproof Match Kit</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/sierra-stove-1/" target="_blank">Cool Tools</a>: This lightweight stove eliminates the need to carry fuel or fuel containers by burning natural materials like twigs and debris found along the trail.</div>
+                <a href="https://www.amazon.com/dp/B004P5XOTA?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0034KDEMO">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0034KDEMO?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71OvwcJJu8L._SL300_.jpg" alt="Field Notes: Kraft Pack" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0034KDEMO?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Field Notes: Kraft Pack</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-tyler/" target="_blank">Cool Tools</a>: This compact camera bag excels at carrying small loads comfortably while providing excellent organization for daily commuting and office work.</div>
+                <a href="https://www.amazon.com/dp/B0034KDEMO?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B012RGM7BO">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/0JmT" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71HDwlqK3-L._SL300_.jpg" alt="Tomcat Rat Snap Trap" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/0JmT" target="_blank">Tomcat Rat Snap Trap</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/the-arab-of-the-futureedison-style-21-06-06" target="_blank">Recomendo #278</a>: This trap effectively kills rats with a snap mechanism that can be reused multiple times, making it suitable for ongoing pest control in residential and agricultural settings.</div>
+                <a href="https://geni.us/0JmT" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0016HM7SE">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0016HM7SE?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81uqQsix-oL._SL300_.jpg" alt="3M VHB Tape 5952" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0016HM7SE?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">3M VHB Tape 5952</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/3m-vhb-heavy-duty-mounting-tape/" target="_blank">Cool Tools</a>: This double-sided foam tape creates permanent, weld-strength bonds between virtually any materials including plastic, metal, glass, and concrete without requiring screws, nails, or other mechanical fasteners.</div>
+                <a href="https://www.amazon.com/dp/B0016HM7SE?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0030E4UIQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0030E4UIQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61o7SQ2opSL._SL300_.jpg" alt="ZEISS Pre Moistened Lens" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0030E4UIQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">ZEISS Pre Moistened Lens</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-dennis-nishi/" target="_blank">Cool Tools</a>: This portable lighting setup allows videographers to quickly mount and position lights on various surfaces or compact stands for professional waist-up interviews and outdoor fill lighting while maintaining maximum portability.</div>
+                <a href="https://www.amazon.com/dp/B0030E4UIQ?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0028BRZ98">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0028BRZ98?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/516VTG2OpBL._SL300_.jpg" alt="JanSport Right Pack Backpack Bottle" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0028BRZ98?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">JanSport Right Pack Backpack Bottle</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-sean-michael-ragan/" target="_blank">Cool Tools</a>: This backpack provides decades of reliable use backed by a lifetime warranty that includes free factory repairs for damaged components like zippers.</div>
+                <a href="https://www.amazon.com/dp/B0028BRZ98?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0039UU9UO">
+            
+        <div class="deal-image">
+            <a href="http://geni.us/txKi" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61+ZEsmIyWL._SL300_.jpg" alt="Lodge Pan Scrapers. Handheld" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="http://geni.us/txKi" target="_blank">Lodge Pan Scrapers. Handheld</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/frying-pan-scraper/" target="_blank">Cool Tools</a>: These scrapers effectively remove burnt and stuck food from curved pan edges without scratching cast iron or non-stick surfaces, thanks to their different-sized corner radii that match various cookware shapes.</div>
+                <a href="http://geni.us/txKi" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000ARQ90S">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B000ARQ90S?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51zuW4mAF3L._SL300_.jpg" alt="HeadBlade HeadSlick Shave Cream" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B000ARQ90S?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">HeadBlade HeadSlick Shave Cream</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/headblade-moto-head-and-skull-shaving-razor/" target="_blank">Cool Tools</a>: The unique finger-loop design enables completely tactile head shaving without needing a mirror, allowing users to shave effectively in the shower or even in complete darkness.</div>
+                <a href="https://www.amazon.com/dp/B000ARQ90S?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B002SKVZIQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B002SKVZIQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61XuV253jUL._SL300_.jpg" alt="Arm Hammer Baking Soda" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B002SKVZIQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Arm Hammer Baking Soda</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/gareth-branwyn-former-editorial-director-of-make/" target="_blank">Cool Tools</a>: Creates incredibly strong bonds between plastic pieces by using a rotary tool to friction-weld plastic rod material directly into joints, effectively repairing broken 3D prints or combining separate plastic components.</div>
+                <a href="https://www.amazon.com/dp/B002SKVZIQ?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07Y8Z89L4">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/Yr5HA" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61BK+ul5LxL._SL300_.jpg" alt="GreenPan Rio Frying Pan" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/Yr5HA" target="_blank">GreenPan Rio Frying Pan</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/retro-recomendo-kitchen-tools" target="_blank">Recomendo #402</a>: This ceramic-coated cookware provides non-stick performance that equals traditional Teflon while lasting longer than 5 years without showing wear, compared to cheaper non-stick pans that only last about 4 years.</div>
+                <a href="https://geni.us/Yr5HA" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000WU9LCQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B000WU9LCQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81CJ5Or6-TL._SL300_.jpg" alt="MagnoGrip Magnetic Wristband Holding Drill" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B000WU9LCQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">MagnoGrip Magnetic Wristband Holding Drill</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/slow-motion-reality-maker-update-39/" target="_blank">Cool Tools</a>: This magnetic wristband keeps screws, nails, and other small metal hardware pieces conveniently attached to your wrist while working, eliminating the unsafe practice of holding them in your mouth.</div>
+                <a href="https://www.amazon.com/dp/B000WU9LCQ?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0C6DQS74L">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/spider-web-duster" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71g7rcAC65L._SL300_.jpg" alt="IVYROLL Cobweb Duster Extension Brush" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/spider-web-duster" target="_blank">IVYROLL Cobweb Duster Extension Brush</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/what-you-fearcobweb-dusteraudience" target="_blank">Recomendo #449</a>: The extendable 100-inch pole allows you to easily reach high corners and ceilings where spiders build webs, both indoors and outdoors, without needing a ladder.</div>
+                <a href="https://geni.us/spider-web-duster" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B003G560JQ">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B003G560JQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71hE2+I7TSL._SL300_.jpg" alt="Kum AS2 Two Hole Pencil" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B003G560JQ?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Kum AS2 Two Hole Pencil</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-eric-mcclellan/" target="_blank">Cool Tools</a>: This sharpener creates exceptionally long, precise pencil points by using a two-step process that separately sharpens the wood casing first, then refines the graphite lead.</div>
+                <a href="https://www.amazon.com/dp/B003G560JQ?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01C9TW340">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B01C9TW340?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51luxmrCKwL._SL300_.jpg" alt="JET Inch Industrial Bench Grinder" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B01C9TW340?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">JET Inch Industrial Bench Grinder</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/solving-the-riddle-of-roman-concrete/" target="_blank">Cool Tools</a>: This industrial bench grinder delivers superior performance with its high-torque motor that reaches full operating speed quickly and maintains consistent power under heavy workloads while running cooler than competing models.</div>
+                <a href="https://www.amazon.com/dp/B01C9TW340?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01GRF7NRY">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/HqJ0" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81O8PGbQ2lL._SL300_.jpg" alt="Bianyo 72 Colors Alcohol Set" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/HqJ0" target="_blank">Bianyo 72 Colors Alcohol Set</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/retro-recomendo-art-supplies" target="_blank">Recomendo #447</a>: These dual-tip alcohol markers provide smooth color blending and versatile line control with both fine and chisel tips, making them ideal for detailed artwork and broad coverage techniques.</div>
+                <a href="https://geni.us/HqJ0" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0009F8936">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0009F8936?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71DzEWis1yL._SL300_.jpg" alt="Campbell Hausfeld Air Powered" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0009F8936?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Campbell Hausfeld Air Powered</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/pneumatic-caulking-gun/" target="_blank">Cool Tools</a>: This tool delivers smooth, continuous, uniform beads of caulk with precise start-and-stop control that eliminates the uneven application and oozing problems common with manual squeeze-trigger caulk guns.</div>
+                <a href="https://www.amazon.com/dp/B0009F8936?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0000AXYZG">
+            
+        <div class="deal-image">
+            <a href="https://www.amazon.com/dp/B0000AXYZG?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61tSx-rOUjL._SL300_.jpg" alt="Seal All 380011 Adhesive" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://www.amazon.com/dp/B0000AXYZG?linkCode=ogi&th=1&psc=1&language=en_US" target="_blank">Seal All 380011 Adhesive</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/sealall-adhesiv/" target="_blank">Cool Tools</a>: This adhesive uniquely withstands constant exposure to gasoline and brake fluid while sealing leaks even when applied over surfaces already contaminated with fluids, eliminating the need for thorough cleaning and drying that other products require.</div>
+                <a href="https://www.amazon.com/dp/B0000AXYZG?linkCode=ogi&th=1&psc=1&language=en_US" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07RGX8JR7">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2ZP3VCP?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71aPMLFB-yL._SL300_.jpg" alt="STOJO Collapsible Travel Cup Bottle" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2ZP3VCP?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">STOJO Collapsible Travel Cup Bottle</a>
+                </div>
+                <div class="deal-price price-loading">Loading...</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-nicole-harkin/" target="_blank">Cool Tools</a>: These portable watercolors in a waterproof bag allow you to create art anywhere while traveling or on-the-go, especially useful for parents who want to engage in creative activities with their children in various locations.</div>
+                <a href="https://amzn.to/2ZP3VCP?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
