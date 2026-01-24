@@ -24275,17 +24275,7 @@
     "asin": "B003PO38P2",
     "title": "ResQMe",
     "amazon_url": "https://www.amazon.com/dp/B003PO38P2",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "iDXTAXq",
-      "productUrl": "https://www.amazon.com/dp/B003PO38P2?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "iDXTAXq"
-    },
+    "affiliate_url": "https://geni.us/iDXTAXq",
     "issues": [
       {
         "url": "https://kk.org/cooltools/resqme/",
@@ -48962,17 +48952,7 @@
     "asin": "B001UAMCL4",
     "title": "Gerber Curve Multi-Tool",
     "amazon_url": "https://www.amazon.com/dp/B001UAMCL4",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "FnfCnj",
-      "productUrl": "https://www.amazon.com/dp/B001UAMCL4?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "FnfCnj"
-    },
+    "affiliate_url": "https://geni.us/FnfCnj",
     "issues": [
       {
         "url": "https://kk.org/cooltools/gerber-curve-multi-tool/",
@@ -48983,7 +48963,7 @@
     ],
     "first_featured": "2018-03-21",
     "added_at": "2026-01-03T08:01:04.424593",
-    "benefit_description": "This compact multitool combines a small blade, Phillips and flathead screwdrivers, and a file in a 2.25-inch keychain-friendly design that's convenient enough to carry everywhere and useful enough to warrant having multiple copies in different bags."
+    "benefit_description": "Combines a small blade, Phillips and flathead screwdrivers, and a file in a 2.25-inch keychain-friendly design that's convenient enough to carry everywhere and useful enough to warrant having multiple copies in different bags."
   },
   "B004N5SJ92": {
     "asin": "B004N5SJ92",
@@ -55588,17 +55568,7 @@
     "asin": "B00E3DG2KW",
     "title": "Swedish Tracing Paper",
     "amazon_url": "https://www.amazon.com/dp/B00E3DG2KW",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "UwyQsMZ",
-      "productUrl": "https://www.amazon.com/dp/B00E3DG2KW?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "UwyQsMZ"
-    },
+    "affiliate_url": "https://geni.us/UwyQsMZ",
     "issues": [
       {
         "url": "https://kk.org/cooltools/swedish-tracing-paper/",
@@ -55609,7 +55579,7 @@
     ],
     "first_featured": "2020-02-12",
     "added_at": "2026-01-03T08:01:04.449529",
-    "benefit_description": "This tracing material allows you to create durable, reusable pattern templates that can withstand multiple cutting and handling sessions, unlike fragile tissue paper patterns that tear easily."
+    "benefit_description": "Ceate durable, reusable pattern templates that can withstand multiple cutting and handling sessions, unlike fragile tissue paper patterns that tear easily."
   },
   "B071DD63LG": {
     "asin": "B071DD63LG",
@@ -58002,17 +57972,7 @@
     "asin": "B00RN7CT2U",
     "title": "Repair Metal With This $5 Putty",
     "amazon_url": "https://www.amazon.com/dp/B00RN7CT2U",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "Wq5FMo5",
-      "productUrl": "https://www.amazon.com/dp/B00RN7CT2U?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "Wq5FMo5"
-    },
+    "affiliate_url": "https://geni.us/Wq5FMo5",
     "issues": [
       {
         "url": "https://kk.org/cooltools/repair-metal-with-this-5-putty/",
@@ -58241,17 +58201,7 @@
     "asin": "B00FQQRRIQ",
     "title": "Making a Wire Clamper",
     "amazon_url": "https://www.amazon.com/dp/B00FQQRRIQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "Az4rrp0",
-      "productUrl": "https://www.amazon.com/dp/B00FQQRRIQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "Az4rrp0"
-    },
+    "affiliate_url": "https://geni.us/Az4rrp0",
     "issues": [
       {
         "url": "https://kk.org/cooltools/making-a-wire-clamper/",
@@ -58262,7 +58212,7 @@
     ],
     "first_featured": "2020-04-30",
     "added_at": "2026-01-03T08:01:04.454430",
-    "benefit_description": "This tool allows craftspeople to securely hold and manipulate wires during detailed work, providing the precise control needed for delicate electrical or jewelry-making projects."
+    "benefit_description": "Keeps your pencils from rolling off the table."
   },
   "B0017NS8H6": {
     "asin": "B0017NS8H6",
@@ -63777,7 +63727,7 @@
     ],
     "first_featured": "2017-04-04",
     "added_at": "2026-01-03T08:31:02.543681",
-    "benefit_description": "This compact multi-tool packs five essential functions into a 2.3-inch frame that's smaller than a pinkie finger, making it perfect for everyday carry without adding bulk to your pocket or keychain."
+    "benefit_description": "Packs five essential functions into a 2.3-inch frame that's smaller than a pinkie finger, making it perfect for everyday carry without adding bulk to your pocket or keychain."
   },
   "B00932EPYI": {
     "asin": "B00932EPYI",
