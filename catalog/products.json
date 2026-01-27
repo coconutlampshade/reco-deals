@@ -564,17 +564,7 @@
     "asin": "B007PE7ANY",
     "title": "Dark Chocolate Nuts & Sea Salt Kind bars",
     "amazon_url": "https://www.amazon.com/dp/B007PE7ANY?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "2WXL3",
-      "productUrl": "https://www.amazon.com/dp/B007PE7ANY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "2WXL3"
-    },
+    "affiliate_url": "https://geni.us/2WXL3",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/global-entryamador-countylibrary-16-08-21",
@@ -22802,17 +22792,7 @@
     "asin": "B06ZYLPDYV",
     "title": "King Arthur Dough Whisk",
     "amazon_url": "https://www.amazon.com/dp/B06ZYLPDYV",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "cOFAj",
-      "productUrl": "https://www.amazon.com/dp/B06ZYLPDYV?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "cOFAj"
-    },
+    "affiliate_url": "https://geni.us/cOFAj",
     "issues": [
       {
         "url": "https://kk.org/cooltools/king-arthur-dou/",
