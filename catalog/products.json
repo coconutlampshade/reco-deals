@@ -7078,7 +7078,7 @@
     ],
     "first_featured": "2025-09-21",
     "added_at": "2026-01-02T13:42:17.898754",
-    "benefit_description": "This device eliminates the need for constant battery replacement and film development by using solar power and cellular connectivity to instantly send wildlife images directly to your phone from remote locations."
+    "benefit_description": "Uses solar power and Wifi connectivity to instantly send wildlife images directly to your phone."
   },
   "B01CRA0JBK": {
     "asin": "B01CRA0JBK",
@@ -16592,17 +16592,7 @@
     "asin": "B0029SGNHK",
     "title": "Tilley Hat",
     "amazon_url": "https://www.amazon.com/dp/B0029SGNHK",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "UhWUIK",
-      "productUrl": "https://www.amazon.com/dp/B0029SGNHK?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "UhWUIK"
-    },
+    "affiliate_url": "https://geni.us/UhWUIK",
     "issues": [
       {
         "url": "https://kk.org/cooltools/tilley-hat-1/",
@@ -16613,7 +16603,7 @@
     ],
     "first_featured": "2017-11-06",
     "added_at": "2026-01-03T08:01:04.314537",
-    "benefit_description": "This hat provides exceptional all-weather protection with its broad brim shielding against sun and rain, foam-padded crown protecting your head from impacts, buoyant design that floats in water, and dual-strap system that keeps it secure in windy conditions."
+    "benefit_description": "Provides exceptional all-weather protection with its broad brim that shields against sun and rain, foam-padded crown that protects your head from impacts, buoyant design that floats in water, and dual-strap system that keeps it secure in windy conditions."
   },
   "B003AL7FCC": {
     "asin": "B003AL7FCC",
@@ -18516,17 +18506,7 @@
     "asin": "B00002N5OI",
     "title": "Post Level",
     "amazon_url": "https://www.amazon.com/dp/B00002N5OI",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "v9MU",
-      "productUrl": "https://www.amazon.com/dp/B00002N5OI?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "v9MU"
-    },
+    "affiliate_url": "https://geni.us/v9MU",
     "issues": [
       {
         "url": "https://kk.org/cooltools/pole-level/",
