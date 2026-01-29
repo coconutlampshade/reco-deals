@@ -18973,17 +18973,7 @@
     "asin": "B00004OCKT",
     "title": "OXO Apple Divider",
     "amazon_url": "https://www.amazon.com/dp/B00004OCKT",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "QIA6lJo",
-      "productUrl": "https://www.amazon.com/dp/B00004OCKT?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "QIA6lJo"
-    },
+    "affiliate_url": "https://geni.us/QIA6lJo",
     "issues": [
       {
         "url": "https://kk.org/cooltools/oxo-apple-divid-1/",
@@ -49540,17 +49530,7 @@
     "asin": "B0189JPZL2",
     "title": "Oyster Mushroom Growing Kit",
     "amazon_url": "https://www.amazon.com/dp/B0189JPZL2",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "qI0MF0D",
-      "productUrl": "https://www.amazon.com/dp/B0189JPZL2?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "qI0MF0D"
-    },
+    "affiliate_url": "https://geni.us/qI0MF0D",
     "issues": [
       {
         "url": "https://kk.org/cooltools/oyster-mushroom-growing-kit/",
@@ -49561,7 +49541,7 @@
     ],
     "first_featured": "2018-05-21",
     "added_at": "2026-01-03T08:01:04.426808",
-    "benefit_description": "This kit allows you to grow fresh mushrooms at home with minimal time and attention required, even after sitting unused for over a year."
+    "benefit_description": "Grow fresh mushrooms at home with minimal time and attention required, even after sitting unused for over a year."
   },
   "B077XSVWM8": {
     "asin": "B077XSVWM8",
