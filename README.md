@@ -16,9 +16,14 @@ python3 review_deals.py
 
 **Step 3:** A browser window opens showing today's deals. Select the ones you want to include (usually 5-6), then click **"Confirm & Send"**.
 
-**Step 4:** Check Mailchimp for your draft campaign. Review it and click Send when ready.
+**Step 4:** If the Vercel deploy fails (common), run manually:
+```
+vercel --prod --yes
+```
 
-That's it! The system handles everything else automatically.
+**Step 5:** Check Mailchimp for your draft campaign. Review it and click Send when ready.
+
+That's it! The web version is live and the email draft is ready to send.
 
 ---
 
@@ -99,6 +104,12 @@ This can happen if Amazon prices haven't changed recently. The system only shows
 
 ### Mailchimp draft not appearing
 Check that your Mailchimp API key is set correctly in the `.env` file.
+
+### Vercel deploy fails
+This is normal - the automated deploy often times out. Just run manually:
+```
+vercel --prod --yes
+```
 
 ---
 
