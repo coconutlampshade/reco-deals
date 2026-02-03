@@ -8883,17 +8883,7 @@
     "asin": "B0CCW59NG3",
     "title": "Get it on Amazon here",
     "amazon_url": "https://www.amazon.com/dp/B0CCW59NG3?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "wdRxB",
-      "productUrl": "https://www.amazon.com/dp/B0CCW59NG3?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "wdRxB"
-    },
+    "affiliate_url": "https://geni.us/wdRxB",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/creativity-inccry-once-a-weekvoyager",
@@ -8903,7 +8893,7 @@
     ],
     "first_featured": "2023-12-17",
     "added_at": "2026-01-02T13:42:17.899513",
-    "benefit_description": "This tool allows you to create professional contact forms that can be embedded on your website, protecting your personal email address while giving visitors an attractive way to reach you."
+    "benefit_description": "Flip a meme card. Get on the same wavelength as everyone votes for who best fits the meme card."
   },
   "B018YLFNUS": {
     "asin": "B018YLFNUS",
