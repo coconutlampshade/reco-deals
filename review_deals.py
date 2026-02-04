@@ -6,7 +6,8 @@ Opens a local web page showing top deals from Keepa.
 User selects which deals to include, then confirms to generate newsletter.
 
 Usage:
-    python review_deals.py                    # Review top 50 deals
+    python review_deals.py                    # Review top deals (with PA API verification)
+    python review_deals.py --cached           # Use cached Keepa data only (no PA API)
     python review_deals.py --top 100          # Review top 100 deals
     python review_deals.py --fresh 200        # Fresh Keepa check on 200 random products
 """
@@ -579,6 +580,66 @@ def fetch_fresh_candidates(sample_size: int = 200, top_n: int = 50) -> list:
     print(f"Final: {len(result)} products ranked by deal quality")
 
     return result
+
+
+def fetch_candidates_cached(top_n: int = 50) -> list:
+    """Fetch top deal candidates using cached Keepa data only (no PA API)."""
+    global live_prices
+
+    data = load_deals()
+    deals_dict = data.get("deals", {})
+    print(f"Loaded {len(deals_dict)} products from Keepa cache")
+
+    # Filter to only deals (is_deal=true means it passed Keepa's deal criteria)
+    candidates = filter_and_sort_deals(deals_dict, top_n=top_n * 2)
+    print(f"Found {len(candidates)} deal candidates")
+
+    result = []
+    for asin, deal in candidates:
+        # Skip if no price data
+        if not deal.get("current_price"):
+            continue
+
+        # Only include if it's actually a deal (percent_below_avg > 15%)
+        pct_below_avg = deal.get("percent_below_avg", 0)
+        if pct_below_avg < 15:
+            continue
+
+        # Use Keepa cached data directly
+        deal["live_price"] = deal["current_price"]
+        deal["live_title"] = deal.get("title") or deal.get("catalog_title", asin)
+        deal["live_image"] = deal.get("image_url", "")
+        deal["review_count"] = deal.get("review_count", 0)
+        deal["star_rating"] = deal.get("rating", 0)
+        deal["product_group"] = ""
+        deal["binding"] = ""
+
+        # Use Keepa's 90-day average as the comparison price (NOT high_90_day)
+        avg_price = deal.get("avg_90_day") or deal.get("avg_price", 0)
+        if avg_price and avg_price > deal["current_price"]:
+            deal["live_list_price"] = avg_price
+            deal["savings_percent"] = pct_below_avg
+        else:
+            # No valid comparison price - skip this item
+            continue
+
+        # Store in live_prices for later use
+        live_prices[asin] = {
+            "current_price": deal["live_price"],
+            "title": deal["live_title"],
+            "image_url": deal["live_image"],
+        }
+
+        result.append((asin, deal))
+
+        if len(result) >= top_n:
+            break
+
+    # Sort by savings percentage
+    result.sort(key=lambda x: x[1].get("savings_percent", 0), reverse=True)
+    print(f"Returning {len(result)} deals for review")
+
+    return result[:top_n]
 
 
 def fetch_candidates(top_n: int = 50) -> list:
@@ -1691,6 +1752,7 @@ def main():
     parser.add_argument("--top", type=int, default=100, help="Number of deals to show in review")
     parser.add_argument("--fresh", type=int, help="Fresh Keepa check on N random products (e.g., --fresh 200)")
     parser.add_argument("--thorough", action="store_true", help="Check ALL products in catalog (takes ~2 hours)")
+    parser.add_argument("--cached", action="store_true", help="Use cached Keepa data only (skip PA API verification)")
     parser.add_argument("--port", type=int, default=8765, help="Local server port")
     args = parser.parse_args()
 
@@ -1706,6 +1768,9 @@ def main():
         print(f"Running fresh Keepa check on {args.fresh} random products...")
         # Show all products from fresh check, ranked by deal quality
         candidates = fetch_fresh_candidates(sample_size=args.fresh, top_n=args.fresh)
+    elif args.cached:
+        print("Using cached Keepa data (skipping PA API verification)...")
+        candidates = fetch_candidates_cached(args.top)
     else:
         print("Fetching deal candidates from cache...")
         candidates = fetch_candidates(args.top)
