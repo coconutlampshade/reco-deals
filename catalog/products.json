@@ -11259,17 +11259,7 @@
     "asin": "B014VBGUCA",
     "title": "4-piece set of packing cubes by Amazon Basics",
     "amazon_url": "https://www.amazon.com/dp/B014VBGUCA?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "22CKY6",
-      "productUrl": "https://www.amazon.com/dp/B014VBGUCA?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "22CKY6"
-    },
+    "affiliate_url": "https://geni.us/22CKY6",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/quoteshalt-and-catch-fireto-do-notebook-18-01-28",
