@@ -730,9 +730,12 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         # Get live price from PA API (Amazon Associates compliant)
         live_price = live_prices.get(asin, {})
 
-        # Title: use full title then shorten it (same as Mailchimp workflow)
+        # Title: use custom title as-is, otherwise shorten the full title
         full_title = live_price.get("title") or deal.get("title") or deal.get("catalog_title") or f"Product {asin}"
-        title_text = shorten_title(full_title)
+        if live_price.get("title_is_custom"):
+            title_text = full_title  # User already edited this, don't shorten again
+        else:
+            title_text = shorten_title(full_title)
 
         # Use original affiliate URL from catalog (for accounting purposes)
         # Only fall back to constructed URL if no original exists

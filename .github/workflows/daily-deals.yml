@@ -1,16 +1,16 @@
-name: Daily Deals Report
+name: Daily Price Check
 
 on:
   schedule:
-    # Run at 3:00 AM PST (11:00 UTC) every day
-    # GitHub Actions uses UTC, so 3am PST = 11:00 UTC (or 10:00 UTC during DST)
-    - cron: '0 11 * * *'
+    # Run at 3:30 AM PT (11:30 UTC) every day
+    # Takes ~2.5 hours to check all products, finishes by ~6am PT
+    - cron: '30 11 * * *'
 
   # Allow manual trigger from GitHub UI
   workflow_dispatch:
 
 jobs:
-  generate-deals:
+  check-prices:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -28,55 +28,18 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Check for deals (Keepa API)
+      - name: Check all products (Keepa API)
         env:
           KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
         run: |
-          python check_deals.py --random 1000
+          python check_deals.py
 
-      - name: Generate web version (for Vercel)
-        run: |
-          mkdir -p public
-          python generate_report.py --top 50 --web --output public/newsletter-$(date +%Y-%m-%d).html
-
-      - name: Generate email version (PA API with live prices)
-        env:
-          PA_API_ACCESS_KEY: ${{ secrets.PA_API_ACCESS_KEY }}
-          PA_API_SECRET_KEY: ${{ secrets.PA_API_SECRET_KEY }}
-          PA_API_PARTNER_TAG: ${{ secrets.PA_API_PARTNER_TAG }}
-          PA_API_HOST: webservices.amazon.com
-          PA_API_REGION: us-east-1
-          VERCEL_URL: ${{ vars.VERCEL_URL }}
-        run: |
-          mkdir -p reports
-          WEB_URL="${VERCEL_URL:-https://reco-deals.vercel.app}/newsletter-$(date +%Y-%m-%d).html"
-          python generate_report.py --top 50 --web-url "$WEB_URL" --output reports/deals-$(date +%Y-%m-%d).html
-
-      - name: Create Mailchimp draft campaign
-        env:
-          MAILCHIMP_API_KEY: ${{ secrets.MAILCHIMP_API_KEY }}
-          MAILCHIMP_LIST_ID: ${{ secrets.MAILCHIMP_LIST_ID }}
-          MAILCHIMP_FROM_NAME: "Recomendo Deals"
-          MAILCHIMP_REPLY_TO: ${{ secrets.MAILCHIMP_REPLY_TO }}
-          PA_API_ACCESS_KEY: ${{ secrets.PA_API_ACCESS_KEY }}
-          PA_API_SECRET_KEY: ${{ secrets.PA_API_SECRET_KEY }}
-          PA_API_PARTNER_TAG: ${{ secrets.PA_API_PARTNER_TAG }}
-        run: |
-          python mailchimp_send.py --html reports/deals-$(date +%Y-%m-%d).html
-
-      - name: Commit updated data files and web version
+      - name: Commit updated deals data
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add catalog/deals.json catalog/featured_history.json public/
-          git diff --staged --quiet || git commit -m "Update deals and featured history
+          git add catalog/deals.json
+          git diff --staged --quiet || git commit -m "Update deal prices for all products
 
-          🤖 Automated daily update"
+          🤖 Automated daily price check"
           git push
-
-      - name: Upload report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: deals-report-${{ github.run_number }}
-          path: reports/*.html
-          retention-days: 30

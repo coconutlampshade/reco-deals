@@ -1565,6 +1565,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     prices = {}
     for asin, deal in selected:
         # Use custom title if provided, otherwise fall back to live_title
+        # Track if title is custom so generate_report won't shorten it again
+        title_is_custom = asin in custom_titles and custom_titles[asin]
         title = custom_titles.get(asin) or deal.get("live_title")
 
         # Use custom affiliate URL if provided, otherwise fall back to catalog
@@ -1591,6 +1593,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
             "current_price": deal.get("live_price"),
             "list_price": deal.get("live_list_price"),
             "title": title,
+            "title_is_custom": title_is_custom,
             "image_url": deal.get("live_image"),
             "affiliate_url": original_url,
             "benefits": custom_benefits.get(asin),
