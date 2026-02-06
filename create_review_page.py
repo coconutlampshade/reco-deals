@@ -77,9 +77,9 @@ def merge_catalog_and_deals() -> dict:
             "low_90_day": deal.get("low_90_day"),
             "is_deal": deal.get("is_deal", False),
             "deal_reasons": deal.get("deal_reasons", []),
-            "percent_below_avg": deal.get("percent_below_avg", 0),
-            "percent_below_high": deal.get("percent_below_high", 0),
-            "savings_dollars": deal.get("savings_dollars", 0),
+            "percent_below_avg": deal.get("percent_below_avg") or 0,
+            "percent_below_high": deal.get("percent_below_high") or 0,
+            "savings_dollars": deal.get("savings_dollars") or 0,
             "rating": deal.get("rating"),
             "review_count": deal.get("review_count"),
             "has_deal_data": asin in deals,
@@ -100,7 +100,7 @@ def prepare_candidates(products: dict) -> list:
 
         avg_price = d.get("avg_90_day") or 0
         current_price = d.get("current_price") or 0
-        pct_below = d.get("percent_below_avg", 0)
+        pct_below = d.get("percent_below_avg") or 0
 
         deal = {
             "asin": asin,
