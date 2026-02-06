@@ -46438,7 +46438,7 @@
     ],
     "first_featured": "2017-10-11",
     "added_at": "2026-01-03T08:01:04.417805",
-    "benefit_description": "This automated device dispenses precise shots of alcohol through a whimsical elephant-shaped design, eliminating guesswork in drink preparation."
+    "benefit_description": "Ideal for precision work with a long, straight nose that provides a secure grip in narrow and hard-to-reach areas."
   },
   "B00J0I6VGU": {
     "asin": "B00J0I6VGU",
@@ -53807,17 +53807,7 @@
     "asin": "B0000225P9",
     "title": "Gyroscopic Inline Screwdriver",
     "amazon_url": "https://www.amazon.com/dp/B0000225P9",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "NuL4Ax",
-      "productUrl": "https://www.amazon.com/dp/B0000225P9?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "NuL4Ax"
-    },
+    "affiliate_url": "https://geni.us/NuL4Ax",
     "issues": [
       {
         "url": "https://kk.org/cooltools/gyroscopic-inline-screwdriver/",
@@ -66819,23 +66809,6 @@
     "first_featured": "2018-09-07",
     "added_at": "2026-01-03T08:36:00.058848",
     "benefit_description": "This landline recording device eliminates technical glitches and complexity by automatically recording phone calls to an SD card with just one button press, making it reliable for journalists who need consistent call recording without dealing with internet connection issues or software problems."
-  },
-  "B015J1821I": {
-    "asin": "B015J1821I",
-    "title": "Adam Fisher, Author of Valley of Genius",
-    "amazon_url": "https://www.amazon.com/dp/B015J1821I",
-    "affiliate_url": "https://amzn.to/2M8q34b",
-    "issues": [
-      {
-        "url": "https://kk.org/cooltools/adam-fisher-author-of-valley-of-genius/",
-        "title": "Adam Fisher, Author of Valley of Genius",
-        "date": "2018-09-07",
-        "source": "cooltools"
-      }
-    ],
-    "first_featured": "2018-09-07",
-    "added_at": "2026-01-03T08:36:00.601517",
-    "benefit_description": "This device automatically records landline phone calls with one-button simplicity, eliminating the technical problems and complexity that come with internet-based recording solutions."
   },
   "B01461WT9S": {
     "asin": "B01461WT9S",

@@ -383,53 +383,7 @@ def build_html(merged_data: dict) -> str:
             accent-color: #27ae60;
         }}
 
-        /* Editable fields shown when selected */
-        .card-edit {{
-            padding: 0 16px 14px;
-            display: none;
-            border-top: 1px solid #eee;
-        }}
-        .card.selected .card-edit {{
-            display: block;
-            padding-top: 12px;
-        }}
-        .edit-row {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }}
-        .edit-label {{
-            font-size: 11px;
-            color: #999;
-            width: 50px;
-            flex-shrink: 0;
-            text-transform: uppercase;
-            font-weight: 600;
-        }}
-        .edit-input {{
-            flex: 1;
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-        }}
-        .edit-input:focus {{ border-color: #4384F3; }}
-        textarea.edit-input {{
-            resize: vertical;
-            min-height: 50px;
-            line-height: 1.4;
-        }}
-        .affiliate-group {{
-            background: #f0f0f0;
-            color: #666;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 11px;
-            flex-shrink: 0;
-        }}
+        /* card-edit removed — editing happens on the /edit page */
 
         /* Selection bar */
         .selection-bar {{
@@ -485,52 +439,6 @@ def build_html(merged_data: dict) -> str:
         .empty-state h2 {{
             font-size: 18px;
             margin-bottom: 8px;
-            color: #666;
-        }}
-
-        /* Modal */
-        .modal-overlay {{
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }}
-        .modal {{
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 500px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }}
-        .modal h2 {{
-            margin: 0 0 10px;
-            color: #333;
-        }}
-        .modal p {{
-            color: #666;
-            margin-bottom: 20px;
-        }}
-        .modal a.modal-link {{
-            display: inline-block;
-            background: #4384F3;
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }}
-        .modal a.modal-link:hover {{ background: #2b74f1; }}
-        .modal button {{
-            background: #eee;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
             color: #666;
         }}
 
@@ -599,7 +507,7 @@ def build_html(merged_data: dict) -> str:
             <div class="actions">
                 <button class="btn-secondary" onclick="clearSelection()">Clear</button>
                 <button class="btn-secondary" onclick="exportSelection()">Copy ASINs</button>
-                <button class="btn-confirm" id="confirmBtn" onclick="confirmAndSend()">Confirm &amp; Send</button>
+                <button class="btn-confirm" id="confirmBtn" onclick="confirmAndSend()">Review &amp; Edit &#8594;</button>
             </div>
         </div>
     </div>
@@ -799,9 +707,6 @@ function renderCard(deal) {{
     const buyUrl = getAffiliateUrl(deal);
     const isSelected = selectedAsins.has(deal.asin);
     const isAtLow = deal.low_90_day && price && price <= deal.low_90_day;
-    const affUrl = typeof deal.affiliate_url === 'string' ? deal.affiliate_url : getAffiliateUrl(deal);
-    const affGroup = getAffiliateGroup(deal);
-    const benefit = CATALOG_BENEFITS[deal.asin] || '';
 
     let badges = '';
     if (deal.is_deal) badges += '<span class="badge badge-deal">Deal</span>';
@@ -813,10 +718,6 @@ function renderCard(deal) {{
     const meta = sourceLabel ? `Featured in ${{sourceLabel}}` : '';
     const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price data</span>';
     const origHtml = avg && price && avg > price ? `<span class="original">$${{avg.toFixed(2)}}</span>` : '';
-
-    const titleEsc = escapeHtml(fullTitle).replace(/"/g, '&quot;');
-    const affEsc = escapeHtml(affUrl).replace(/"/g, '&quot;');
-    const benefitEsc = escapeHtml(benefit);
 
     return `
         <div class="card ${{isSelected ? 'selected' : ''}} ${{deal._inCooldown ? 'cooldown' : ''}}" data-asin="${{deal.asin}}">
@@ -833,21 +734,6 @@ function renderCard(deal) {{
                     <div class="card-price">${{priceHtml}}${{origHtml}}</div>
                     <div class="card-badges">${{badges}}</div>
                     <div class="card-meta">${{meta}}</div>
-                </div>
-            </div>
-            <div class="card-edit">
-                <div class="edit-row">
-                    <span class="edit-label">Title</span>
-                    <input type="text" class="edit-input title-edit" data-asin="${{deal.asin}}" value="${{titleEsc}}" onclick="event.stopPropagation()">
-                </div>
-                <div class="edit-row">
-                    <span class="edit-label">Link</span>
-                    <input type="text" class="edit-input affiliate-edit" data-asin="${{deal.asin}}" value="${{affEsc}}" placeholder="geni.us or amzn.to URL" onclick="event.stopPropagation()">
-                    <span class="affiliate-group">${{affGroup}}</span>
-                </div>
-                <div class="edit-row">
-                    <span class="edit-label">Benefit</span>
-                    <textarea class="edit-input benefit-edit" data-asin="${{deal.asin}}" placeholder="One sentence describing the product benefit..." onclick="event.stopPropagation()">${{benefitEsc}}</textarea>
                 </div>
             </div>
         </div>
@@ -927,30 +813,513 @@ function confirmAndSend() {{
         return;
     }}
 
-    // Collect editable fields for selected items
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Loading...';
+
+    // Navigate to edit page with selected ASINs
+    fetch('/edit', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asins: selected }})
+    }})
+    .then(r => r.text())
+    .then(html => {{
+        document.open();
+        document.write(html);
+        document.close();
+    }})
+    .catch(err => {{
+        alert('Error: ' + err);
+        btn.disabled = false;
+        btn.textContent = 'Review & Edit';
+    }});
+}}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>"""
+
+
+def build_edit_html(selected_asins: list, products: dict) -> str:
+    """Build the interim editing page for selected deals."""
+    # Build items data for the edit page
+    items = []
+    for asin in selected_asins:
+        p = products.get(asin, {})
+        items.append({
+            "asin": asin,
+            "title": p.get("title", asin),
+            "image_url": p.get("image_url", ""),
+            "current_price": p.get("current_price"),
+            "avg_90_day": p.get("avg_90_day"),
+            "percent_below_avg": p.get("percent_below_avg") or 0,
+            "affiliate_url": p.get("affiliate_url", ""),
+            "benefit_description": p.get("benefit_description", ""),
+            "issues": p.get("issues", []),
+        })
+
+    items_json = json.dumps(items)
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Deals - Recomendo</title>
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #363737;
+            line-height: 1.5;
+        }}
+        .header {{
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }}
+        .header-inner {{
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .header h1 {{
+            font-size: 20px;
+            font-weight: 700;
+            color: #363737;
+        }}
+        .header h1 span {{ color: #4384F3; }}
+        .header-actions {{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }}
+        .btn {{
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }}
+        .btn-back {{
+            background: #eee;
+            color: #666;
+        }}
+        .btn-back:hover {{ background: #ddd; }}
+        .btn-send {{
+            background: #27ae60;
+            color: #fff;
+            font-size: 15px;
+            padding: 10px 28px;
+        }}
+        .btn-send:hover {{ background: #219a52; }}
+        .btn-send:disabled {{ background: #999; cursor: not-allowed; }}
+        .container {{
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 24px 40px;
+        }}
+        .deal-card {{
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }}
+        .deal-top {{
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }}
+        .deal-image {{
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }}
+        .deal-image img {{
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }}
+        .deal-info {{
+            flex: 1;
+            min-width: 0;
+        }}
+        .deal-asin {{
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 2px;
+        }}
+        .deal-price {{
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+        }}
+        .deal-price .original {{
+            font-size: 13px;
+            color: #999;
+            text-decoration: line-through;
+            font-weight: 400;
+            margin-left: 6px;
+        }}
+        .deal-savings {{
+            font-size: 13px;
+            color: #27ae60;
+            font-weight: 600;
+        }}
+        .deal-source {{
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }}
+        .deal-source a {{ color: #4384F3; text-decoration: none; }}
+        .deal-source a:hover {{ text-decoration: underline; }}
+        .field-group {{
+            margin-bottom: 12px;
+        }}
+        .field-group:last-child {{
+            margin-bottom: 0;
+        }}
+        .field-label {{
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }}
+        .field-input {{
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }}
+        .field-input:focus {{
+            border-color: #4384F3;
+        }}
+        textarea.field-input {{
+            min-height: 60px;
+            resize: vertical;
+            line-height: 1.5;
+        }}
+        .deal-number {{
+            font-size: 13px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 12px;
+        }}
+        .card-actions {{
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }}
+        .btn-skip {{
+            padding: 5px 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+        .btn-skip:hover {{ background: #f5f5f5; color: #555; }}
+        .btn-delete {{
+            padding: 5px 14px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            background: #fff;
+            color: #dc3545;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }}
+        .btn-delete:hover {{ background: #fdecea; }}
+
+        /* Drag handle */
+        .deal-card {{
+            cursor: grab;
+            position: relative;
+        }}
+        .deal-card.dragging {{
+            opacity: 0.5;
+            cursor: grabbing;
+        }}
+        .deal-card.drag-over {{
+            border-top: 3px solid #4384F3;
+        }}
+        .drag-hint {{
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 16px;
+        }}
+
+        /* Modal */
+        .modal-overlay {{
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }}
+        .modal {{
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }}
+        .modal h2 {{
+            margin: 0 0 10px;
+            color: #333;
+        }}
+        .modal p {{
+            color: #666;
+            margin-bottom: 20px;
+        }}
+        .modal a.modal-link {{
+            display: inline-block;
+            background: #4384F3;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }}
+        .modal a.modal-link:hover {{ background: #2b74f1; }}
+        .modal button {{
+            background: #eee;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #666;
+        }}
+
+        @media (max-width: 600px) {{
+            .deal-top {{ flex-direction: column; align-items: center; text-align: center; }}
+            .header-inner {{ flex-direction: column; gap: 10px; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-inner">
+            <h1><span>Edit</span> Selected Deals</h1>
+            <div class="header-actions">
+                <button class="btn btn-back" onclick="window.location.href='/'">&#8592; Back</button>
+                <button class="btn btn-send" id="sendBtn" onclick="sendToMailchimp()">Send to Mailchimp &#8594;</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <p class="drag-hint">Drag to reorder. Edit titles and descriptions below.</p>
+        <div id="dealsList"></div>
+    </div>
+
+<script>
+const ITEMS = {items_json};
+
+function getSourceLabel(item) {{
+    const issues = item.issues || [];
+    if (!issues.length) return '';
+    const recomendo = issues.filter(i => i.source !== 'cooltools');
+    const cooltools = issues.filter(i => i.source === 'cooltools');
+    if (cooltools.length) {{
+        return `Reviewed in <a href="${{cooltools[0].url}}" target="_blank">Cool Tools</a>`;
+    }}
+    if (recomendo.length) {{
+        const issue = recomendo[0];
+        const title = issue.title || 'Recomendo';
+        return `Reviewed in <a href="${{issue.url}}" target="_blank">${{escapeHtml(title)}}</a>`;
+    }}
+    return '';
+}}
+
+function escapeHtml(str) {{
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+}}
+
+function renderDealsList() {{
+    const container = document.getElementById('dealsList');
+    container.innerHTML = ITEMS.map((item, idx) => {{
+        const price = item.current_price;
+        const avg = item.avg_90_day;
+        const pctBelow = item.percent_below_avg || 0;
+        const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price</span>';
+        const origHtml = avg && price && avg > price ? `<span class="original">$${{avg.toFixed(2)}}</span>` : '';
+        const savingsHtml = pctBelow > 0 ? `${{pctBelow.toFixed(0)}}% below avg` : '';
+        const sourceLabel = getSourceLabel(item);
+        const affUrl = item.affiliate_url || `https://amazon.com/dp/${{item.asin}}`;
+
+        return `
+            <div class="deal-card" draggable="true" data-idx="${{idx}}">
+                <div class="deal-number">Deal #${{idx + 1}}</div>
+                <div class="deal-top">
+                    <div class="deal-image">
+                        ${{item.image_url ? `<img src="${{item.image_url}}" alt="" loading="lazy">` : ''}}
+                    </div>
+                    <div class="deal-info">
+                        <div class="deal-asin">${{item.asin}}</div>
+                        <div class="deal-price">${{priceHtml}}${{origHtml}}</div>
+                        ${{savingsHtml ? `<div class="deal-savings">${{savingsHtml}}</div>` : ''}}
+                        ${{sourceLabel ? `<div class="deal-source">${{sourceLabel}}</div>` : ''}}
+                    </div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Title</div>
+                    <input type="text" class="field-input title-input" data-asin="${{item.asin}}" value="${{escapeHtml(item.title).replace(/"/g, '&quot;')}}">
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Benefit Description</div>
+                    <textarea class="field-input benefit-input" data-asin="${{item.asin}}" placeholder="Describe why this product is great...">${{escapeHtml(item.benefit_description)}}</textarea>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Affiliate URL</div>
+                    <input type="text" class="field-input affiliate-input" data-asin="${{item.asin}}" value="${{escapeHtml(affUrl).replace(/"/g, '&quot;')}}">
+                </div>
+                <div class="card-actions">
+                    <button class="btn-skip" onclick="skipDeal(${{idx}})">Don't Include</button>
+                    <button class="btn-delete" onclick="deleteDeal(${{idx}})">Delete from Catalog</button>
+                </div>
+            </div>
+        `;
+    }}).join('');
+
+    initDragAndDrop();
+}}
+
+// Drag and drop reordering
+let dragIdx = null;
+
+function initDragAndDrop() {{
+    const cards = document.querySelectorAll('.deal-card');
+    cards.forEach(card => {{
+        card.addEventListener('dragstart', (e) => {{
+            dragIdx = parseInt(card.dataset.idx);
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }});
+        card.addEventListener('dragend', () => {{
+            card.classList.remove('dragging');
+            document.querySelectorAll('.deal-card').forEach(c => c.classList.remove('drag-over'));
+        }});
+        card.addEventListener('dragover', (e) => {{
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            card.classList.add('drag-over');
+        }});
+        card.addEventListener('dragleave', () => {{
+            card.classList.remove('drag-over');
+        }});
+        card.addEventListener('drop', (e) => {{
+            e.preventDefault();
+            const dropIdx = parseInt(card.dataset.idx);
+            if (dragIdx !== null && dragIdx !== dropIdx) {{
+                // Save current edits before reorder
+                saveEditsToItems();
+                const moved = ITEMS.splice(dragIdx, 1)[0];
+                ITEMS.splice(dropIdx, 0, moved);
+                renderDealsList();
+            }}
+        }});
+    }});
+}}
+
+function saveEditsToItems() {{
+    document.querySelectorAll('.deal-card').forEach((card, idx) => {{
+        const titleInput = card.querySelector('.title-input');
+        const benefitInput = card.querySelector('.benefit-input');
+        const affInput = card.querySelector('.affiliate-input');
+        if (idx < ITEMS.length) {{
+            ITEMS[idx].title = titleInput.value;
+            ITEMS[idx].benefit_description = benefitInput.value;
+            ITEMS[idx].affiliate_url = affInput.value;
+        }}
+    }});
+}}
+
+function skipDeal(idx) {{
+    saveEditsToItems();
+    const item = ITEMS[idx];
+    if (!confirm(`Remove "${{item.title}}" from today's newsletter?`)) return;
+    ITEMS.splice(idx, 1);
+    renderDealsList();
+}}
+
+function deleteDeal(idx) {{
+    saveEditsToItems();
+    const item = ITEMS[idx];
+    if (!confirm(`Permanently delete "${{item.title}}" from the catalog?\\n\\nThis cannot be undone.`)) return;
+
+    fetch('/delete', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asin: item.asin }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+        if (data.success) {{
+            ITEMS.splice(idx, 1);
+            renderDealsList();
+        }} else {{
+            alert('Error deleting: ' + data.error);
+        }}
+    }})
+    .catch(err => alert('Error: ' + err));
+}}
+
+function sendToMailchimp() {{
+    saveEditsToItems();
+
+    const asins = [];
     const titles = {{}};
     const benefits = {{}};
     const affiliateUrls = {{}};
 
-    selected.forEach(asin => {{
-        const card = document.querySelector(`.card[data-asin="${{asin}}"]`);
-        if (!card) return;
-        const titleInput = card.querySelector('.title-edit');
-        const benefitInput = card.querySelector('.benefit-edit');
-        const affiliateInput = card.querySelector('.affiliate-edit');
-        if (titleInput) titles[asin] = titleInput.value;
-        if (benefitInput && benefitInput.value.trim()) benefits[asin] = benefitInput.value.trim();
-        if (affiliateInput && affiliateInput.value.trim()) affiliateUrls[asin] = affiliateInput.value.trim();
+    ITEMS.forEach(item => {{
+        asins.push(item.asin);
+        titles[item.asin] = item.title;
+        if (item.benefit_description.trim()) benefits[item.asin] = item.benefit_description.trim();
+        if (item.affiliate_url.trim()) affiliateUrls[item.asin] = item.affiliate_url.trim();
     }});
 
-    const btn = document.getElementById('confirmBtn');
+    const btn = document.getElementById('sendBtn');
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
     fetch('/confirm', {{
         method: 'POST',
         headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ asins: selected, titles, benefits, affiliateUrls }})
+        body: JSON.stringify({{ asins, titles, benefits, affiliateUrls }})
     }})
     .then(r => r.json())
     .then(data => {{
@@ -959,13 +1328,13 @@ function confirmAndSend() {{
         }} else {{
             alert('Error: ' + data.error);
             btn.disabled = false;
-            btn.textContent = 'Confirm & Send';
+            btn.textContent = 'Send to Mailchimp \\u2192';
         }}
     }})
     .catch(err => {{
         alert('Error: ' + err);
         btn.disabled = false;
-        btn.textContent = 'Confirm & Send';
+        btn.textContent = 'Send to Mailchimp \\u2192';
     }});
 }}
 
@@ -985,7 +1354,7 @@ function showSuccessModal(campaignUrl) {{
     document.body.appendChild(overlay);
 }}
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', renderDealsList);
 </script>
 </body>
 </html>"""
@@ -996,6 +1365,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
 
     html_content = ""
     candidates = []
+    products = {}
 
     def log_message(self, format, *args):
         pass  # Suppress HTTP logs
@@ -1008,6 +1378,67 @@ class ReviewHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         global server_should_stop
+
+        if self.path == "/edit":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            selected_asins = data.get("asins", [])
+
+            try:
+                edit_html = build_edit_html(selected_asins, self.products)
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(edit_html.encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(f"Error: {e}".encode())
+            return
+
+        if self.path == "/delete":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            asin = data.get("asin", "")
+
+            try:
+                # Remove from products.json
+                products_file = PROJECT_ROOT / "catalog" / "products.json"
+                with open(products_file, "r", encoding="utf-8") as f:
+                    catalog = json.load(f)
+                if asin in catalog:
+                    del catalog[asin]
+                    with open(products_file, "w", encoding="utf-8") as f:
+                        json.dump(catalog, f, indent=2, ensure_ascii=False)
+                # Also remove from deals.json
+                if DEALS_FILE.exists():
+                    with open(DEALS_FILE, "r", encoding="utf-8") as f:
+                        deals_data = json.load(f)
+                    if asin in deals_data.get("deals", {}):
+                        del deals_data["deals"][asin]
+                        with open(DEALS_FILE, "w", encoding="utf-8") as f:
+                            json.dump(deals_data, f, indent=2, ensure_ascii=False)
+                # Remove from in-memory products
+                if asin in self.products:
+                    del self.products[asin]
+                print(f"Deleted {asin} from catalog")
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True}).encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
 
         if self.path == "/confirm":
             content_length = int(self.headers["Content-Length"])
@@ -1038,12 +1469,13 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
 
 
-def run_server(html: str, candidates: list, port: int = 8765):
+def run_server(html: str, candidates: list, products: dict, port: int = 8765):
     global server_should_stop
     server_should_stop = False
 
     ReviewHandler.html_content = html
     ReviewHandler.candidates = candidates
+    ReviewHandler.products = products
 
     server = HTTPServer(("localhost", port), ReviewHandler)
     server.timeout = 1
@@ -1083,7 +1515,7 @@ def main():
     print("Generating review page...")
     html = build_html(data)
 
-    run_server(html, candidates, args.port)
+    run_server(html, candidates, products, args.port)
 
 
 if __name__ == "__main__":
