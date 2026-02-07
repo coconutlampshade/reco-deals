@@ -51,5 +51,12 @@ DEAL_MIN_DISCOUNT_DOLLARS = 5   # Minimum dollar savings to qualify as deal
 DEAL_MIN_RATING = 4.0           # Minimum product rating (if available)
 DEAL_MIN_REVIEWS = 50           # Minimum number of reviews (if available)
 
+# Deal score weights (0-100 composite score for ranking deals)
+SCORE_WEIGHT_SAVINGS_PCT = 40   # Max points from % below average (2 pts per %)
+SCORE_WEIGHT_REVIEWS = 10       # Max points from review count (full at 500+)
+SCORE_WEIGHT_RATING = 10        # Max points from star rating (full at 4.5+)
+SCORE_WEIGHT_DOLLARS = 20       # Max points from dollar savings (full at $25+)
+SCORE_WEIGHT_NEAR_LOW = 20      # Bonus points if within 5% of 90-day low
+
 # Price history settings
 PRICE_HISTORY_DAYS = 90         # Days of price history to analyze

@@ -67,9 +67,14 @@ def fetch_keepa_products(asins: list[str], api_key: str) -> dict:
         "stats": 90,  # Get 90-day statistics
     }
 
-    response = requests.get(url, params=params, timeout=30)
-    response.raise_for_status()
-    return response.json()
+    from utils import api_request_with_retry
+
+    def _do_request():
+        resp = requests.get(url, params=params, timeout=30)
+        resp.raise_for_status()
+        return resp.json()
+
+    return api_request_with_retry(_do_request)
 
 
 def parse_price_history(csv_data: list, price_type: int = 0) -> list[tuple[datetime, float]]:
@@ -128,6 +133,7 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
         "image_url": None,
         "rating": None,
         "review_count": None,
+        "deal_score": 0,
         "last_updated": datetime.now().isoformat(),
     }
 
@@ -145,47 +151,13 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
             # Build Amazon image URL (300px size)
             result["image_url"] = f"https://m.media-amazon.com/images/I/{image_code}._SL300_.jpg"
 
-    # Get current prices - try stats.current first (most reliable), then CSV fallback
-    # Price indices: 0=Amazon, 1=New 3rd party, 2=Used, etc.
-    current_price = None
-    price_source = None
+    # Parse price, stats, rating, and deal metrics using shared utilities
+    from keepa_utils import (
+        parse_keepa_current_price, parse_keepa_stats,
+        parse_keepa_rating, calculate_deal_metrics, calculate_deal_score,
+    )
 
-    # Prefer stats.current which reflects Keepa's latest knowledge of availability
-    current_stats = stats.get("current", []) if stats else []
-    if isinstance(current_stats, list):
-        # Try Amazon price first (index 0)
-        if len(current_stats) > 0:
-            val = current_stats[0]
-            if val is not None and isinstance(val, (int, float)) and val > 0:
-                current_price = val / 100.0
-                price_source = "amazon"
-        # Fall back to New 3rd party price (index 1)
-        if current_price is None and len(current_stats) > 1:
-            val = current_stats[1]
-            if val is not None and isinstance(val, (int, float)) and val > 0:
-                current_price = val / 100.0
-                price_source = "new_3rd_party"
-
-    # Fall back to CSV history if stats.current unavailable
-    if current_price is None:
-        csv = product_data.get("csv", [])
-        # Try Amazon price first (index 0)
-        if csv and len(csv) > 0 and csv[0]:
-            amazon_csv = csv[0]
-            if amazon_csv and len(amazon_csv) >= 2:
-                last_price = amazon_csv[-1]
-                if last_price is not None and last_price > 0:
-                    current_price = last_price / 100.0
-                    price_source = "amazon"
-        # Fall back to New 3rd party price (index 1)
-        if current_price is None and csv and len(csv) > 1 and csv[1]:
-            new_csv = csv[1]
-            if new_csv and len(new_csv) >= 2:
-                last_price = new_csv[-1]
-                if last_price is not None and last_price > 0:
-                    current_price = last_price / 100.0
-                    price_source = "new_3rd_party"
-
+    current_price, price_source = parse_keepa_current_price(product_data, stats)
     if current_price is None:
         result["error"] = "No current price available"
         return result
@@ -193,68 +165,26 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     result["current_price"] = current_price
     result["price_source"] = price_source
 
-    # Extract 90-day stats
-    # Keepa stats format varies - can be list or nested structure
-    # Price type index: 0=Amazon, 1=New 3rd party
-    price_idx = 0 if price_source == "amazon" else 1
+    stat_values = parse_keepa_stats(stats, price_source)
+    result.update(stat_values)
 
-    def safe_get_stat(stat_data, idx):
-        """Safely extract a stat value, handling various formats."""
-        if not stat_data:
-            return None
-        if isinstance(stat_data, list):
-            if len(stat_data) > idx:
-                val = stat_data[idx]
-                # Handle nested lists
-                if isinstance(val, list):
-                    return val[-1] if val and val[-1] and val[-1] > 0 else None
-                return val if val and val > 0 else None
-        return None
+    rating, review_count = parse_keepa_rating(product_data)
+    result["rating"] = rating
+    result["review_count"] = review_count
 
-    if stats:
-        # Get averages
-        avg_val = safe_get_stat(stats.get("avg"), price_idx)
-        if avg_val:
-            result["avg_90_day"] = avg_val / 100.0
+    metrics = calculate_deal_metrics(current_price, result["avg_90_day"], result["high_90_day"])
+    result.update(metrics)
 
-        # Get 90-day min (low)
-        min_val = safe_get_stat(stats.get("min"), price_idx)
-        if min_val:
-            result["low_90_day"] = min_val / 100.0
-
-        # Get 90-day max (high)
-        max_val = safe_get_stat(stats.get("max"), price_idx)
-        if max_val:
-            result["high_90_day"] = max_val / 100.0
-
-        # Get all-time low
-        at_low_val = safe_get_stat(stats.get("atLow"), price_idx)
-        if at_low_val:
-            result["all_time_low"] = at_low_val / 100.0
-
-    # Get rating and reviews
-    if product_data.get("csv") and len(product_data["csv"]) > 16:
-        # Rating is at index 16, reviews at 17
-        rating_csv = product_data["csv"][16] if len(product_data["csv"]) > 16 else None
-        if rating_csv and len(rating_csv) >= 2 and rating_csv[-1]:
-            result["rating"] = rating_csv[-1] / 10.0  # Keepa stores as 45 for 4.5
-
-        review_csv = product_data["csv"][17] if len(product_data["csv"]) > 17 else None
-        if review_csv and len(review_csv) >= 2 and review_csv[-1]:
-            result["review_count"] = review_csv[-1]
-
-    # Calculate deal metrics
-    if result["avg_90_day"] and result["avg_90_day"] > 0:
-        result["percent_below_avg"] = ((result["avg_90_day"] - current_price) / result["avg_90_day"]) * 100
-        result["savings_dollars"] = result["avg_90_day"] - current_price
-
-    if result["high_90_day"] and result["high_90_day"] > 0:
-        result["percent_below_high"] = ((result["high_90_day"] - current_price) / result["high_90_day"]) * 100
-
-    # Determine if this is a deal: single criterion - must be 20%+ below 90-day average
+    # Determine if this is a deal: must be 10%+ below 90-day average
     if result["percent_below_avg"] and result["percent_below_avg"] >= config.DEAL_PERCENT_BELOW_AVG:
         result["is_deal"] = True
         result["deal_reasons"] = [f"{result['percent_below_avg']:.0f}% below 90-day avg"]
+
+    # Composite deal score for ranking
+    result["deal_score"] = calculate_deal_score(
+        current_price, result["percent_below_avg"], result["savings_dollars"],
+        result["low_90_day"], rating, review_count,
+    )
 
     return result
 
@@ -355,9 +285,8 @@ def save_deals(results: dict, output_path: Path):
         "all_results": results,
     }
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(output, f, indent=2, ensure_ascii=False)
+    from utils import atomic_json_write
+    atomic_json_write(output_path, output)
 
     print(f"\nResults saved to: {output_path}")
     print(f"Products with valid prices: {len(products_with_prices)}")

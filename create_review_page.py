@@ -28,6 +28,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from review_deals import (
     generate_and_send, load_full_catalog, generate_benefits_for_deals,
     shorten_title, get_affiliate_group, check_keepa_prices,
+    generate_benefit_description,
 )
 from generate_report import load_featured_history, COOLDOWN_DAYS, get_media_category
 
@@ -82,6 +83,7 @@ def merge_catalog_and_deals() -> dict:
             "savings_dollars": deal.get("savings_dollars") or 0,
             "rating": deal.get("rating"),
             "review_count": deal.get("review_count"),
+            "deal_score": deal.get("deal_score", 0),
             "has_deal_data": asin in deals,
         }
 
@@ -373,6 +375,22 @@ def build_html(merged_data: dict) -> str:
         }}
         .card-meta a {{ color: #4384F3; text-decoration: none; }}
         .card-meta a:hover {{ text-decoration: underline; }}
+        .card-rating {{
+            font-size: 12px;
+            color: #d97706;
+            font-weight: 600;
+        }}
+        .card-score {{
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }}
+        .card-extra {{
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }}
         .card-checkbox {{
             position: absolute;
             top: 12px;
@@ -477,6 +495,7 @@ def build_html(merged_data: dict) -> str:
                 <button class="filter-btn" data-filter="cooltools">Cool Tools</button>
             </div>
             <select class="sort-select" id="sortSelect">
+                <option value="score-desc">Deal Score (best first)</option>
                 <option value="savings-desc">Savings % (high to low)</option>
                 <option value="savings-asc">Savings % (low to high)</option>
                 <option value="price-asc">Price (low to high)</option>
@@ -670,6 +689,9 @@ function sortDeals(deals) {{
     const sorted = [...deals];
 
     switch (sort) {{
+        case 'score-desc':
+            sorted.sort((a, b) => (b.deal_score || 0) - (a.deal_score || 0));
+            break;
         case 'savings-desc':
             sorted.sort((a, b) => (b.percent_below_avg || 0) - (a.percent_below_avg || 0));
             break;
@@ -708,11 +730,34 @@ function renderCard(deal) {{
     const isSelected = selectedAsins.has(deal.asin);
     const isAtLow = deal.low_90_day && price && price <= deal.low_90_day;
 
+    const dealScore = deal.deal_score || 0;
+    const rating = deal.rating;
+    const reviewCount = deal.review_count;
+
     let badges = '';
-    if (deal.is_deal) badges += '<span class="badge badge-deal">Deal</span>';
+    if (dealScore >= 70) badges += '<span class="badge badge-deal">Top Deal</span>';
+    else if (deal.is_deal) badges += '<span class="badge badge-deal">Deal</span>';
     if (pctBelow > 0) badges += `<span class="badge badge-savings">${{pctBelow.toFixed(0)}}% below avg</span>`;
     if (isAtLow) badges += '<span class="badge badge-low">90-day low</span>';
     if (deal._inCooldown) badges += `<span class="badge badge-cooldown">Featured ${{deal._daysSince}}d ago</span>`;
+
+    // Rating and review count
+    let ratingHtml = '';
+    if (rating && rating > 0) {{
+        const stars = '\u2605';
+        ratingHtml = `<span class="card-rating">${{stars}} ${{rating.toFixed(1)}}`;
+        if (reviewCount && reviewCount > 0) {{
+            ratingHtml += ` (${{reviewCount.toLocaleString()}})`;
+        }}
+        ratingHtml += '</span>';
+    }}
+
+    // Deal score indicator
+    let scoreHtml = '';
+    if (dealScore > 0) {{
+        const scoreColor = dealScore >= 70 ? '#16a34a' : dealScore >= 40 ? '#d97706' : '#999';
+        scoreHtml = `<span class="card-score" style="color:${{scoreColor}}">Score: ${{dealScore}}</span>`;
+    }}
 
     const sourceLabel = getSourceLabel(deal);
     const meta = sourceLabel ? `Featured in ${{sourceLabel}}` : '';
@@ -733,6 +778,7 @@ function renderCard(deal) {{
                     </div>
                     <div class="card-price">${{priceHtml}}${{origHtml}}</div>
                     <div class="card-badges">${{badges}}</div>
+                    ${{(ratingHtml || scoreHtml) ? `<div class="card-extra">${{ratingHtml}}${{scoreHtml}}</div>` : ''}}
                     <div class="card-meta">${{meta}}</div>
                 </div>
             </div>
@@ -848,9 +894,11 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
     items = []
     for asin in selected_asins:
         p = products.get(asin, {})
+        full_title = p.get("title", asin)
         items.append({
             "asin": asin,
-            "title": p.get("title", asin),
+            "title": full_title,
+            "short_title": shorten_title(full_title),
             "image_url": p.get("image_url", ""),
             "current_price": p.get("current_price"),
             "avg_90_day": p.get("avg_90_day"),
@@ -1079,6 +1127,50 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
             cursor: pointer;
         }}
         .btn-delete:hover {{ background: #fdecea; }}
+        .title-row {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }}
+        .title-row .field-input {{
+            flex: 1;
+        }}
+        .btn-suggest {{
+            padding: 6px 12px;
+            border: 1px solid #4384F3;
+            border-radius: 5px;
+            background: #fff;
+            color: #4384F3;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }}
+        .btn-suggest:hover {{ background: #f0f5ff; }}
+        .benefit-row {{
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }}
+        .benefit-row textarea {{
+            flex: 1;
+        }}
+        .btn-generate {{
+            padding: 6px 12px;
+            border: 1px solid #7c3aed;
+            border-radius: 5px;
+            background: #fff;
+            color: #7c3aed;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }}
+        .btn-generate:hover {{ background: #f5f0ff; }}
+        .btn-generate:disabled {{ opacity: 0.5; cursor: not-allowed; }}
 
         /* Drag handle */
         .deal-card {{
@@ -1222,11 +1314,17 @@ function renderDealsList() {{
                 </div>
                 <div class="field-group">
                     <div class="field-label">Title</div>
-                    <input type="text" class="field-input title-input" data-asin="${{item.asin}}" value="${{escapeHtml(item.title).replace(/"/g, '&quot;')}}">
+                    <div class="title-row">
+                        <input type="text" class="field-input title-input" data-asin="${{item.asin}}" value="${{escapeHtml(item.title).replace(/"/g, '&quot;')}}" placeholder="${{escapeHtml(item.short_title || '').replace(/"/g, '&quot;')}}">
+                        ${{item.short_title && item.short_title !== item.title ? `<button class="btn-suggest" onclick="useSuggestion(${{idx}})" title="${{escapeHtml(item.short_title).replace(/"/g, '&quot;')}}">Shorten</button>` : ''}}
+                    </div>
                 </div>
                 <div class="field-group">
                     <div class="field-label">Benefit Description</div>
-                    <textarea class="field-input benefit-input" data-asin="${{item.asin}}" placeholder="Describe why this product is great...">${{escapeHtml(item.benefit_description)}}</textarea>
+                    <div class="benefit-row">
+                        <textarea class="field-input benefit-input" data-asin="${{item.asin}}" placeholder="Describe why this product is great...">${{escapeHtml(item.benefit_description)}}</textarea>
+                        <button class="btn-generate" onclick="generateBenefit(${{idx}})" title="Generate using AI">Generate</button>
+                    </div>
                 </div>
                 <div class="field-group">
                     <div class="field-label">Affiliate URL</div>
@@ -1291,6 +1389,48 @@ function saveEditsToItems() {{
             ITEMS[idx].affiliate_url = affInput.value;
         }}
     }});
+}}
+
+function generateBenefit(idx) {{
+    const item = ITEMS[idx];
+    const btn = document.querySelectorAll('.btn-generate')[idx];
+    const textarea = document.querySelectorAll('.benefit-input')[idx];
+    if (!btn || !textarea) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    fetch('/generate-benefit', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asin: item.asin, title: item.title }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+        if (data.success && data.benefit) {{
+            textarea.value = data.benefit;
+            item.benefit_description = data.benefit;
+        }} else {{
+            alert('Could not generate: ' + (data.error || 'No source article found'));
+        }}
+    }})
+    .catch(err => {{
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+        alert('Error: ' + err);
+    }});
+}}
+
+function useSuggestion(idx) {{
+    const item = ITEMS[idx];
+    if (!item.short_title) return;
+    const input = document.querySelectorAll('.title-input')[idx];
+    if (input) {{
+        input.value = item.short_title;
+        input.focus();
+    }}
 }}
 
 function skipDeal(idx) {{
@@ -1580,6 +1720,38 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": True, "prices": changes}).encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
+
+        if self.path == "/generate-benefit":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            asin = data.get("asin", "")
+            title = data.get("title", "")
+
+            try:
+                print(f"Generating benefit for {asin}: {title[:40]}...")
+                catalog = load_full_catalog()
+                # Build a deal-like dict with the info generate_benefit_description needs
+                product = self.products.get(asin, {})
+                deal = {
+                    "live_title": title,
+                    "catalog_title": product.get("catalog_title", title),
+                    "issues": product.get("issues", []),
+                }
+                benefit = generate_benefit_description(asin, deal, catalog)
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "benefit": benefit}).encode())
             except Exception as e:
                 import traceback
                 traceback.print_exc()

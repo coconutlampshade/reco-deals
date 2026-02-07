@@ -34,7 +34,8 @@ import config
 from pa_api import get_prices_for_asins
 from generate_report import (
     load_deals, filter_and_sort_deals, load_featured_history,
-    COOLDOWN_DAYS, get_media_category, calculate_issue_number
+    COOLDOWN_DAYS, get_media_category, calculate_issue_number,
+    shorten_title,
 )
 
 # URL pattern to GeniusLink group name mapping
@@ -76,88 +77,6 @@ server_should_stop = False
 live_prices = {}
 
 
-def shorten_title(title):
-    """Create a clean, short product name (3-5 words)."""
-    import re
-    if not title:
-        return "Deal"
-
-    # Remove parenthetical content (model numbers, sizes, etc.)
-    title = re.sub(r'\([^)]*\)', '', title)
-    # Remove bracketed content
-    title = re.sub(r'\[[^\]]*\]', '', title)
-
-    # Remove common filler phrases
-    filler = [
-        r'\d+\s*sheet\s*capacity', r'jam\s*free', r'heavy\s*duty',
-        r'\d+\s*count', r'\d+\s*pack', r'\d+\s*piece', r'\d+\s*ct\b',
-        r'\d+"\s*', r'\d+\s*inch', r'\d+\s*"', r'\d+\s*ft\b',
-        r'business\s*', r'professional\s*', r'premium\s*',
-        r'classic\s*', r'original\s*', r'standard\s*',
-        r'non-stick\s*', r'ceramic\s*', r'stainless\s*steel\s*',
-        r'america\'s\s*#?\d*\s*favorite\s*', r'canary\s*yellow\s*',
-        r'clean\s*removal\s*', r'recyclable\s*', r'portable\s*',
-        r'low\s*profile\s*', r'replaces\s*\d+\s*', r'black\s*$',
-        r'diy\s*', r'hobby\s*', r'tool\s*painting\s*',
-    ]
-    for f in filler:
-        title = re.sub(f, '', title, flags=re.IGNORECASE)
-
-    # Clean up punctuation
-    title = re.sub(r'\s*-\s*$', '', title)  # trailing dash
-    title = re.sub(r'\s*,\s*,+', ',', title)  # multiple commas
-    title = re.sub(r'\s+', ' ', title)  # multiple spaces
-    title = title.strip(' ,-')
-
-    # Words to skip
-    skip_words = {'and', 'or', 'the', 'a', 'an', 'in', 'on', 'of', 'for', 'with', 'to'}
-
-    # Product type words we want to keep (ensures name makes sense)
-    product_types = {
-        'stapler', 'fryer', 'slicer', 'pan', 'trimmer', 'steamer', 'microscope',
-        'knife', 'scissors', 'cutter', 'grinder', 'blender', 'mixer', 'cooker',
-        'grill', 'toaster', 'maker', 'press', 'opener', 'peeler', 'grater',
-        'thermometer', 'scale', 'timer', 'clock', 'light', 'lamp', 'flashlight',
-        'charger', 'cable', 'adapter', 'speaker', 'headphones', 'earbuds',
-        'bag', 'case', 'pouch', 'wallet', 'holder', 'stand', 'rack', 'organizer',
-        'brush', 'comb', 'razor', 'clipper', 'tweezer', 'file',
-        'tape', 'glue', 'pen', 'pencil', 'pencils', 'marker', 'notebook', 'planner',
-        'tool', 'wrench', 'pliers', 'screwdriver', 'hammer', 'drill',
-        'game', 'puzzle', 'toy', 'book', 'guide', 'kit', 'set',
-        'pills', 'tablets', 'chewables', 'capsules', 'cream', 'lotion',
-        'stripper', 'sealer', 'dispenser', 'sharpener',
-        'lock', 'twister', 'grips', 'mat', 'pad', 'bed', 'seat',
-        'notes', 'pads', 'plate', 'shelter', 'booth', 'anchor', 'bowl', 'bowls',
-        'cubes', 'stick', 'sticks', 'bottle', 'mop', 'sprayer', 'nozzle',
-    }
-
-    # Split and remove duplicates while preserving order
-    words = []
-    seen = set()
-    for word in title.replace(',', ' ').replace('-', ' ').split():
-        word_lower = word.lower()
-        if word_lower not in seen and word_lower not in skip_words and len(word) > 1:
-            words.append(word)
-            seen.add(word_lower)
-
-    # Find if there's a product type word and ensure we include it
-    result_words = []
-    found_product_type = False
-    for i, word in enumerate(words):
-        if len(result_words) < 4:
-            result_words.append(word)
-            if word.lower() in product_types:
-                found_product_type = True
-        elif not found_product_type and word.lower() in product_types:
-            # Add the product type
-            result_words.append(word)
-            found_product_type = True
-            break
-
-    result = " ".join(result_words[:5] if not found_product_type else result_words)
-    return result if result else "Deal"
-
-
 def load_full_catalog() -> dict:
     """Load the full product catalog."""
     catalog_file = config.CATALOG_DIR / "products.json"
@@ -167,9 +86,9 @@ def load_full_catalog() -> dict:
 
 def save_catalog(catalog: dict):
     """Save the product catalog."""
+    from utils import atomic_json_write
     catalog_file = config.CATALOG_DIR / "products.json"
-    with open(catalog_file, "w", encoding="utf-8") as f:
-        json.dump(catalog, f, indent=2)
+    atomic_json_write(catalog_file, catalog)
 
 
 def fetch_article_html(url: str) -> str:
@@ -412,6 +331,9 @@ def check_keepa_prices(asins: list) -> dict:
     """
     import os
     import requests
+    from keepa_utils import (
+        parse_keepa_current_price, parse_keepa_stats, calculate_deal_metrics,
+    )
 
     api_key = os.getenv("KEEPA_API_KEY")
     if not api_key:
@@ -432,8 +354,14 @@ def check_keepa_prices(asins: list) -> dict:
             "stats": 90,  # 90-day stats
         }
 
-        resp = requests.get(url, params=params, timeout=30)
-        data = resp.json()
+        from utils import api_request_with_retry
+
+        def _do_request():
+            r = requests.get(url, params=params, timeout=30)
+            r.raise_for_status()
+            return r.json()
+
+        data = api_request_with_retry(_do_request)
 
         if "products" not in data:
             print(f"    Warning: No products in response")
@@ -446,69 +374,20 @@ def check_keepa_prices(asins: list) -> dict:
 
             stats = product.get("stats", {})
 
-            # Get current price from stats.current (most reliable)
-            # Price indices: 0=Amazon, 1=New 3rd party
-            current = None
-            price_source = None
-            current_stats = stats.get("current", []) if stats else []
-            if isinstance(current_stats, list):
-                if len(current_stats) > 0:
-                    val = current_stats[0]
-                    if val is not None and isinstance(val, (int, float)) and val > 0:
-                        current = val / 100.0
-                        price_source = "amazon"
-                if current is None and len(current_stats) > 1:
-                    val = current_stats[1]
-                    if val is not None and isinstance(val, (int, float)) and val > 0:
-                        current = val / 100.0
-                        price_source = "new_3rd_party"
-
-            # Fall back to CSV history if stats.current unavailable
-            if current is None:
-                csv = product.get("csv", [])
-                if csv and len(csv) > 0 and csv[0]:
-                    amazon_prices = csv[0]
-                    if amazon_prices and len(amazon_prices) >= 2:
-                        last_price = amazon_prices[-1]
-                        if last_price and last_price > 0:
-                            current = last_price / 100.0
-                            price_source = "amazon"
-                if current is None and csv and len(csv) > 1 and csv[1]:
-                    new_prices = csv[1]
-                    if new_prices and len(new_prices) >= 2:
-                        last_price = new_prices[-1]
-                        if last_price and last_price > 0:
-                            current = last_price / 100.0
-                            price_source = "new_3rd_party"
-
-            # Stats are arrays where index 0 is Amazon price, index 1 is marketplace
-            # Use the same index as the price source
-            stat_idx = 0 if price_source == "amazon" else 1
-
-            def get_stat(stat_list, idx=stat_idx):
-                if isinstance(stat_list, list) and len(stat_list) > idx:
-                    val = stat_list[idx]
-                    if isinstance(val, list):
-                        return val[-1] / 100.0 if val and val[-1] and val[-1] > 0 else None
-                    if val and isinstance(val, (int, float)) and val > 0:
-                        return val / 100.0
-                return None
-
-            avg_90 = get_stat(stats.get("avg"))
-            percent_below_avg = None
-            savings_dollars = None
-            if current and avg_90 and avg_90 > 0:
-                percent_below_avg = ((avg_90 - current) / avg_90) * 100
-                savings_dollars = avg_90 - current
+            current, price_source = parse_keepa_current_price(product, stats)
+            stat_values = parse_keepa_stats(stats, price_source)
+            metrics = calculate_deal_metrics(
+                current, stat_values["avg_90_day"], stat_values["high_90_day"]
+            ) if current else {}
 
             results[asin] = {
                 "current_price": current,
-                "avg_price": get_stat(stats.get("avg")),
-                "avg_price_90": avg_90,
-                "min_price": get_stat(stats.get("min")),
-                "max_price": get_stat(stats.get("max")),
-                "percent_below_avg": percent_below_avg,
-                "savings_dollars": savings_dollars,
+                "avg_price": stat_values["avg_90_day"],
+                "avg_price_90": stat_values["avg_90_day"],
+                "min_price": stat_values["low_90_day"],
+                "max_price": stat_values["high_90_day"],
+                "percent_below_avg": metrics.get("percent_below_avg"),
+                "savings_dollars": metrics.get("savings_dollars"),
                 "price_source": price_source,
                 "title": product.get("title"),
             }

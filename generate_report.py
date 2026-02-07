@@ -162,8 +162,8 @@ def load_featured_history() -> dict:
 
 def save_featured_history(history: dict):
     """Save featured history."""
-    with open(FEATURED_HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2)
+    from utils import atomic_json_write
+    atomic_json_write(FEATURED_HISTORY_FILE, history)
 
 
 def filter_recently_featured(deals: list, cooldown_days: int = COOLDOWN_DAYS) -> list:
@@ -536,6 +536,34 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             color: #27ae60;
             margin-bottom: 4px;
         }}
+        .deal-price-context {{
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }}
+        .deal-badges {{
+            margin-bottom: 6px;
+        }}
+        .deal-badge {{
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }}
+        .deal-badge.near-low {{
+            background-color: #fee2e2;
+            color: #dc2626;
+        }}
+        .deal-badge.top-deal {{
+            background-color: #dcfce7;
+            color: #16a34a;
+        }}
+        .deal-badge.big-savings {{
+            background-color: #fef3c7;
+            color: #d97706;
+        }}
         .deal-tag {{
             display: inline-block;
             background-color: #4384F3;
@@ -755,6 +783,28 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 savings_pct = ((live_price["list_price"] - current) / live_price["list_price"]) * 100
                 indicator_html = f'<div class="deal-indicator">{savings_pct:.0f}% off list price</div>'
 
+        # Price context: show 90-day average and badges
+        price_context_html = ""
+        badges_html = ""
+        current = live_price.get("current_price") or deal.get("current_price")
+        avg_90 = deal.get("avg_90_day")
+        low_90 = deal.get("low_90_day")
+        deal_score = deal.get("deal_score", 0)
+        savings_dollars = deal.get("savings_dollars", 0) or 0
+
+        if current and avg_90 and avg_90 > current:
+            price_context_html = f'<div class="deal-price-context">90-day avg: {format_price(avg_90)}</div>'
+
+        badges = []
+        if current and low_90 and current <= low_90 * 1.05:
+            badges.append('<span class="deal-badge near-low">90-Day Low</span>')
+        if deal_score >= 70:
+            badges.append('<span class="deal-badge top-deal">Top Deal</span>')
+        if savings_dollars >= 20:
+            badges.append(f'<span class="deal-badge big-savings">Save {format_price(savings_dollars)}</span>')
+        if badges:
+            badges_html = '<div class="deal-badges">' + ''.join(badges) + '</div>'
+
         # Build meta info with issue links and benefits
         # Priority: Recomendo over Cool Tools (if both exist, only show Recomendo)
         # Format: "Reviewed in [Source]: [benefits sentence]"
@@ -822,7 +872,9 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                     <a href="{buy_link}" target="_blank">{title_text}</a>
                 </div>
                 {price_html}
+                {price_context_html}
                 {indicator_html}
+                {badges_html}
                 <div class="deal-meta">{meta_html}</div>
                 <a href="{buy_link}" class="buy-button" target="_blank">{button_text}</a>
             </div>
