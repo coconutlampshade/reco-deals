@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">February 07, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>6</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B001OVG40E">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/y2nc" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71q0tLZooxL._SL300_.jpg" alt="Watercolor Kit with Brush by Sakura" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/y2nc" target="_blank">Watercolor Kit with Brush by Sakura</a>
+                </div>
+                <div class="deal-price">$25.92</div>
+                <div class="deal-indicator">32% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/1500-sandwichfuturismwebkay-17-11-12" target="_blank">Recomendo #92</a>: The kit includes a water-storing brush that eliminates the need to carry a separate water container, making it easy to paint anywhere and incorporate into daily journaling or sketching routines.</div>
+                <a href="https://geni.us/y2nc" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B003L9K9HQ">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/d7Dqmz" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61qTe02TwvL._SL300_.jpg" alt="Tri-Flow Superior Lubricant" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/d7Dqmz" target="_blank">Tri-Flow Superior Lubricant</a>
+                </div>
+                <div class="deal-price">$10.89</div>
+                <div class="deal-indicator">24% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/tri-flow-superior-lubricant/" target="_blank">Cool Tools</a>: This lubricant keeps bike chains running smoothly and maintains them in excellent condition for many years across multiple bicycles.</div>
+                <a href="https://geni.us/d7Dqmz" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0725GYNG6">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/am-baking-mats" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81IC5+bWDgL._SL300_.jpg" alt="Silicone Baking Mat" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/am-baking-mats" target="_blank">Silicone Baking Mat</a>
+                </div>
+                <div class="deal-price">$8.99</div>
+                <div class="deal-indicator">22% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/nomad-landsdisappearing-emailsairpod-21-02-21" target="_blank">Recomendo #263</a>: This reusable silicone mat provides a non-stick surface that eliminates the need for parchment paper or cooking sprays when baking, making cleanup easier and reducing waste.</div>
+                <a href="https://geni.us/am-baking-mats" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0F7X47TCD">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/Xvtw" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61mEw7IaubL._SL300_.jpg" alt="USB-C Rechargeable Mini Keychain Flashlight" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/Xvtw" target="_blank">USB-C Rechargeable Mini Keychain Flashlight</a>
+                </div>
+                <div class="deal-price">$13.95</div>
+                <div class="deal-indicator">18% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://www.recomendo.com/p/single-sheet-calendar-secret-mall" target="_blank">Recomendo #521</a>: Delivering up to 650 lumens with a max beam distance of 105 meters, this mini flashlight is powered by a built-in rechargeable 350mAh battery and features a USB-C port for fast, convenient charging.</div>
+                <a href="https://geni.us/Xvtw" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B017D080HE">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/smartphone-gloves-r" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61y-Ij8PVEL._SL300_.jpg" alt="Smartphone Gloves" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/smartphone-gloves-r" target="_blank">Smartphone Gloves</a>
+                </div>
+                <div class="deal-price">$7.99</div>
+                <div class="deal-indicator">14% off list price</div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/national-park-passessmartphone-glovestech" target="_blank">Recomendo #411</a>: These gloves allow you to operate touchscreen devices without exposing your hands to cold weather thanks to conductive pads on the fingertips.</div>
+                <a href="https://geni.us/smartphone-gloves-r" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0000AXYZG">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/poL7HP" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61tSx-rOUjL._SL300_.jpg" alt="Seal-All Adhesive and Sealant" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/poL7HP" target="_blank">Seal-All Adhesive and Sealant</a>
+                </div>
+                <div class="deal-price">$3.13</div>
+                <div class="deal-indicator"></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/sealall-adhesiv/" target="_blank">Cool Tools</a>: This adhesive uniquely withstands constant exposure to gasoline and brake fluid while sealing leaks even when applied over surfaces already contaminated with fluids, eliminating the need for thorough cleaning and drying that other products require.</div>
+                <a href="https://geni.us/poL7HP" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

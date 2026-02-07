@@ -145,30 +145,46 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
             # Build Amazon image URL (300px size)
             result["image_url"] = f"https://m.media-amazon.com/images/I/{image_code}._SL300_.jpg"
 
-    # Get current prices - try Amazon first, then new 3rd party
-    # Price indices: 0=Amazon, 1=New, 2=Used, etc.
-    csv = product_data.get("csv", [])
-
+    # Get current prices - try stats.current first (most reliable), then CSV fallback
+    # Price indices: 0=Amazon, 1=New 3rd party, 2=Used, etc.
     current_price = None
     price_source = None
 
-    # Try Amazon price first (index 0)
-    if csv and len(csv) > 0 and csv[0]:
-        amazon_csv = csv[0]
-        if amazon_csv and len(amazon_csv) >= 2:
-            last_price = amazon_csv[-1]
-            if last_price is not None and last_price > 0:
-                current_price = last_price / 100.0
+    # Prefer stats.current which reflects Keepa's latest knowledge of availability
+    current_stats = stats.get("current", []) if stats else []
+    if isinstance(current_stats, list):
+        # Try Amazon price first (index 0)
+        if len(current_stats) > 0:
+            val = current_stats[0]
+            if val is not None and isinstance(val, (int, float)) and val > 0:
+                current_price = val / 100.0
                 price_source = "amazon"
-
-    # Fall back to New 3rd party price (index 1)
-    if current_price is None and csv and len(csv) > 1 and csv[1]:
-        new_csv = csv[1]
-        if new_csv and len(new_csv) >= 2:
-            last_price = new_csv[-1]
-            if last_price is not None and last_price > 0:
-                current_price = last_price / 100.0
+        # Fall back to New 3rd party price (index 1)
+        if current_price is None and len(current_stats) > 1:
+            val = current_stats[1]
+            if val is not None and isinstance(val, (int, float)) and val > 0:
+                current_price = val / 100.0
                 price_source = "new_3rd_party"
+
+    # Fall back to CSV history if stats.current unavailable
+    if current_price is None:
+        csv = product_data.get("csv", [])
+        # Try Amazon price first (index 0)
+        if csv and len(csv) > 0 and csv[0]:
+            amazon_csv = csv[0]
+            if amazon_csv and len(amazon_csv) >= 2:
+                last_price = amazon_csv[-1]
+                if last_price is not None and last_price > 0:
+                    current_price = last_price / 100.0
+                    price_source = "amazon"
+        # Fall back to New 3rd party price (index 1)
+        if current_price is None and csv and len(csv) > 1 and csv[1]:
+            new_csv = csv[1]
+            if new_csv and len(new_csv) >= 2:
+                last_price = new_csv[-1]
+                if last_price is not None and last_price > 0:
+                    current_price = last_price / 100.0
+                    price_source = "new_3rd_party"
 
     if current_price is None:
         result["error"] = "No current price available"

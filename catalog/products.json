@@ -18964,17 +18964,7 @@
     "asin": "B0000AXYZG",
     "title": "Seal-All Adhesive and Sealant",
     "amazon_url": "https://www.amazon.com/dp/B0000AXYZG",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "poL7HP",
-      "productUrl": "https://www.amazon.com/dp/B0000AXYZG?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "poL7HP"
-    },
+    "affiliate_url": "https://geni.us/poL7HP",
     "issues": [
       {
         "url": "https://kk.org/cooltools/sealall-adhesiv/",
@@ -25482,17 +25472,7 @@
     "asin": "B003L9K9HQ",
     "title": "Tri-Flow Superior Lubricant",
     "amazon_url": "https://www.amazon.com/dp/B003L9K9HQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "d7Dqmz",
-      "productUrl": "https://www.amazon.com/dp/B003L9K9HQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "d7Dqmz"
-    },
+    "affiliate_url": "https://geni.us/d7Dqmz",
     "issues": [
       {
         "url": "https://kk.org/cooltools/tri-flow-superior-lubricant/",
@@ -73606,6 +73586,7 @@
       }
     ],
     "first_featured": "2026-02-01",
-    "added_at": "2026-02-01T13:37:21.982997"
+    "added_at": "2026-02-01T13:37:21.982997",
+    "benefit_description": "Delivering up to 650 lumens with a max beam distance of 105 meters, this mini flashlight is powered by a built-in rechargeable 350mAh battery and features a USB-C port for fast, convenient charging."
   }
 }

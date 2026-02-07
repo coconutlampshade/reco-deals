@@ -27,7 +27,7 @@ DEALS_FILE = PROJECT_ROOT / "catalog" / "deals.json"
 sys.path.insert(0, str(PROJECT_ROOT))
 from review_deals import (
     generate_and_send, load_full_catalog, generate_benefits_for_deals,
-    shorten_title, get_affiliate_group,
+    shorten_title, get_affiliate_group, check_keepa_prices,
 )
 from generate_report import load_featured_history, COOLDOWN_DAYS, get_media_category
 
@@ -925,6 +925,30 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
         }}
         .btn-send:hover {{ background: #219a52; }}
         .btn-send:disabled {{ background: #999; cursor: not-allowed; }}
+        .btn-verify {{
+            background: #4384F3;
+            color: #fff;
+        }}
+        .btn-verify:hover {{ background: #2b74f1; }}
+        .btn-verify:disabled {{ background: #999; cursor: not-allowed; }}
+        .verify-banner {{
+            max-width: 800px;
+            margin: 0 auto 16px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }}
+        .verify-banner.success {{ display: block; background: #dcfce7; color: #16a34a; }}
+        .verify-banner.warning {{ display: block; background: #fef3c7; color: #d97706; }}
+        .verify-banner.error {{ display: block; background: #fee2e2; color: #dc2626; }}
+        .price-changed {{ color: #d97706; font-weight: 600; }}
+        .price-updated {{ animation: flash 1s ease; }}
+        @keyframes flash {{
+            0% {{ background: #fef3c7; }}
+            100% {{ background: transparent; }}
+        }}
         .container {{
             max-width: 800px;
             margin: 20px auto;
@@ -1133,12 +1157,14 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
             <h1><span>Edit</span> Selected Deals</h1>
             <div class="header-actions">
                 <button class="btn btn-back" onclick="window.location.href='/'">&#8592; Back</button>
+                <button class="btn btn-verify" id="verifyBtn" onclick="verifyPrices()">Verify Prices</button>
                 <button class="btn btn-send" id="sendBtn" onclick="sendToMailchimp()">Send to Mailchimp &#8594;</button>
             </div>
         </div>
     </div>
 
     <div class="container">
+        <div class="verify-banner" id="verifyBanner"></div>
         <p class="drag-hint">Drag to reorder. Edit titles and descriptions below.</p>
         <div id="dealsList"></div>
     </div>
@@ -1297,6 +1323,73 @@ function deleteDeal(idx) {{
     .catch(err => alert('Error: ' + err));
 }}
 
+function verifyPrices() {{
+    const btn = document.getElementById('verifyBtn');
+    const banner = document.getElementById('verifyBanner');
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    banner.className = 'verify-banner';
+    banner.textContent = '';
+
+    const asins = ITEMS.map(item => item.asin);
+
+    fetch('/verify-prices', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asins }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+        btn.disabled = false;
+        btn.textContent = 'Verify Prices';
+
+        if (!data.success) {{
+            banner.className = 'verify-banner error';
+            banner.textContent = 'Error: ' + (data.error || 'Unknown error');
+            return;
+        }}
+
+        const prices = data.prices || {{}};
+        let changedCount = 0;
+        let details = [];
+
+        ITEMS.forEach((item, idx) => {{
+            const fresh = prices[item.asin];
+            if (!fresh) return;
+
+            if (fresh.changed) {{
+                changedCount++;
+                const oldP = fresh.old_price ? '$' + fresh.old_price.toFixed(2) : 'N/A';
+                const newP = '$' + fresh.current_price.toFixed(2);
+                details.push(item.title.substring(0, 40) + ': ' + oldP + ' → ' + newP);
+            }}
+
+            // Update ITEMS data
+            item.current_price = fresh.current_price;
+            if (fresh.avg_90_day != null) item.avg_90_day = fresh.avg_90_day;
+            if (fresh.percent_below_avg != null) item.percent_below_avg = fresh.percent_below_avg;
+        }});
+
+        // Save current edits then re-render with updated prices
+        saveEditsToItems();
+        renderDealsList();
+
+        if (changedCount > 0) {{
+            banner.className = 'verify-banner warning';
+            banner.innerHTML = '<strong>' + changedCount + ' price(s) changed:</strong> ' + details.join('; ');
+        }} else {{
+            banner.className = 'verify-banner success';
+            banner.textContent = 'All ' + asins.length + ' prices verified — no changes detected.';
+        }}
+    }})
+    .catch(err => {{
+        btn.disabled = false;
+        btn.textContent = 'Verify Prices';
+        banner.className = 'verify-banner error';
+        banner.textContent = 'Error verifying prices: ' + err;
+    }});
+}}
+
 function sendToMailchimp() {{
     saveEditsToItems();
 
@@ -1431,6 +1524,62 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": True}).encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
+
+        if self.path == "/verify-prices":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            asins = data.get("asins", [])
+
+            try:
+                print(f"Verifying prices for {len(asins)} products...")
+                fresh = check_keepa_prices(asins)
+
+                # Update in-memory products with fresh prices
+                changes = {}
+                for asin, price_data in fresh.items():
+                    new_price = price_data.get("current_price")
+                    if new_price is None:
+                        continue
+                    old_price = (self.products.get(asin) or {}).get("current_price")
+                    avg = price_data.get("avg_price_90") or price_data.get("avg_price")
+                    pct = price_data.get("percent_below_avg")
+                    savings = price_data.get("savings_dollars")
+
+                    changes[asin] = {
+                        "old_price": old_price,
+                        "current_price": new_price,
+                        "avg_90_day": avg,
+                        "percent_below_avg": pct,
+                        "savings_dollars": savings,
+                        "changed": old_price is not None and abs((old_price or 0) - new_price) >= 0.01,
+                    }
+
+                    # Update in-memory data for /confirm
+                    if asin in self.products:
+                        self.products[asin]["current_price"] = new_price
+                        if avg:
+                            self.products[asin]["avg_90_day"] = avg
+                        if pct is not None:
+                            self.products[asin]["percent_below_avg"] = pct
+                        if savings is not None:
+                            self.products[asin]["savings_dollars"] = savings
+
+                num_changed = sum(1 for v in changes.values() if v["changed"])
+                print(f"  {num_changed} price(s) changed out of {len(changes)} checked")
+
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "prices": changes}).encode())
             except Exception as e:
                 import traceback
                 traceback.print_exc()
