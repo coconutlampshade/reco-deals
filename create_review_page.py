@@ -1813,6 +1813,9 @@ def run_server(html: str, candidates: list, products: dict, port: int = 8765):
     except KeyboardInterrupt:
         print("\nCancelled.")
 
+    # Give the browser a moment to receive the final response
+    import time
+    time.sleep(2)
     server.server_close()
     print("\nDone!")
 

@@ -1620,25 +1620,31 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
 
     print(f"Campaign created: {campaign_url}")
 
-    # Deploy to Vercel and push to git
-    print("Deploying to Vercel...")
-    try:
-        subprocess.run(["vercel", "--prod", "--yes"], check=True, capture_output=True)
-        print("Deployed to Vercel")
-    except subprocess.CalledProcessError as e:
-        print(f"Vercel deploy failed: {e}")
+    # Deploy to Vercel and push to git in background so the HTTP response
+    # returns immediately and the browser can show the success modal.
+    import threading
 
-    print("Pushing to git...")
-    try:
-        subprocess.run(["git", "add", "-A"], check=True, capture_output=True)
-        subprocess.run(
-            ["git", "commit", "-m", "Update deals and featured history\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"],
-            check=True, capture_output=True
-        )
-        subprocess.run(["git", "push"], check=True, capture_output=True)
-        print("Pushed to git")
-    except subprocess.CalledProcessError as e:
-        print(f"Git push failed: {e}")
+    def _deploy_and_push():
+        print("Deploying to Vercel...")
+        try:
+            subprocess.run(["vercel", "--prod", "--yes"], check=True, capture_output=True)
+            print("Deployed to Vercel")
+        except subprocess.CalledProcessError as e:
+            print(f"Vercel deploy failed: {e}")
+
+        print("Pushing to git...")
+        try:
+            subprocess.run(["git", "add", "-A"], check=True, capture_output=True)
+            subprocess.run(
+                ["git", "commit", "-m", "Update deals and featured history\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"],
+                check=True, capture_output=True
+            )
+            subprocess.run(["git", "push"], check=True, capture_output=True)
+            print("Pushed to git")
+        except subprocess.CalledProcessError as e:
+            print(f"Git push failed: {e}")
+
+    threading.Thread(target=_deploy_and_push, daemon=True).start()
 
     return {
         "success": True,

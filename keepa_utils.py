@@ -14,52 +14,59 @@ def _safe_get_stat(stat_data, idx):
     return None
 
 
+def _extract_stat(current_stats: list, index: int) -> float | None:
+    """Extract a price from stats.current at the given index, returning dollars or None."""
+    if not isinstance(current_stats, list) or len(current_stats) <= index:
+        return None
+    val = current_stats[index]
+    if val is not None and isinstance(val, (int, float)) and val > 0:
+        return val / 100.0
+    return None
+
+
 def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[float | None, str | None]:
     """Extract current price from Keepa data.
 
-    Tries stats.current first (most reliable), then CSV history as fallback.
-    Prefers Amazon price, falls back to New 3rd party.
+    Priority order:
+    1. Amazon direct price (index 0) — most reliable when available
+    2. Buy Box price (index 18) — what customers actually see on Amazon
+    3. New 3rd party price (index 1) — only if Buy Box is also available
+       (if Buy Box is -1 but 3P has a price, the 3P price is likely stale)
 
     Returns:
         (current_price_dollars, price_source) where price_source is
-        "amazon", "new_3rd_party", or None if no price found.
+        "amazon", "buy_box", "new_3rd_party", or None if no price found.
     """
-    current_price = None
-    price_source = None
-
-    # Prefer stats.current which reflects Keepa's latest knowledge of availability
     current_stats = stats.get("current", []) if stats else []
-    if isinstance(current_stats, list):
-        if len(current_stats) > 0:
-            val = current_stats[0]
-            if val is not None and isinstance(val, (int, float)) and val > 0:
-                current_price = val / 100.0
-                price_source = "amazon"
-        if current_price is None and len(current_stats) > 1:
-            val = current_stats[1]
-            if val is not None and isinstance(val, (int, float)) and val > 0:
-                current_price = val / 100.0
-                price_source = "new_3rd_party"
 
-    # Fall back to CSV history if stats.current unavailable
-    if current_price is None:
-        csv = product_data.get("csv", [])
-        if csv and len(csv) > 0 and csv[0]:
-            amazon_csv = csv[0]
-            if amazon_csv and len(amazon_csv) >= 2:
-                last_price = amazon_csv[-1]
-                if last_price is not None and last_price > 0:
-                    current_price = last_price / 100.0
-                    price_source = "amazon"
-        if current_price is None and csv and len(csv) > 1 and csv[1]:
-            new_csv = csv[1]
-            if new_csv and len(new_csv) >= 2:
-                last_price = new_csv[-1]
-                if last_price is not None and last_price > 0:
-                    current_price = last_price / 100.0
-                    price_source = "new_3rd_party"
+    # 1. Amazon direct price
+    amazon_price = _extract_stat(current_stats, 0)
+    if amazon_price is not None:
+        return amazon_price, "amazon"
 
-    return current_price, price_source
+    # 2. Buy Box price — what the customer actually sees
+    buy_box_price = _extract_stat(current_stats, 18)
+    if buy_box_price is not None:
+        return buy_box_price, "buy_box"
+
+    # 3. New 3rd party — only trust it if it seems fresh (Buy Box also has a price
+    #    or Amazon was recently available). If Buy Box is -1, the 3P price is
+    #    likely stale and the product may be unavailable at that price.
+    new_3p_price = _extract_stat(current_stats, 1)
+    buy_box_raw = current_stats[18] if isinstance(current_stats, list) and len(current_stats) > 18 else None
+    if new_3p_price is not None and buy_box_raw is not None and buy_box_raw > 0:
+        return new_3p_price, "new_3rd_party"
+
+    # 4. Fall back to CSV history if stats.current is entirely unavailable
+    csv = product_data.get("csv", [])
+    if csv and len(csv) > 0 and csv[0]:
+        amazon_csv = csv[0]
+        if amazon_csv and len(amazon_csv) >= 2:
+            last_price = amazon_csv[-1]
+            if last_price is not None and last_price > 0:
+                return last_price / 100.0, "amazon"
+
+    return None, None
 
 
 def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
@@ -76,7 +83,13 @@ def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
     if not stats:
         return result
 
-    price_idx = 0 if price_source == "amazon" else 1
+    # Buy Box stats use index 18, Amazon uses 0, 3rd party uses 1
+    if price_source == "buy_box":
+        price_idx = 18
+    elif price_source == "amazon":
+        price_idx = 0
+    else:
+        price_idx = 1
 
     avg_val = _safe_get_stat(stats.get("avg"), price_idx)
     if avg_val:
