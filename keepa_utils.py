@@ -49,22 +49,20 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
     if buy_box_price is not None:
         return buy_box_price, "buy_box"
 
-    # 3. New 3rd party — only trust it if it seems fresh (Buy Box also has a price
-    #    or Amazon was recently available). If Buy Box is -1, the 3P price is
-    #    likely stale and the product may be unavailable at that price.
+    # 3. New 3rd party price
     new_3p_price = _extract_stat(current_stats, 1)
-    buy_box_raw = current_stats[18] if isinstance(current_stats, list) and len(current_stats) > 18 else None
-    if new_3p_price is not None and buy_box_raw is not None and buy_box_raw > 0:
+    if new_3p_price is not None:
         return new_3p_price, "new_3rd_party"
 
-    # 4. Fall back to CSV history if stats.current is entirely unavailable
+    # 4. Fall back to CSV history (check Amazon, then Buy Box, then 3rd party)
     csv = product_data.get("csv", [])
-    if csv and len(csv) > 0 and csv[0]:
-        amazon_csv = csv[0]
-        if amazon_csv and len(amazon_csv) >= 2:
-            last_price = amazon_csv[-1]
-            if last_price is not None and last_price > 0:
-                return last_price / 100.0, "amazon"
+    for csv_idx, source_name in [(0, "amazon"), (18, "buy_box"), (1, "new_3rd_party")]:
+        if csv and len(csv) > csv_idx and csv[csv_idx]:
+            csv_data = csv[csv_idx]
+            if csv_data and len(csv_data) >= 2:
+                last_price = csv_data[-1]
+                if last_price is not None and last_price > 0:
+                    return last_price / 100.0, source_name
 
     return None, None
 

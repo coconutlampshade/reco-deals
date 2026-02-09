@@ -57,14 +57,16 @@ def merge_catalog_and_deals() -> dict:
     catalog = load_full_catalog()
     deals_data = load_deals()
     deals = deals_data.get("deals", {})
+    all_results = deals_data.get("all_results", {})
 
     merged = {}
     for asin, product in catalog.items():
         deal = deals.get(asin, {})
+        result = all_results.get(asin, {})
         merged[asin] = {
             # Catalog fields
             "title": product.get("title", asin),
-            "image_url": deal.get("image_url") or product.get("image_url", ""),
+            "image_url": deal.get("image_url") or result.get("image_url") or product.get("image_url", ""),
             "issues": product.get("issues", []),
             "affiliate_url": resolve_affiliate_url(product.get("affiliate_url")),
             "amazon_url": product.get("amazon_url", f"https://www.amazon.com/dp/{asin}"),
