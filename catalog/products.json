@@ -6311,17 +6311,7 @@
     "asin": "B06WWLJ7KY",
     "title": "Fuji Instax Mini",
     "amazon_url": "https://www.amazon.com/dp/B06WWLJ7KY?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "7CHd",
-      "productUrl": "https://www.amazon.com/dp/B06WWLJ7KY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "7CHd"
-    },
+    "affiliate_url": "https://geni.us/7CHd",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/talk-to-booksplastic-razor-bladesfuji-19-01-27",
@@ -8137,17 +8127,7 @@
     "asin": "B07BH4N3Y5",
     "title": "bucket of fried chicken",
     "amazon_url": "https://www.amazon.com/dp/B07BH4N3Y5?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "U6RAouq",
-      "productUrl": "https://www.amazon.com/dp/B07BH4N3Y5?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "U6RAouq"
-    },
+    "affiliate_url": "https://geni.us/U6RAouq",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/geoguessrfootpathhead-mounted-magnifier-18-10-28",
@@ -8749,7 +8729,7 @@
     ],
     "first_featured": "2024-12-29",
     "added_at": "2026-01-02T13:42:17.899459",
-    "benefit_description": "This AI tool transforms written text instructions into cinematic-quality videos in multiple visual styles, enabling users to create complete films without traditional video production equipment or skills."
+    "benefit_description": "Extends AirTag life for 10 years"
   },
   "B00XV1RD0K": {
     "asin": "B00XV1RD0K",
@@ -19160,17 +19140,7 @@
     "asin": "B0006ACWEQ",
     "title": "OpenX Dual-Blade Package Opener",
     "amazon_url": "https://www.amazon.com/dp/B0006ACWEQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "sQRtpfC",
-      "productUrl": "https://www.amazon.com/dp/B0006ACWEQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "sQRtpfC"
-    },
+    "affiliate_url": "https://geni.us/sQRtpfC",
     "issues": [
       {
         "url": "https://kk.org/cooltools/openx-dualblade-1/",
@@ -19702,17 +19672,7 @@
     "asin": "B001AS994E",
     "title": "Scotch Restickable Adhesive Glue Stick",
     "amazon_url": "https://www.amazon.com/dp/B001AS994E",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "an1o",
-      "productUrl": "https://www.amazon.com/dp/B001AS994E?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "an1o"
-    },
+    "affiliate_url": "https://geni.us/an1o",
     "issues": [
       {
         "url": "https://kk.org/cooltools/scotch-resticka/",
@@ -24065,17 +24025,7 @@
     "asin": "B00006IFAN",
     "title": "The Best Pencil Eraser",
     "amazon_url": "https://www.amazon.com/dp/B00006IFAN",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "lPIU",
-      "productUrl": "https://www.amazon.com/dp/B00006IFAN?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "lPIU"
-    },
+    "affiliate_url": "https://geni.us/lPIU",
     "issues": [
       {
         "url": "https://kk.org/cooltools/the-best-pencil/",
@@ -35441,17 +35391,7 @@
     "asin": "B0002KZMCO",
     "title": "Microwaveable Bowls With Handles",
     "amazon_url": "https://www.amazon.com/dp/B0002KZMCO",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "2R1XTE",
-      "productUrl": "https://www.amazon.com/dp/B0002KZMCO?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "2R1XTE"
-    },
+    "affiliate_url": "https://geni.us/2R1XTE",
     "issues": [
       {
         "url": "https://kk.org/cooltools/microwaveable-bowls-with-handles/",
@@ -35462,7 +35402,7 @@
     ],
     "first_featured": "2015-01-28",
     "added_at": "2026-01-03T08:01:04.390911",
-    "benefit_description": "This container allows you to steam-cook vegetables like carrots and brussels sprouts while providing adjustable venting control through a toggle switch that lets you manage steam release during heating."
+    "benefit_description": "Generous size, excellent heat retention, microwave-safe and dishwasher-friendly design"
   },
   "B004YN239A": {
     "asin": "B004YN239A",
@@ -41163,7 +41103,7 @@
     ],
     "first_featured": "2016-05-10",
     "added_at": "2026-01-03T08:01:04.402271",
-    "benefit_description": "This music learning tool listens to acoustic guitar playing through its built-in acoustic engine, identifies individual notes within chords, and provides real-time grading and corrections while you play."
+    "benefit_description": "Oversized dot-grid notebook that's perfect for doing math homework with kids — bigger than letter-size so you have plenty of room, and when opened flat it spans two laps so you can work side by side. The dot grid makes graphing, geometry, and spacing easy without getting in the way of equations."
   },
   "B008U12YV4": {
     "asin": "B008U12YV4",
@@ -45367,17 +45307,7 @@
     "asin": "B000WU9LCQ",
     "title": "Slow Motion Reality [Maker Update #39]",
     "amazon_url": "https://www.amazon.com/dp/B000WU9LCQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "6K4Af",
-      "productUrl": "https://www.amazon.com/dp/B000WU9LCQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "6K4Af"
-    },
+    "affiliate_url": "https://geni.us/6K4Af",
     "issues": [
       {
         "url": "https://kk.org/cooltools/slow-motion-reality-maker-update-39/",
@@ -49690,17 +49620,7 @@
     "asin": "B008AGWNII",
     "title": "Paper Airplane Machine [Maker Update]",
     "amazon_url": "https://www.amazon.com/dp/B008AGWNII",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "W4sW",
-      "productUrl": "https://www.amazon.com/dp/B008AGWNII?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "W4sW"
-    },
+    "affiliate_url": "https://geni.us/W4sW",
     "issues": [
       {
         "url": "https://kk.org/cooltools/paper-airplane-machine-maker-update/",
@@ -55904,17 +55824,7 @@
     "asin": "B00SPHYQXM",
     "title": "PulsePoint/Accidental Wes Anderson/Get Amazon credit",
     "amazon_url": "https://www.amazon.com/dp/B00SPHYQXM",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "U0GqTkz",
-      "productUrl": "https://www.amazon.com/dp/B00SPHYQXM?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "U0GqTkz"
-    },
+    "affiliate_url": "https://geni.us/U0GqTkz",
     "issues": [
       {
         "url": "https://kk.org/cooltools/pulsepointaccidental-wes-andersonget-amazon-credit/",
@@ -55925,7 +55835,7 @@
     ],
     "first_featured": "2020-03-15",
     "added_at": "2026-01-03T08:01:04.451389",
-    "benefit_description": "This app provides real-time alerts about medical and fire emergencies happening in your immediate neighborhood, letting you stay informed about emergency activity around you."
+    "benefit_description": "Odorless penetrating oil that unsticks adhesives from anywhere people stick stuff. Spray on, let soak, and peel off — great for removing labels from reused kitchen jars. Leaves a temporary oil film that evaporates."
   },
   "B0000DAQ5E": {
     "asin": "B0000DAQ5E",
@@ -56342,17 +56252,7 @@
     "asin": "B007712D4Q",
     "title": "What's in my bag? — Zora O'Neill",
     "amazon_url": "https://www.amazon.com/dp/B007712D4Q",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "hJTgx",
-      "productUrl": "https://www.amazon.com/dp/B007712D4Q?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "hJTgx"
-    },
+    "affiliate_url": "https://geni.us/hJTgx",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-zora-oneill/",
@@ -56363,7 +56263,7 @@
     ],
     "first_featured": "2020-03-25",
     "added_at": "2026-01-03T08:01:04.451898",
-    "benefit_description": "It provides the maximum packing capacity while remaining compact enough to fit under airplane seats and serve as a footrest during flights."
+    "benefit_description": "Braided elastic eliminates the need for a clothespin; simply hang clothes between the cords. Secures to the wall or tile with extra-large suction cups"
   },
   "B00NK9948M": {
     "asin": "B00NK9948M",
@@ -56807,17 +56707,7 @@
     "asin": "B002OB49JQ",
     "title": "Erika Hall, Co-founder of Mule Design",
     "amazon_url": "https://www.amazon.com/dp/B002OB49JQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "d9eTq",
-      "productUrl": "https://www.amazon.com/dp/B002OB49JQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "d9eTq"
-    },
+    "affiliate_url": "https://geni.us/d9eTq",
     "issues": [
       {
         "url": "https://kk.org/cooltools/erika-hall-co-founder-of-mule-design/",
@@ -57301,17 +57191,7 @@
     "asin": "B01LXFSJY7",
     "title": "What's in my bag? — Rob Walker",
     "amazon_url": "https://www.amazon.com/dp/B01LXFSJY7",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "A9rJl",
-      "productUrl": "https://www.amazon.com/dp/B01LXFSJY7?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "A9rJl"
-    },
+    "affiliate_url": "https://geni.us/A9rJl",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-rob-walker/",
@@ -57322,7 +57202,7 @@
     ],
     "first_featured": "2020-04-22",
     "added_at": "2026-01-03T08:01:04.453241",
-    "benefit_description": "These earbuds effectively reduce distracting background noise and chatter during air travel, making flights more comfortable even when they can't completely block out loud sounds like crying babies."
+    "benefit_description": "This portable toothbrush features a tri-fold design that allows the bristles to fold into the handle for compact and hygienic storage in your purse, backpack, suitcase, or glove box."
   },
   "B002VA464S": {
     "asin": "B002VA464S",
@@ -57382,17 +57262,7 @@
     "asin": "B002JGMIA8",
     "title": "LEGO Centering Jig",
     "amazon_url": "https://www.amazon.com/dp/B002JGMIA8",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "paZx3x",
-      "productUrl": "https://www.amazon.com/dp/B002JGMIA8?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "paZx3x"
-    },
+    "affiliate_url": "https://geni.us/paZx3x",
     "issues": [
       {
         "url": "https://kk.org/cooltools/lego-centering-jig/",
@@ -57403,7 +57273,7 @@
     ],
     "first_featured": "2020-04-16",
     "added_at": "2026-01-03T08:01:04.453447",
-    "benefit_description": "This centering tool helps woodworkers quickly and accurately find the center point of circular or round objects using a simple LEGO-based design."
+    "benefit_description": "Commercial-grade paper trimmer cuts up to 15 sheets at once"
   },
   "B01CLVRRJC": {
     "asin": "B01CLVRRJC",
@@ -69359,7 +69229,7 @@
     "asin": "B07FNJB8TT",
     "title": "Rob Beschizza, Managing Editor of Boing Boing",
     "amazon_url": "https://www.amazon.com/dp/B07FNJB8TT",
-    "affiliate_url": "https://amzn.to/2LNigMH",
+    "affiliate_url": "https://geni.us/FJTBEMj",
     "issues": [
       {
         "url": "https://kk.org/cooltools/rob-beschizza-managing-editor-of-boing-boing/",
@@ -69370,7 +69240,7 @@
     ],
     "first_featured": "2019-07-19",
     "added_at": "2026-01-03T08:39:28.519857",
-    "benefit_description": "This keyboard provides tactile, clicky mechanical switches with customizable keycaps and wireless Bluetooth connectivity in compact form factors for users who type frequently and want to personalize their typing experience."
+    "benefit_description": "Eliminates mouse-related wrist and hand pain by positioning your hand in a natural handshake grip, with all the features and polish you'd expect from Logitech."
   },
   "B000CEF5HM": {
     "asin": "B000CEF5HM",
@@ -70964,7 +70834,7 @@
     "asin": "B00GL64QG6",
     "title": "What's in my bag? — Terrie Schweitzer",
     "amazon_url": "https://www.amazon.com/dp/B00GL64QG6",
-    "affiliate_url": "https://amzn.to/2pbKYxZ?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter",
+    "affiliate_url": "https://geni.us/5tJdSQy",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-terrie-schweitzer/",

@@ -11,6 +11,7 @@ Usage:
 """
 
 import argparse
+import csv
 import json
 import sys
 import webbrowser
@@ -23,6 +24,7 @@ load_dotenv()
 
 PROJECT_ROOT = Path(__file__).parent
 DEALS_FILE = PROJECT_ROOT / "catalog" / "deals.json"
+SALES_CSV = PROJECT_ROOT / "amazon-2025.csv"
 
 sys.path.insert(0, str(PROJECT_ROOT))
 from review_deals import (
@@ -43,6 +45,25 @@ def load_deals() -> dict:
     return {}
 
 
+def load_sales_data() -> dict:
+    """Parse amazon-2025.csv and return {asin: total_qty} dict."""
+    sales = {}
+    if not SALES_CSV.exists():
+        return sales
+    with open(SALES_CSV, "r", encoding="utf-8") as f:
+        next(f)  # skip metadata line 1
+        reader = csv.DictReader(f)
+        for row in reader:
+            asin = row.get("ASIN", "").strip()
+            try:
+                qty = int(row.get("Qty", 0))
+            except (ValueError, TypeError):
+                qty = 0
+            if asin:
+                sales[asin] = sales.get(asin, 0) + qty
+    return sales
+
+
 def resolve_affiliate_url(aff) -> str:
     """Resolve affiliate_url (string or GeniusLink dict) to a URL string."""
     if isinstance(aff, dict):
@@ -58,6 +79,7 @@ def merge_catalog_and_deals() -> dict:
     deals_data = load_deals()
     deals = deals_data.get("deals", {})
     all_results = deals_data.get("all_results", {})
+    sales = load_sales_data()
 
     merged = {}
     for asin, product in catalog.items():
@@ -87,6 +109,7 @@ def merge_catalog_and_deals() -> dict:
             "review_count": deal.get("review_count"),
             "deal_score": deal.get("deal_score", 0),
             "has_deal_data": asin in deals,
+            "sales_qty": sales.get(asin, 0),
         }
 
     return {
@@ -387,6 +410,12 @@ def build_html(merged_data: dict) -> str:
             font-weight: 600;
             margin-left: 8px;
         }}
+        .card-sales {{
+            font-size: 12px;
+            color: #7c3aed;
+            font-weight: 600;
+            margin-left: 8px;
+        }}
         .card-extra {{
             display: flex;
             align-items: center;
@@ -506,6 +535,7 @@ def build_html(merged_data: dict) -> str:
                 <option value="below-high-desc">% Below High</option>
                 <option value="title-asc">Title (A-Z)</option>
                 <option value="date-desc">Newest First</option>
+                <option value="bestseller-desc">Bestseller (most sold)</option>
             </select>
         </div>
     </div>
@@ -718,6 +748,9 @@ function sortDeals(deals) {{
         case 'date-desc':
             sorted.sort((a, b) => (b.first_featured || '').localeCompare(a.first_featured || ''));
             break;
+        case 'bestseller-desc':
+            sorted.sort((a, b) => (b.sales_qty || 0) - (a.sales_qty || 0));
+            break;
     }}
     return sorted;
 }}
@@ -761,6 +794,12 @@ function renderCard(deal) {{
         scoreHtml = `<span class="card-score" style="color:${{scoreColor}}">Score: ${{dealScore}}</span>`;
     }}
 
+    // Sales count
+    let salesHtml = '';
+    if (deal.sales_qty > 0) {{
+        salesHtml = `<span class="card-sales">${{deal.sales_qty.toLocaleString()}} sold</span>`;
+    }}
+
     const sourceLabel = getSourceLabel(deal);
     const meta = sourceLabel ? `Featured in ${{sourceLabel}}` : '';
     const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price data</span>';
@@ -780,7 +819,7 @@ function renderCard(deal) {{
                     </div>
                     <div class="card-price">${{priceHtml}}${{origHtml}}</div>
                     <div class="card-badges">${{badges}}</div>
-                    ${{(ratingHtml || scoreHtml) ? `<div class="card-extra">${{ratingHtml}}${{scoreHtml}}</div>` : ''}}
+                    ${{(ratingHtml || scoreHtml || salesHtml) ? `<div class="card-extra">${{ratingHtml}}${{scoreHtml}}${{salesHtml}}</div>` : ''}}
                     <div class="card-meta">${{meta}}</div>
                 </div>
             </div>

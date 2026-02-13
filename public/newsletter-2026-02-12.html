@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-price-context {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .deal-badges {
+            margin-bottom: 6px;
+        }
+        .deal-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .deal-badge.near-low {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .deal-badge.top-deal {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        .deal-badge.big-savings {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">February 12, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>8</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B07J6Q211R">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/bed-desk" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71z3PIRMxLL._SL300_.jpg" alt="Laptop Bed Tray Table" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/bed-desk" target="_blank">Laptop Bed Tray Table</a>
+                </div>
+                <div class="deal-price">$38.97</div>
+                <div class="deal-price-context">90-day avg: $49.31</div>
+                <div class="deal-indicator">21% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/small-deskcounterfactual-nasaunsolved-21-02-07" target="_blank">Recomendo #261</a>: This adjustable-height desk with an angled surface and rubber edge stops enables comfortable work and entertainment from bed or couch while actually improving typing accuracy compared to traditional desk setups.</div>
+                <a href="https://geni.us/bed-desk" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00006IFAN">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/lPIU" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81sZsNNwNDL._SL300_.jpg" alt="Mars Plastic Vinyl Erasers (4-Pack)" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/lPIU" target="_blank">Mars Plastic Vinyl Erasers (4-Pack)</a>
+                </div>
+                <div class="deal-price">$4.87</div>
+                <div class="deal-price-context">90-day avg: $6.20</div>
+                <div class="deal-indicator">21% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/the-best-pencil/" target="_blank">Cool Tools</a>: These erasers provide clean, precise erasing without tearing paper and maintain their effectiveness by being easily cleanable, while their firm compound allows for both detailed corner work and broad area erasing.</div>
+                <a href="https://geni.us/lPIU" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01MQXMX2R">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/331ic1D" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/41ILHSn+u2L._SL300_.jpg" alt="Mr. Polisher Pro" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/331ic1D" target="_blank">Mr. Polisher Pro</a>
+                </div>
+                <div class="deal-price">$27.66</div>
+                <div class="deal-price-context">90-day avg: $33.11</div>
+                <div class="deal-indicator">16% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/gareth-branwyn-writer-and-editor/" target="_blank">Cool Tools</a>: This rotary tool quickly removes leftover plastic nubs from model parts after cutting them from sprues, eliminating the tedious hand-sanding and filing work that hobbyists typically hate.</div>
+                <a href="https://amzn.to/331ic1D" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000WU9LCQ">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/6K4Af" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81CJ5Or6-TL._SL300_.jpg" alt="MagnoGrip Magnetic Wristband" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/6K4Af" target="_blank">MagnoGrip Magnetic Wristband</a>
+                </div>
+                <div class="deal-price">$14.96</div>
+                <div class="deal-price-context">90-day avg: $17.90</div>
+                <div class="deal-indicator">16% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/slow-motion-reality-maker-update-39/" target="_blank">Cool Tools</a>: This magnetic wristband keeps screws, nails, and other small metal hardware pieces conveniently attached to your wrist while working, eliminating the unsafe practice of holding them in your mouth.</div>
+                <a href="https://geni.us/6K4Af" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B074D2H2ZR">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/5UuSvd" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61yO2zYOAZL._SL300_.jpg" alt="Stainless Steel Wide Cheese Grater" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/5UuSvd" target="_blank">Stainless Steel Wide Cheese Grater</a>
+                </div>
+                <div class="deal-price">$9.99</div>
+                <div class="deal-price-context">90-day avg: $10.42</div>
+                <div class="deal-indicator">4% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/festivothe-sound-of-lovezester" target="_blank">Recomendo #487</a>: The curved blade profile bites effectively into ingredients while the wider surface area allows you to grate through large blocks of cheese or ginger much faster than traditional narrow tools.</div>
+                <a href="https://geni.us/5UuSvd" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07QRCYC78">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/craftsman-drivers" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71t+dFzagIL._SL300_.jpg" alt="Small Screwdriver Set, 6Piece" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/craftsman-drivers" target="_blank">Small Screwdriver Set, 6Piece</a>
+                </div>
+                <div class="deal-price">$8.98</div>
+                
+                <div class="deal-indicator"></div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/small-screwdriversunconventional-21-04-04" target="_blank">Recomendo #269</a>: These compact screwdrivers excel at precision tasks like eyeglass repairs and other delicate work that requires small, durable tools.</div>
+                <a href="https://geni.us/craftsman-drivers" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07PYDT59Q">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/dDAhiF" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71R2vkyBe-L._SL300_.jpg" alt="Multi Charging Cable, 2Pack" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/dDAhiF" target="_blank">Multi Charging Cable, 2Pack</a>
+                </div>
+                <div class="deal-price">$9.99</div>
+                <div class="deal-price-context">90-day avg: $10.95</div>
+                <div class="deal-indicator">9% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/soundly-sleepingsmall-squid-cablemandala-23-01-01" target="_blank">Recomendo #360</a>: This multi-strand charging cable allows you to simultaneously charge up to four different devices with various connector types from a single USB power source, eliminating the need to carry multiple charging cables while traveling.</div>
+                <a href="https://geni.us/dDAhiF" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0D9627SJF">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/tablet-stand-r" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61cB21bJjcL._SL300_.jpg" alt="Aluminum Tablet Holder Stand" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/tablet-stand-r" target="_blank">Aluminum Tablet Holder Stand</a>
+                </div>
+                <div class="deal-price">$18.99</div>
+                
+                <div class="deal-indicator"></div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/lego-portraitsbrain-rot-tipsglicol" target="_blank">Recomendo #467</a>: The adjustable design lets you dial in the perfect viewing angle for any device, while rubber-padded grips prevent slipping and scratches across a wide range of device sizes from phones to large tablets.</div>
+                <a href="https://geni.us/tablet-stand-r" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
