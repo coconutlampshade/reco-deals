@@ -46,7 +46,7 @@ def load_deals() -> dict:
 
 
 def load_sales_data() -> dict:
-    """Parse amazon-2025.csv and return {asin: total_qty} dict."""
+    """Parse sales CSV and return {asin: {qty, revenue}} for DI sales only."""
     sales = {}
     if not SALES_CSV.exists():
         return sales
@@ -55,12 +55,20 @@ def load_sales_data() -> dict:
         reader = csv.DictReader(f)
         for row in reader:
             asin = row.get("ASIN", "").strip()
+            if not asin:
+                continue
+            indirect = row.get("Indirect Sales", "").strip().lower()
+            if indirect != "di":
+                continue
             try:
                 qty = int(row.get("Qty", 0))
+                price = float(row.get("Price($)", 0))
             except (ValueError, TypeError):
-                qty = 0
-            if asin:
-                sales[asin] = sales.get(asin, 0) + qty
+                continue
+            if asin not in sales:
+                sales[asin] = {"qty": 0, "revenue": 0.0}
+            sales[asin]["qty"] += qty
+            sales[asin]["revenue"] += qty * price
     return sales
 
 
@@ -109,8 +117,36 @@ def merge_catalog_and_deals() -> dict:
             "review_count": deal.get("review_count"),
             "deal_score": deal.get("deal_score", 0),
             "has_deal_data": asin in deals,
-            "sales_qty": sales.get(asin, 0),
+            "sales_qty": sales.get(asin, {}).get("qty", 0),
+            "sales_revenue": sales.get(asin, {}).get("revenue", 0),
         }
+
+    # Enrich deal candidates with PA API data (real-time prices, list price, availability)
+    deal_asins = [asin for asin, p in merged.items() if p.get("is_deal")]
+    if deal_asins:
+        try:
+            from pa_api import get_prices_for_asins
+            print(f"Enriching {len(deal_asins)} deals with PA API...")
+            pa_data = get_prices_for_asins(deal_asins)
+            enriched = 0
+            for asin, info in pa_data.items():
+                if "error" in info or asin not in merged:
+                    continue
+                p = merged[asin]
+                if info.get("list_price"):
+                    p["list_price"] = info["list_price"]
+                if info.get("current_price"):
+                    p["pa_current_price"] = info["current_price"]
+                if info.get("availability"):
+                    p["availability"] = info["availability"]
+                if info.get("savings_percent"):
+                    p["savings_percent"] = info["savings_percent"]
+                if info.get("product_features"):
+                    p["product_features"] = info["product_features"]
+                enriched += 1
+            print(f"  Enriched {enriched}/{len(deal_asins)} deals with PA API data")
+        except Exception as e:
+            print(f"  PA API enrichment failed (non-blocking): {e}")
 
     return {
         "products": merged,
@@ -153,6 +189,9 @@ def prepare_candidates(products: dict) -> list:
             "catalog_title": d.get("title", ""),
             "first_featured": d.get("first_featured", ""),
             "has_deal_data": d.get("has_deal_data", False),
+            "sales_qty": d.get("sales_qty", 0),
+            "sales_revenue": d.get("sales_revenue", 0),
+            "near_low_pct": round((current_price / d["low_90_day"] - 1) * 100, 1) if d.get("low_90_day") and current_price and d["low_90_day"] > 0 else None,
         }
         candidates.append((asin, deal))
 
@@ -393,6 +432,9 @@ def build_html(merged_data: dict) -> str:
         .badge-low {{ background: #fee2e2; color: #dc2626; }}
         .badge-media {{ background: #f3e8ff; color: #7c3aed; }}
         .badge-cooldown {{ background: #fee2e2; color: #dc2626; }}
+        .badge-unavailable {{ background: #fee2e2; color: #dc2626; }}
+        .badge-list {{ background: #dbeafe; color: #2563eb; }}
+        .badge-discrepancy {{ background: #fef3c7; color: #d97706; }}
         .card-meta {{
             font-size: 12px;
             color: #888;
@@ -520,13 +562,21 @@ def build_html(merged_data: dict) -> str:
                 <button class="filter-btn" data-filter="priced">Has Price</button>
                 <button class="filter-btn" data-filter="deals">Deals Only</button>
                 <button class="filter-btn" data-filter="below-avg">Below Avg</button>
+                <button class="filter-btn" data-filter="near-low">Near Low</button>
             </div>
             <div class="filter-group">
                 <button class="filter-btn" data-filter="recomendo">Recomendo</button>
                 <button class="filter-btn" data-filter="cooltools">Cool Tools</button>
             </div>
+            <div class="filter-group">
+                <button class="filter-btn" id="featuredToggle" data-filter="hide-featured">Hide Featured</button>
+            </div>
             <select class="sort-select" id="sortSelect">
                 <option value="score-desc">Deal Score (best first)</option>
+                <option value="near-low-asc">Near 90-Day Low</option>
+                <option value="proven-desc">Proven Sellers (DI revenue)</option>
+                <option value="rev-per-unit-desc">Revenue per Unit</option>
+                <option value="hidden-gems">Hidden Gems</option>
                 <option value="savings-desc">Savings % (high to low)</option>
                 <option value="savings-asc">Savings % (low to high)</option>
                 <option value="price-asc">Price (low to high)</option>
@@ -534,6 +584,7 @@ def build_html(merged_data: dict) -> str:
                 <option value="dollars-desc">$ Saved (most first)</option>
                 <option value="below-high-desc">% Below High</option>
                 <option value="title-asc">Title (A-Z)</option>
+                <option value="oldest-featured">Longest Since Featured</option>
                 <option value="date-desc">Newest First</option>
                 <option value="bestseller-desc">Bestseller (most sold)</option>
             </select>
@@ -572,6 +623,7 @@ const COOLDOWN_DAYS = {COOLDOWN_DAYS};
 let allDeals = [];
 let activeFilter = 'all';
 let activeSourceFilter = null;
+let hideFeatured = false;
 let selectedAsins = new Set();
 
 function init() {{
@@ -604,7 +656,11 @@ function init() {{
     document.querySelectorAll('.filter-btn').forEach(btn => {{
         btn.addEventListener('click', () => {{
             const filter = btn.dataset.filter;
-            if (filter === 'recomendo' || filter === 'cooltools') {{
+            if (filter === 'hide-featured') {{
+                hideFeatured = !hideFeatured;
+                btn.classList.toggle('active', hideFeatured);
+                btn.textContent = hideFeatured ? 'Show Featured' : 'Hide Featured';
+            }} else if (filter === 'recomendo' || filter === 'cooltools') {{
                 if (activeSourceFilter === filter) {{
                     activeSourceFilter = null;
                     btn.classList.remove('active');
@@ -614,7 +670,7 @@ function init() {{
                     btn.classList.add('active');
                 }}
             }} else {{
-                document.querySelectorAll('.filter-btn[data-filter="all"], .filter-btn[data-filter="priced"], .filter-btn[data-filter="deals"], .filter-btn[data-filter="below-avg"]').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.filter-btn[data-filter="all"], .filter-btn[data-filter="priced"], .filter-btn[data-filter="deals"], .filter-btn[data-filter="below-avg"], .filter-btn[data-filter="near-low"]').forEach(b => b.classList.remove('active'));
                 activeFilter = filter;
                 btn.classList.add('active');
             }}
@@ -705,12 +761,15 @@ function filterDeals() {{
         if (activeFilter === 'priced' && !deal.current_price) return false;
         if (activeFilter === 'deals' && !deal.is_deal) return false;
         if (activeFilter === 'below-avg' && (deal.percent_below_avg || 0) <= 0) return false;
+        if (activeFilter === 'near-low' && (deal.near_low_pct === null || deal.near_low_pct === undefined || deal.near_low_pct > 5)) return false;
 
         if (activeSourceFilter) {{
             const source = getSource(deal);
             if (activeSourceFilter === 'recomendo' && source === 'cooltools') return false;
             if (activeSourceFilter === 'cooltools' && source !== 'cooltools') return false;
         }}
+
+        if (hideFeatured && deal._daysSince !== null) return false;
 
         return true;
     }});
@@ -723,6 +782,31 @@ function sortDeals(deals) {{
     switch (sort) {{
         case 'score-desc':
             sorted.sort((a, b) => (b.deal_score || 0) - (a.deal_score || 0));
+            break;
+        case 'near-low-asc':
+            sorted.sort((a, b) => {{
+                const aVal = a.near_low_pct !== null && a.near_low_pct !== undefined ? a.near_low_pct : 9999;
+                const bVal = b.near_low_pct !== null && b.near_low_pct !== undefined ? b.near_low_pct : 9999;
+                return aVal - bVal;
+            }});
+            break;
+        case 'proven-desc':
+            sorted.sort((a, b) => (b.sales_revenue || 0) - (a.sales_revenue || 0));
+            break;
+        case 'rev-per-unit-desc':
+            sorted.sort((a, b) => {{
+                const aRpu = a.sales_qty ? (a.sales_revenue || 0) / a.sales_qty : 0;
+                const bRpu = b.sales_qty ? (b.sales_revenue || 0) / b.sales_qty : 0;
+                return bRpu - aRpu;
+            }});
+            break;
+        case 'hidden-gems':
+            sorted.sort((a, b) => {{
+                const aGem = (a.is_deal ? 1 : 0) + (a.sales_qty > 0 ? 1 : 0) + (a.first_featured < '2024-01-01' ? 1 : 0);
+                const bGem = (b.is_deal ? 1 : 0) + (b.sales_qty > 0 ? 1 : 0) + (b.first_featured < '2024-01-01' ? 1 : 0);
+                if (bGem !== aGem) return bGem - aGem;
+                return (b.sales_revenue || 0) - (a.sales_revenue || 0);
+            }});
             break;
         case 'savings-desc':
             sorted.sort((a, b) => (b.percent_below_avg || 0) - (a.percent_below_avg || 0));
@@ -745,6 +829,9 @@ function sortDeals(deals) {{
         case 'title-asc':
             sorted.sort((a, b) => (a.catalog_title || a.title || '').localeCompare(b.catalog_title || b.title || ''));
             break;
+        case 'oldest-featured':
+            sorted.sort((a, b) => (a.first_featured || 'zzzz').localeCompare(b.first_featured || 'zzzz'));
+            break;
         case 'date-desc':
             sorted.sort((a, b) => (b.first_featured || '').localeCompare(a.first_featured || ''));
             break;
@@ -759,21 +846,33 @@ function renderCard(deal) {{
     const fullTitle = deal.catalog_title || deal.title || deal.asin;
     const price = deal.current_price;
     const avg = deal.avg_90_day;
+    const listPrice = deal.list_price;
     const pctBelow = deal.percent_below_avg || 0;
     const imgUrl = deal.image_url || '';
     const buyUrl = getAffiliateUrl(deal);
     const isSelected = selectedAsins.has(deal.asin);
     const isAtLow = deal.low_90_day && price && price <= deal.low_90_day;
+    const availability = deal.availability || '';
+    const paPrice = deal.pa_current_price;
+    const savingsPct = deal.savings_percent;
 
     const dealScore = deal.deal_score || 0;
     const rating = deal.rating;
     const reviewCount = deal.review_count;
 
     let badges = '';
+    if (availability === 'OUT_OF_STOCK') badges += '<span class="badge badge-unavailable">Out of Stock</span>';
     if (dealScore >= 70) badges += '<span class="badge badge-deal">Top Deal</span>';
     else if (deal.is_deal) badges += '<span class="badge badge-deal">Deal</span>';
+    if (listPrice && price && listPrice > price) {{
+        const offPct = Math.round(((listPrice - price) / listPrice) * 100);
+        if (offPct >= 5) badges += `<span class="badge badge-list">${{offPct}}% off list</span>`;
+    }}
     if (pctBelow > 0) badges += `<span class="badge badge-savings">${{pctBelow.toFixed(0)}}% below avg</span>`;
     if (isAtLow) badges += '<span class="badge badge-low">90-day low</span>';
+    if (paPrice && price && Math.abs(paPrice - price) / price > 0.05) {{
+        badges += `<span class="badge badge-discrepancy">PA: $${{paPrice.toFixed(2)}}</span>`;
+    }}
     if (deal._inCooldown) badges += `<span class="badge badge-cooldown">Featured ${{deal._daysSince}}d ago</span>`;
 
     // Rating and review count
@@ -794,16 +893,26 @@ function renderCard(deal) {{
         scoreHtml = `<span class="card-score" style="color:${{scoreColor}}">Score: ${{dealScore}}</span>`;
     }}
 
-    // Sales count
+    // Sales info
     let salesHtml = '';
-    if (deal.sales_qty > 0) {{
+    if (deal.sales_revenue > 0) {{
+        salesHtml = `<span class="card-sales">${{deal.sales_qty.toLocaleString()}} sold · $${{Math.round(deal.sales_revenue).toLocaleString()}} rev</span>`;
+    }} else if (deal.sales_qty > 0) {{
         salesHtml = `<span class="card-sales">${{deal.sales_qty.toLocaleString()}} sold</span>`;
+    }}
+
+    // Near 90-day low badge
+    if (deal.near_low_pct !== null && deal.near_low_pct !== undefined && deal.near_low_pct <= 5) {{
+        const label = deal.near_low_pct <= 0 ? 'At 90-day low' : `${{deal.near_low_pct.toFixed(0)}}% above low`;
+        badges += `<span class="badge" style="background:#dbeafe;color:#1d4ed8">${{label}}</span>`;
     }}
 
     const sourceLabel = getSourceLabel(deal);
     const meta = sourceLabel ? `Featured in ${{sourceLabel}}` : '';
     const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price data</span>';
-    const origHtml = avg && price && avg > price ? `<span class="original">$${{avg.toFixed(2)}}</span>` : '';
+    // Use list_price for strikethrough when available, fall back to avg_90_day
+    const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((avg && price && avg > price) ? avg : null);
+    const origHtml = strikePrice ? `<span class="original">$${{strikePrice.toFixed(2)}}</span>` : '';
 
     return `
         <div class="card ${{isSelected ? 'selected' : ''}} ${{deal._inCooldown ? 'cooldown' : ''}}" data-asin="${{deal.asin}}">
@@ -947,6 +1056,9 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
             "affiliate_url": p.get("affiliate_url", ""),
             "benefit_description": p.get("benefit_description", ""),
             "issues": p.get("issues", []),
+            "list_price": p.get("list_price"),
+            "availability": p.get("availability", ""),
+            "savings_percent": p.get("savings_percent"),
         })
 
     items_json = json.dumps(items)
@@ -1278,6 +1390,23 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
             color: #666;
         }}
 
+        .unclassified-ad-section {{
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px dashed #4384F3;
+        }}
+        .ad-section-title {{
+            font-size: 18px;
+            color: #4384F3;
+            margin-bottom: 4px;
+        }}
+        .ad-preview-card {{
+            background: #f8faff;
+            border: 1px solid #d0deff;
+            border-radius: 10px;
+            padding: 20px;
+        }}
+
         @media (max-width: 600px) {{
             .deal-top {{ flex-direction: column; align-items: center; text-align: center; }}
             .header-inner {{ flex-direction: column; gap: 10px; }}
@@ -1300,6 +1429,40 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
         <div class="verify-banner" id="verifyBanner"></div>
         <p class="drag-hint">Drag to reorder. Edit titles and descriptions below.</p>
         <div id="dealsList"></div>
+
+        <div class="unclassified-ad-section">
+            <h2 class="ad-section-title">Unclassified Ad <span style="font-weight:400;color:#888;font-size:14px">(optional)</span></h2>
+            <p style="color:#666;font-size:13px;margin-bottom:12px;">Add a deal too good not to share &mdash; doesn't need to be in the catalog.</p>
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                <input type="text" id="adAsin" class="field-input" placeholder="Enter ASIN (e.g., B0D5CJ41SH)" style="flex:1;font-size:15px;">
+                <button class="btn btn-verify" id="lookupBtn" onclick="lookupAsin()">Look Up</button>
+            </div>
+            <div id="adError" style="display:none;color:#dc2626;background:#fee2e2;padding:8px 12px;border-radius:6px;font-size:13px;margin-bottom:12px;"></div>
+            <div id="adPreview" style="display:none;">
+                <div class="ad-preview-card">
+                    <div style="display:flex;gap:16px;margin-bottom:16px;">
+                        <img id="adImage" src="" alt="" style="width:100px;height:100px;object-fit:contain;border-radius:6px;background:#f5f5f5;">
+                        <div style="flex:1;">
+                            <div id="adPriceDisplay" style="font-size:18px;font-weight:700;color:#16a34a;"></div>
+                            <div id="adAvailability" style="font-size:12px;margin-top:4px;"></div>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Title</label>
+                        <input type="text" id="adTitle" class="field-input" placeholder="Product title">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Description</label>
+                        <textarea id="adDescription" class="field-input" rows="2" placeholder="Why is this deal worth sharing?"></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Affiliate URL</label>
+                        <input type="text" id="adAffiliateUrl" class="field-input" style="color:#888;">
+                    </div>
+                    <button class="btn" onclick="clearAd()" style="background:#fee2e2;color:#dc2626;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:4px;">Remove Ad</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -1333,8 +1496,12 @@ function renderDealsList() {{
         const price = item.current_price;
         const avg = item.avg_90_day;
         const pctBelow = item.percent_below_avg || 0;
+        const listPrice = item.list_price;
+        const availability = item.availability || '';
         const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price</span>';
-        const origHtml = avg && price && avg > price ? `<span class="original">$${{avg.toFixed(2)}}</span>` : '';
+        // Show list price strikethrough when available, fall back to avg
+        const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((avg && price && avg > price) ? avg : null);
+        const origHtml = strikePrice ? `<span class="original">$${{strikePrice.toFixed(2)}}${{listPrice && avg && listPrice !== avg ? ' list' : ''}}</span>` : '';
         const savingsHtml = pctBelow > 0 ? `${{pctBelow.toFixed(0)}}% below avg` : '';
         const sourceLabel = getSourceLabel(item);
         const affUrl = item.affiliate_url || `https://amazon.com/dp/${{item.asin}}`;
@@ -1353,6 +1520,7 @@ function renderDealsList() {{
                         ${{sourceLabel ? `<div class="deal-source">${{sourceLabel}}</div>` : ''}}
                     </div>
                 </div>
+                ${{availability === 'OUT_OF_STOCK' ? '<div style="background:#fee2e2;color:#dc2626;padding:8px 12px;border-radius:6px;font-size:13px;font-weight:600;margin-bottom:12px;">&#9888; This item is currently out of stock on Amazon</div>' : ''}}
                 <div class="field-group">
                     <div class="field-label">Title</div>
                     <div class="title-row">
@@ -1534,6 +1702,8 @@ function verifyPrices() {{
         let changedCount = 0;
         let details = [];
 
+        let unavailableCount = 0;
+
         ITEMS.forEach((item, idx) => {{
             const fresh = prices[item.asin];
             if (!fresh) return;
@@ -1545,8 +1715,15 @@ function verifyPrices() {{
                 details.push(item.title.substring(0, 40) + ': ' + oldP + ' → ' + newP);
             }}
 
+            if (fresh.availability === 'OUT_OF_STOCK') {{
+                unavailableCount++;
+                details.push(item.title.substring(0, 40) + ': OUT OF STOCK');
+            }}
+
             // Update ITEMS data
             item.current_price = fresh.current_price;
+            if (fresh.list_price != null) item.list_price = fresh.list_price;
+            if (fresh.availability) item.availability = fresh.availability;
             if (fresh.avg_90_day != null) item.avg_90_day = fresh.avg_90_day;
             if (fresh.percent_below_avg != null) item.percent_below_avg = fresh.percent_below_avg;
         }});
@@ -1555,9 +1732,13 @@ function verifyPrices() {{
         saveEditsToItems();
         renderDealsList();
 
-        if (changedCount > 0) {{
+        if (unavailableCount > 0 || changedCount > 0) {{
             banner.className = 'verify-banner warning';
-            banner.innerHTML = '<strong>' + changedCount + ' price(s) changed:</strong> ' + details.join('; ');
+            let msg = '';
+            if (changedCount > 0) msg += '<strong>' + changedCount + ' price(s) changed.</strong> ';
+            if (unavailableCount > 0) msg += '<strong>' + unavailableCount + ' item(s) out of stock.</strong> ';
+            msg += details.join('; ');
+            banner.innerHTML = msg;
         }} else {{
             banner.className = 'verify-banner success';
             banner.textContent = 'All ' + asins.length + ' prices verified — no changes detected.';
@@ -1586,6 +1767,19 @@ function sendToMailchimp() {{
         if (item.affiliate_url.trim()) affiliateUrls[item.asin] = item.affiliate_url.trim();
     }});
 
+    const body = {{ asins, titles, benefits, affiliateUrls }};
+    if (AD_DATA) {{
+        body.unclassifiedAd = {{
+            asin: AD_DATA.asin,
+            title: document.getElementById('adTitle')?.value || AD_DATA.title,
+            description: document.getElementById('adDescription')?.value || '',
+            image_url: AD_DATA.image_url,
+            current_price: AD_DATA.current_price,
+            list_price: AD_DATA.list_price,
+            affiliate_url: document.getElementById('adAffiliateUrl')?.value || AD_DATA.affiliate_url,
+        }};
+    }}
+
     const btn = document.getElementById('sendBtn');
     btn.disabled = true;
     btn.textContent = 'Sending...';
@@ -1593,7 +1787,7 @@ function sendToMailchimp() {{
     fetch('/confirm', {{
         method: 'POST',
         headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ asins, titles, benefits, affiliateUrls }})
+        body: JSON.stringify(body)
     }})
     .then(r => r.json())
     .then(data => {{
@@ -1626,6 +1820,92 @@ function showSuccessModal(campaignUrl) {{
         </div>
     `;
     document.body.appendChild(overlay);
+}}
+
+let AD_DATA = null;
+
+function lookupAsin() {{
+    const asinInput = document.getElementById('adAsin');
+    const asin = asinInput.value.trim().toUpperCase();
+    const errorEl = document.getElementById('adError');
+    const previewEl = document.getElementById('adPreview');
+
+    errorEl.style.display = 'none';
+    if (!asin || asin.length !== 10) {{
+        errorEl.textContent = 'Enter a valid 10-character ASIN.';
+        errorEl.style.display = 'block';
+        return;
+    }}
+
+    const btn = document.getElementById('lookupBtn');
+    btn.disabled = true;
+    btn.textContent = 'Looking up...';
+
+    fetch('/lookup-asin', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asin }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+        btn.disabled = false;
+        btn.textContent = 'Look Up';
+
+        if (!data.success) {{
+            errorEl.textContent = data.error || 'Product not found.';
+            errorEl.style.display = 'block';
+            previewEl.style.display = 'none';
+            AD_DATA = null;
+            return;
+        }}
+
+        AD_DATA = data;
+        document.getElementById('adImage').src = data.image_url || '';
+        document.getElementById('adTitle').value = data.title || '';
+        document.getElementById('adAffiliateUrl').value = data.affiliate_url || '';
+
+        let priceHtml = '';
+        if (data.current_price) {{
+            priceHtml = `$${{data.current_price.toFixed(2)}}`;
+            if (data.list_price && data.list_price > data.current_price) {{
+                const pct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                priceHtml += ` <span style="color:#888;font-size:14px;font-weight:400;text-decoration:line-through">$${{data.list_price.toFixed(2)}}</span>`;
+                priceHtml += ` <span style="color:#dc2626;font-size:13px;font-weight:600">${{pct}}% off</span>`;
+            }}
+        }} else {{
+            priceHtml = '<span style="color:#888">Price unavailable</span>';
+        }}
+        document.getElementById('adPriceDisplay').innerHTML = priceHtml;
+
+        const availEl = document.getElementById('adAvailability');
+        if (data.availability === 'OUT_OF_STOCK') {{
+            availEl.innerHTML = '<span style="color:#dc2626;font-weight:600">&#9888; Out of Stock</span>';
+        }} else {{
+            availEl.innerHTML = '';
+        }}
+
+        if (data.in_catalog) {{
+            errorEl.textContent = 'Note: This product is already in your catalog.';
+            errorEl.style.display = 'block';
+            errorEl.style.color = '#d97706';
+            errorEl.style.background = '#fef3c7';
+        }}
+
+        previewEl.style.display = 'block';
+    }})
+    .catch(err => {{
+        btn.disabled = false;
+        btn.textContent = 'Look Up';
+        errorEl.textContent = 'Lookup failed: ' + err;
+        errorEl.style.display = 'block';
+    }});
+}}
+
+function clearAd() {{
+    AD_DATA = null;
+    document.getElementById('adAsin').value = '';
+    document.getElementById('adPreview').style.display = 'none';
+    document.getElementById('adError').style.display = 'none';
 }}
 
 document.addEventListener('DOMContentLoaded', renderDealsList);
@@ -1721,41 +2001,74 @@ class ReviewHandler(BaseHTTPRequestHandler):
             asins = data.get("asins", [])
 
             try:
-                print(f"Verifying prices for {len(asins)} products...")
-                fresh = check_keepa_prices(asins)
-
-                # Update in-memory products with fresh prices
+                print(f"Verifying prices for {len(asins)} products via PA API...")
                 changes = {}
-                for asin, price_data in fresh.items():
-                    new_price = price_data.get("current_price")
-                    if new_price is None:
-                        continue
-                    old_price = (self.products.get(asin) or {}).get("current_price")
-                    avg = price_data.get("avg_price_90") or price_data.get("avg_price")
-                    pct = price_data.get("percent_below_avg")
-                    savings = price_data.get("savings_dollars")
+                pa_failed_asins = []
 
-                    changes[asin] = {
-                        "old_price": old_price,
-                        "current_price": new_price,
-                        "avg_90_day": avg,
-                        "percent_below_avg": pct,
-                        "savings_dollars": savings,
-                        "changed": old_price is not None and abs((old_price or 0) - new_price) >= 0.01,
-                    }
+                # Try PA API first (faster, real-time)
+                try:
+                    from pa_api import get_prices_for_asins as pa_get_prices
+                    pa_data = pa_get_prices(asins)
+                    for asin in asins:
+                        info = pa_data.get(asin, {})
+                        if "error" in info or not info.get("current_price"):
+                            pa_failed_asins.append(asin)
+                            continue
+                        old_price = (self.products.get(asin) or {}).get("current_price")
+                        new_price = info["current_price"]
+                        changes[asin] = {
+                            "old_price": old_price,
+                            "current_price": new_price,
+                            "list_price": info.get("list_price"),
+                            "availability": info.get("availability"),
+                            "changed": old_price is not None and abs((old_price or 0) - new_price) >= 0.01,
+                        }
+                        # Update in-memory data
+                        if asin in self.products:
+                            self.products[asin]["current_price"] = new_price
+                            if info.get("list_price"):
+                                self.products[asin]["list_price"] = info["list_price"]
+                            if info.get("availability"):
+                                self.products[asin]["availability"] = info["availability"]
+                            if info.get("savings_percent"):
+                                self.products[asin]["savings_percent"] = info["savings_percent"]
+                    if pa_failed_asins:
+                        print(f"  PA API missed {len(pa_failed_asins)} ASINs, falling back to Keepa...")
+                except Exception as e:
+                    print(f"  PA API failed, falling back to Keepa: {e}")
+                    pa_failed_asins = asins
 
-                    # Update in-memory data for /confirm
-                    if asin in self.products:
-                        self.products[asin]["current_price"] = new_price
-                        if avg:
-                            self.products[asin]["avg_90_day"] = avg
-                        if pct is not None:
-                            self.products[asin]["percent_below_avg"] = pct
-                        if savings is not None:
-                            self.products[asin]["savings_dollars"] = savings
+                # Fall back to Keepa for any ASINs PA API missed
+                if pa_failed_asins:
+                    fresh = check_keepa_prices(pa_failed_asins)
+                    for asin, price_data in fresh.items():
+                        new_price = price_data.get("current_price")
+                        if new_price is None:
+                            continue
+                        old_price = (self.products.get(asin) or {}).get("current_price")
+                        avg = price_data.get("avg_price_90") or price_data.get("avg_price")
+                        pct = price_data.get("percent_below_avg")
+                        savings = price_data.get("savings_dollars")
+                        changes[asin] = {
+                            "old_price": old_price,
+                            "current_price": new_price,
+                            "avg_90_day": avg,
+                            "percent_below_avg": pct,
+                            "savings_dollars": savings,
+                            "changed": old_price is not None and abs((old_price or 0) - new_price) >= 0.01,
+                        }
+                        if asin in self.products:
+                            self.products[asin]["current_price"] = new_price
+                            if avg:
+                                self.products[asin]["avg_90_day"] = avg
+                            if pct is not None:
+                                self.products[asin]["percent_below_avg"] = pct
+                            if savings is not None:
+                                self.products[asin]["savings_dollars"] = savings
 
                 num_changed = sum(1 for v in changes.values() if v["changed"])
-                print(f"  {num_changed} price(s) changed out of {len(changes)} checked")
+                unavailable = sum(1 for v in changes.values() if v.get("availability") == "OUT_OF_STOCK")
+                print(f"  {num_changed} price(s) changed, {unavailable} unavailable out of {len(changes)} checked")
 
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
@@ -1786,6 +2099,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                     "live_title": title,
                     "catalog_title": product.get("catalog_title", title),
                     "issues": product.get("issues", []),
+                    "product_features": product.get("product_features", []),
                 }
                 benefit = generate_benefit_description(asin, deal, catalog)
 
@@ -1802,6 +2116,76 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
             return
 
+        if self.path == "/lookup-asin":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            asin = data.get("asin", "").strip().upper()
+
+            if not asin or len(asin) != 10:
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": "Invalid ASIN format. Expected 10 characters."}).encode())
+                return
+
+            try:
+                # Try PA API first for title, image, features
+                from pa_api import get_prices_for_asins
+                pa_data = get_prices_for_asins([asin])
+                info = pa_data.get(asin, {})
+
+                if not info or "error" in info:
+                    self.send_response(200)
+                    self.send_header("Content-type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": f"Product not found on Amazon ({asin})."}).encode())
+                    return
+
+                # Fall back to Keepa for price if PA API has none
+                current_price = info.get("current_price")
+                list_price = info.get("list_price")
+                avg_price = None
+                if current_price is None:
+                    try:
+                        from review_deals import check_keepa_prices
+                        print(f"  PA API has no price for {asin}, trying Keepa...")
+                        keepa_data = check_keepa_prices([asin])
+                        keepa_info = keepa_data.get(asin, {})
+                        if keepa_info.get("current_price"):
+                            current_price = keepa_info["current_price"]
+                            avg_price = keepa_info.get("avg_price")
+                            # Use avg as list_price for savings display
+                            if avg_price and avg_price > current_price:
+                                list_price = avg_price
+                    except Exception as ke:
+                        print(f"  Keepa fallback failed: {ke}")
+
+                catalog = load_full_catalog()
+                result = {
+                    "success": True,
+                    "asin": asin,
+                    "title": info.get("title", f"Product {asin}"),
+                    "current_price": current_price,
+                    "list_price": list_price,
+                    "image_url": info.get("image_url", ""),
+                    "availability": info.get("availability"),
+                    "affiliate_url": f"https://www.amazon.com/dp/{asin}?tag=recomendos-20",
+                    "in_catalog": asin in catalog,
+                }
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": f"Lookup failed: {e}"}).encode())
+            return
+
         if self.path == "/confirm":
             content_length = int(self.headers["Content-Length"])
             post_data = self.rfile.read(content_length)
@@ -1811,11 +2195,13 @@ class ReviewHandler(BaseHTTPRequestHandler):
             custom_titles = data.get("titles", {})
             custom_benefits = data.get("benefits", {})
             custom_affiliate_urls = data.get("affiliateUrls", {})
+            unclassified_ad = data.get("unclassifiedAd")
 
             try:
                 result = generate_and_send(
                     selected_asins, self.candidates,
-                    custom_titles, custom_benefits, custom_affiliate_urls
+                    custom_titles, custom_benefits, custom_affiliate_urls,
+                    unclassified_ad=unclassified_ad
                 )
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")

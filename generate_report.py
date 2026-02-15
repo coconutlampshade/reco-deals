@@ -414,7 +414,7 @@ def fetch_live_prices(asins: list[str]) -> dict[str, dict]:
         return {}
 
 
-def generate_html_report(deals: list, title: str = "Recomendo Deals", live_prices: dict = None, price_timestamp: str = None, web_mode: bool = False, web_url: str = None, catalog_benefits: dict = None) -> str:
+def generate_html_report(deals: list, title: str = "Recomendo Deals", live_prices: dict = None, price_timestamp: str = None, web_mode: bool = False, web_url: str = None, catalog_benefits: dict = None, unclassified_ad: dict = None) -> str:
     """
     Generate an HTML email report with Recomendo styling.
 
@@ -666,6 +666,27 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             color: #999;
             font-style: italic;
         }}
+        .unclassified-ad {{
+            margin-top: 30px;
+            padding: 25px;
+            border: 2px dashed #4384F3;
+            border-radius: 8px;
+            background-color: #f8faff;
+        }}
+        .unclassified-ad-label {{
+            font-size: 11px;
+            font-weight: 700;
+            color: #4384F3;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
+        }}
+        .unclassified-ad-tagline {{
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 15px;
+            font-style: italic;
+        }}
     </style>
 """
 
@@ -877,6 +898,53 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                 {badges_html}
                 <div class="deal-meta">{meta_html}</div>
                 <a href="{buy_link}" class="buy-button" target="_blank">{button_text}</a>
+            </div>
+        </div>
+"""
+
+    # Unclassified Ad section (optional)
+    if unclassified_ad and unclassified_ad.get("asin"):
+        ad_asin = unclassified_ad["asin"]
+        ad_title = unclassified_ad.get("title", f"Product {ad_asin}")
+        ad_desc = unclassified_ad.get("description", "")
+        ad_image = unclassified_ad.get("image_url", "")
+        ad_price = unclassified_ad.get("current_price")
+        ad_list_price = unclassified_ad.get("list_price")
+        ad_url = unclassified_ad.get("affiliate_url",
+                     f"https://www.amazon.com/dp/{ad_asin}?tag=recomendos-20")
+
+        ad_price_html = ""
+        if ad_price:
+            ad_price_html = f'<div class="deal-price">${ad_price:.2f}</div>'
+            if ad_list_price and ad_list_price > ad_price:
+                savings_pct = ((ad_list_price - ad_price) / ad_list_price) * 100
+                ad_price_html += f'<div class="deal-indicator">{savings_pct:.0f}% off list price</div>'
+
+        ad_image_html = ""
+        if ad_image:
+            ad_image_html = f'''
+                <div class="deal-image">
+                    <a href="{ad_url}" target="_blank">
+                        <img src="{ad_image}" alt="">
+                    </a>
+                </div>'''
+
+        ad_desc_html = f'<div class="deal-meta">{ad_desc}</div>' if ad_desc else ""
+
+        html += f"""
+        <div class="unclassified-ad">
+            <div class="unclassified-ad-label">Unclassified Ad</div>
+            <div class="unclassified-ad-tagline">A deal too good not to share</div>
+            <div class="deal" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+                {ad_image_html}
+                <div class="deal-content">
+                    <div class="deal-title">
+                        <a href="{ad_url}" target="_blank">{ad_title}</a>
+                    </div>
+                    {ad_price_html}
+                    {ad_desc_html}
+                    <a href="{ad_url}" class="buy-button" target="_blank">SEE DEAL</a>
+                </div>
             </div>
         </div>
 """

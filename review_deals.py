@@ -270,8 +270,16 @@ def generate_benefit_description(asin: str, deal: dict, catalog: dict) -> str:
         print(f"    Warning: Could not extract context for {asin}")
         return ""
 
+    # Collect product features if available
+    features = deal.get("product_features") or []
+
     # Generate benefit description using Claude
     try:
+        features_text = ""
+        if features:
+            top_features = features[:5]
+            features_text = "\n\nAmazon product features:\n" + "\n".join(f"- {f}" for f in top_features)
+
         prompt = f"""Given this excerpt from a product review, write ONE sentence describing the key benefit of this product. Focus on what makes it useful or special. Be specific and concrete.
 
 Rules:
@@ -280,7 +288,7 @@ Rules:
 - Start directly with what the product does or why it's useful
 
 Product: {product_title}
-Review excerpt: {context}
+Review excerpt: {context}{features_text}
 
 Write only the benefit sentence, no preamble."""
 
@@ -1454,7 +1462,7 @@ def update_rss_feed(public_dir):
     print(f"RSS feed updated: {feed_path}")
 
 
-def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None) -> dict:
+def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None, unclassified_ad: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
         generate_html_report, update_featured_history, LOGO_URL,
@@ -1535,7 +1543,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     # Generate web version (dynamic prices via JavaScript)
     web_html = generate_html_report(
         selected, "Recomendo Deals", prices, datetime.now(),
-        web_mode=True, catalog_benefits=catalog_benefits
+        web_mode=True, catalog_benefits=catalog_benefits,
+        unclassified_ad=unclassified_ad
     )
 
     # Save web version to public/ for Vercel
@@ -1553,7 +1562,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     # Generate email version (static prices, with link to web version)
     html = generate_html_report(
         selected, "Recomendo Deals", prices, datetime.now(),
-        web_mode=False, web_url=web_url, catalog_benefits=catalog_benefits
+        web_mode=False, web_url=web_url, catalog_benefits=catalog_benefits,
+        unclassified_ad=unclassified_ad
     )
 
     # Save email report

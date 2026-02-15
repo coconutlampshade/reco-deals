@@ -60,3 +60,9 @@ SCORE_WEIGHT_NEAR_LOW = 20      # Bonus points if within 5% of 90-day low
 
 # Price history settings
 PRICE_HISTORY_DAYS = 90         # Days of price history to analyze
+
+# Sales reporting
+SALES_CSV = PROJECT_ROOT / "amazon-2026.csv"
+SALES_REPORTS_DIR = PROJECT_ROOT / "reports" / "sales"
+EARNINGS_CSV = PROJECT_ROOT / "earnings-2026.csv"
+BOUNTY_CSV = PROJECT_ROOT / "bounty-2026.csv"
