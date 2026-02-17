@@ -679,13 +679,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             color: #4384F3;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-bottom: 2px;
-        }}
-        .unclassified-ad-tagline {{
-            font-size: 13px;
-            color: #888;
             margin-bottom: 15px;
-            font-style: italic;
         }}
     </style>
 """
@@ -933,8 +927,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
 
         html += f"""
         <div class="unclassified-ad">
-            <div class="unclassified-ad-label">Unclassified Ad</div>
-            <div class="unclassified-ad-tagline">A deal too good not to share</div>
+            <div class="unclassified-ad-label">A deal too good not to share</div>
             <div class="deal" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
                 {ad_image_html}
                 <div class="deal-content">

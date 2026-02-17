@@ -2148,7 +2148,6 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 avg_price = None
                 if current_price is None:
                     try:
-                        from review_deals import check_keepa_prices
                         print(f"  PA API has no price for {asin}, trying Keepa...")
                         keepa_data = check_keepa_prices([asin])
                         keepa_info = keepa_data.get(asin, {})
