@@ -113,6 +113,7 @@ def get_items(asins: list[str], resources: list[str] = None) -> dict:
         resources = [
             "ItemInfo.Title",
             "ItemInfo.Classifications",
+            "ItemInfo.Features",
             "CustomerReviews.Count",
             "CustomerReviews.StarRating",
             "Offers.Listings.Price",
@@ -196,11 +197,18 @@ def extract_price_info(item: dict) -> dict:
         "binding": None,
         "review_count": None,
         "star_rating": None,
+        "product_features": [],
     }
 
     # Get title
     if "ItemInfo" in item and "Title" in item["ItemInfo"]:
         result["title"] = item["ItemInfo"]["Title"].get("DisplayValue")
+
+    # Get product features
+    if "ItemInfo" in item and "Features" in item["ItemInfo"]:
+        features = item["ItemInfo"]["Features"].get("DisplayValues", [])
+        if features:
+            result["product_features"] = features
 
     # Get classifications (product group, binding)
     if "ItemInfo" in item and "Classifications" in item["ItemInfo"]:
@@ -275,11 +283,16 @@ def get_prices_for_asins(asins: list[str]) -> dict[str, dict]:
 
     Returns dict of ASIN -> price_info
     """
+    import time
     results = {}
 
     # Process in batches of 10
     for i in range(0, len(asins), 10):
         batch = asins[i:i+10]
+
+        # Brief delay between batches to avoid 429 throttling
+        if i > 0:
+            time.sleep(1)
 
         try:
             response = get_items(batch)
