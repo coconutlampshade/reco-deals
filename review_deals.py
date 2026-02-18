@@ -1637,7 +1637,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     def _deploy_and_push():
         print("Deploying to Vercel...")
         try:
-            subprocess.run(["vercel", "--prod", "--yes"], check=True, capture_output=True)
+            subprocess.run(["vercel", "--prod", "--yes"], check=True, capture_output=True, cwd=str(config.PROJECT_ROOT / "public"))
             print("Deployed to Vercel")
         except subprocess.CalledProcessError as e:
             print(f"Vercel deploy failed: {e}")

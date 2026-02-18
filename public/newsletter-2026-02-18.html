@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-price-context {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .deal-badges {
+            margin-bottom: 6px;
+        }
+        .deal-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .deal-badge.near-low {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .deal-badge.top-deal {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        .deal-badge.big-savings {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+        .unclassified-ad {
+            margin-top: 30px;
+            padding: 25px;
+            border: 2px dashed #4384F3;
+            border-radius: 8px;
+            background-color: #f8faff;
+        }
+        .unclassified-ad-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #4384F3;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">February 18, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>3</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B0FPMPBSLL">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/JJH2p2X" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71thNm2fb9L._SL300_.jpg" alt="WOLFBOX MegaFlow200 Air Duster" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/JJH2p2X" target="_blank">WOLFBOX MegaFlow200 Air Duster</a>
+                </div>
+                <div class="deal-price">$85.49</div>
+                <div class="deal-price-context">90-day avg: $95.64</div>
+                <div class="deal-indicator">11% off list price</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/retro-recomendo-holiday-gifts" target="_blank">Recomendo #511</a>: This air duster cleans keyboards, dries cars streak-free, and removes dust from cellular shades and filter grilles</div>
+                <a href="https://geni.us/JJH2p2X" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0014CVEH6">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/b37ff" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/310M1HZ0xfL._SL300_.jpg" alt="Melitta Perfect Brew Cone" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/b37ff" target="_blank">Melitta Perfect Brew Cone</a>
+                </div>
+                <div class="deal-price">$8.15</div>
+                <div class="deal-price-context">90-day avg: $14.74</div>
+                <div class="deal-indicator">45% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/melitta-perfect/" target="_blank">Cool Tools</a>: This simple brewing tool gives you complete control over water temperature and eliminates waste by allowing you to make a single perfect cup of smooth, non-gritty coffee quickly and affordably.</div>
+                <a href="https://geni.us/b37ff" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0001WBSK8">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/XuqC5IN" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/717Bnq4BAqL._SL300_.jpg" alt="Sheffield Ultimate Lock Back Utility Knife" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/XuqC5IN" target="_blank">Sheffield Ultimate Lock Back Utility Knife</a>
+                </div>
+                <div class="deal-price">$12.99</div>
+                <div class="deal-price-context">90-day avg: $17.89</div>
+                <div class="deal-indicator">27% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/sheffield-ultimate-lock-back-utility-knife/" target="_blank">Cool Tools</a>: This utility knife features one-hand opening operation and a secure pocket clip, making it convenient to carry and use quickly when needed.</div>
+                <a href="https://geni.us/XuqC5IN" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="unclassified-ad">
+            <div class="unclassified-ad-label">A deal too good not to share</div>
+            <div class="deal" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+                
+                <div class="deal-image">
+                    <a href="https://www.amazon.com/dp/B0DXXYS4BJ?tag=recomendos-20" target="_blank">
+                        <img src="https://m.media-amazon.com/images/I/41eF4MbEOOL._SL160_.jpg" alt="">
+                    </a>
+                </div>
+                <div class="deal-content">
+                    <div class="deal-title">
+                        <a href="https://www.amazon.com/dp/B0DXXYS4BJ?tag=recomendos-20" target="_blank">Roku Streaming Stick HD 2025 — HD Streaming Device for TV with Roku Voice Remote, Free & Live TV</a>
+                    </div>
+                    <div class="deal-price">$15.99</div><div class="deal-indicator">24% off list price</div>
+                    
+                    <a href="https://www.amazon.com/dp/B0DXXYS4BJ?tag=recomendos-20" class="buy-button" target="_blank">SEE DEAL</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
