@@ -1630,6 +1630,24 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
 
     print(f"Campaign created: {campaign_url}")
 
+    # Save campaign history for analytics
+    campaign_history_path = config.PROJECT_ROOT / "catalog" / "campaign_history.json"
+    try:
+        history = json.loads(campaign_history_path.read_text()) if campaign_history_path.exists() else []
+        history.append({
+            "campaign_id": campaign["campaign_id"],
+            "web_id": campaign["web_id"],
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "subject": subject,
+            "deals_count": len(selected),
+            "asins": [asin for asin, _ in selected],
+            "titles": {asin: custom_titles.get(asin, prices[asin].get("title", "")) for asin, _ in selected},
+        })
+        campaign_history_path.write_text(json.dumps(history, indent=2))
+        print(f"Campaign history saved ({len(history)} campaigns)")
+    except Exception as e:
+        print(f"Warning: Failed to save campaign history: {e}")
+
     # Deploy to Vercel and push to git in background so the HTTP response
     # returns immediately and the browser can show the success modal.
     import threading

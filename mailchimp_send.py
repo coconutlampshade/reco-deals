@@ -144,3 +144,64 @@ def create_campaign(subject, html_content, preview_text=None):
     }
 
 
+def get_recent_campaigns(count=50):
+    """Fetch recent campaigns sorted by send time (newest first)."""
+    result = mailchimp_request(
+        "GET",
+        f"/campaigns?count={count}&sort_field=send_time&sort_dir=DESC"
+        f"&fields=campaigns.id,campaigns.web_id,campaigns.settings.subject_line,"
+        f"campaigns.send_time,campaigns.status,campaigns.emails_sent,"
+        f"campaigns.report_summary"
+    )
+    if not result:
+        return []
+    return result.get("campaigns", [])
+
+
+def get_campaign_report(campaign_id):
+    """Fetch performance report for a single campaign."""
+    result = mailchimp_request("GET", f"/reports/{campaign_id}")
+    if not result:
+        return None
+    return {
+        "campaign_id": result.get("id"),
+        "subject": result.get("subject_line", ""),
+        "send_time": result.get("send_time", ""),
+        "emails_sent": result.get("emails_sent", 0),
+        "opens": {
+            "total": result.get("opens", {}).get("opens_total", 0),
+            "unique": result.get("opens", {}).get("unique_opens", 0),
+            "rate": result.get("opens", {}).get("open_rate", 0),
+        },
+        "clicks": {
+            "total": result.get("clicks", {}).get("clicks_total", 0),
+            "unique": result.get("clicks", {}).get("unique_subscriber_clicks", 0),
+            "rate": result.get("clicks", {}).get("click_rate", 0),
+        },
+        "unsubscribes": result.get("unsubscribed", 0),
+        "bounce_hard": result.get("bounces", {}).get("hard_bounces", 0),
+        "bounce_soft": result.get("bounces", {}).get("soft_bounces", 0),
+        "list_stats": {
+            "sub_rate": result.get("list_stats", {}).get("sub_rate", 0),
+            "unsub_rate": result.get("list_stats", {}).get("unsub_rate", 0),
+        },
+    }
+
+
+def get_campaign_click_details(campaign_id):
+    """Fetch per-URL click data for a campaign."""
+    result = mailchimp_request(
+        "GET", f"/reports/{campaign_id}/click-details?count=100"
+    )
+    if not result:
+        return []
+    urls = []
+    for item in result.get("urls_clicked", []):
+        urls.append({
+            "url": item.get("url", ""),
+            "total_clicks": item.get("total_clicks", 0),
+            "unique_clicks": item.get("unique_clicks", 0),
+            "click_percentage": item.get("click_percentage", 0),
+        })
+    return urls
+
