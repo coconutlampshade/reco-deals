@@ -35,6 +35,31 @@ def load_campaign_history():
         return json.load(f)
 
 
+def build_url_to_asin_map(history, catalog=None):
+    """Build a reverse lookup from affiliate URL → ASIN.
+
+    Sources (in priority order):
+    1. affiliate_urls saved in campaign_history.json entries
+    2. affiliate_url field in catalog/products.json
+    """
+    url_map = {}
+
+    # From catalog (broad coverage, lower priority)
+    if catalog:
+        for asin, entry in catalog.items():
+            aff_url = entry.get("affiliate_url", "")
+            if isinstance(aff_url, str) and aff_url:
+                url_map[aff_url] = asin
+
+    # From campaign history (higher priority, campaign-specific)
+    for h in history:
+        for asin, url in h.get("affiliate_urls", {}).items():
+            if url:
+                url_map[url] = asin
+
+    return url_map
+
+
 def fmt_pct(value):
     """Format as percentage."""
     return f"{value:.1f}%"
@@ -201,8 +226,11 @@ def section_worst_campaigns(reports, n=10):
     return "\n".join(lines)
 
 
-def section_product_clicks(click_data, history_lookup):
+def section_product_clicks(click_data, history_lookup, url_to_asin=None):
     """Cross-reference click URLs with product ASINs from campaign history."""
+    if url_to_asin is None:
+        url_to_asin = {}
+
     # Aggregate clicks per ASIN across all campaigns
     asin_clicks = defaultdict(lambda: {"total": 0, "unique": 0, "title": "", "campaigns": 0})
     asin_campaigns = defaultdict(set)
@@ -216,11 +244,11 @@ def section_product_clicks(click_data, history_lookup):
             url = url_info["url"]
             asin = extract_asin_from_url(url)
 
-            # Also match geni.us / amzn.to links by checking if the URL
-            # could correspond to a known ASIN from this campaign
+            # Match geni.us / amzn.to links via reverse lookup
             if not asin:
-                # For short URLs, we can't resolve them here.
-                # Just skip — we only count direct Amazon links.
+                asin = url_to_asin.get(url)
+
+            if not asin:
                 continue
 
             if asin in campaign_asins:
@@ -371,6 +399,18 @@ def generate_report(last_n=None):
     history_lookup = {h["campaign_id"]: h for h in history}
     print(f"Local campaign history: {len(history)} campaigns")
 
+    # Load product catalog for affiliate URL lookups
+    catalog = None
+    catalog_path = config.CATALOG_DIR / "products.json"
+    if catalog_path.exists():
+        with open(catalog_path) as f:
+            catalog = json.load(f)
+        print(f"Loaded catalog: {len(catalog)} products")
+
+    # Build URL→ASIN reverse map for matching geni.us/amzn.to clicks
+    url_to_asin = build_url_to_asin_map(history, catalog)
+    print(f"URL→ASIN map: {len(url_to_asin)} affiliate URLs")
+
     # Fetch click details for campaigns with local history
     click_data = {}
     if history_lookup:
@@ -390,7 +430,7 @@ def generate_report(last_n=None):
     parts.append(section_campaign_table(reports))
     parts.append(section_top_campaigns(reports))
     parts.append(section_worst_campaigns(reports))
-    parts.append(section_product_clicks(click_data, history_lookup))
+    parts.append(section_product_clicks(click_data, history_lookup, url_to_asin))
     parts.append(section_unsub_trend(reports))
 
     return "\n".join(parts)

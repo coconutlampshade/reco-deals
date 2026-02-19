@@ -1642,6 +1642,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
             "deals_count": len(selected),
             "asins": [asin for asin, _ in selected],
             "titles": {asin: custom_titles.get(asin, prices[asin].get("title", "")) for asin, _ in selected},
+            "affiliate_urls": {asin: prices[asin].get("affiliate_url", "") for asin, _ in selected},
         })
         campaign_history_path.write_text(json.dumps(history, indent=2))
         print(f"Campaign history saved ({len(history)} campaigns)")
