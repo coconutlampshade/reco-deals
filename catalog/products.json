@@ -3,17 +3,7 @@
     "asin": "B00H1HYZ9C",
     "title": "white, blue-striped kitchen dishtowels",
     "amazon_url": "https://www.amazon.com/dp/B00H1HYZ9C?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "gzc3UK",
-      "productUrl": "https://www.amazon.com/dp/B00H1HYZ9C?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "gzc3UK"
-    },
+    "affiliate_url": "https://geni.us/gzc3UK",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/learning-from-deathgoogle-tipsmultiple-17-05-21",
@@ -12338,17 +12328,7 @@
     "asin": "B000YA8NYQ",
     "title": "Bonine motion sickness tablets",
     "amazon_url": "https://www.amazon.com/dp/B000YA8NYQ?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "gRde",
-      "productUrl": "https://www.amazon.com/dp/B000YA8NYQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "gRde"
-    },
+    "affiliate_url": "https://geni.us/gRde",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/nerdy-kit-giftseustachidark-reader-18-12-16",
@@ -51509,17 +51489,7 @@
     "asin": "B00CB3BZBW",
     "title": "What’s the Best Type of E6000 Glue?",
     "amazon_url": "https://www.amazon.com/dp/B00CB3BZBW",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "Uy7J",
-      "productUrl": "https://www.amazon.com/dp/B00CB3BZBW?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "Uy7J"
-    },
+    "affiliate_url": "https://geni.us/Uy7J",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-the-best-type-of-e6000-glue/",
