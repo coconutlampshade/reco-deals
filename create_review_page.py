@@ -120,6 +120,9 @@ def merge_catalog_and_deals() -> dict:
             "sales_qty": sales.get(asin, {}).get("qty", 0),
             "sales_revenue": sales.get(asin, {}).get("revenue", 0),
         }
+        # Use cached list_price from deals.json if available
+        if deal.get("list_price"):
+            merged[asin]["list_price"] = deal["list_price"]
 
     # Enrich deal candidates with PA API data (real-time prices, list price, availability)
     deal_asins = [asin for asin, p in merged.items() if p.get("is_deal")]
@@ -145,6 +148,20 @@ def merge_catalog_and_deals() -> dict:
                     p["product_features"] = info["product_features"]
                 enriched += 1
             print(f"  Enriched {enriched}/{len(deal_asins)} deals with PA API data")
+
+            # Cache list prices back to deals.json for future sessions
+            cached = 0
+            for asin, info in pa_data.items():
+                if "error" in info or not info.get("list_price"):
+                    continue
+                if asin in deals and deals[asin].get("list_price") != info["list_price"]:
+                    deals[asin]["list_price"] = info["list_price"]
+                    cached += 1
+            if cached:
+                deals_data["deals"] = deals
+                with open(DEALS_FILE, "w", encoding="utf-8") as f:
+                    json.dump(deals_data, f, indent=2)
+                print(f"  Cached {cached} list prices to deals.json")
         except Exception as e:
             print(f"  PA API enrichment failed (non-blocking): {e}")
 
@@ -847,6 +864,7 @@ function renderCard(deal) {{
     const price = deal.current_price;
     const avg = deal.avg_90_day;
     const listPrice = deal.list_price;
+    const high90 = deal.high_90_day;
     const pctBelow = deal.percent_below_avg || 0;
     const imgUrl = deal.image_url || '';
     const buyUrl = getAffiliateUrl(deal);
@@ -867,6 +885,9 @@ function renderCard(deal) {{
     if (listPrice && price && listPrice > price) {{
         const offPct = Math.round(((listPrice - price) / listPrice) * 100);
         if (offPct >= 5) badges += `<span class="badge badge-list">${{offPct}}% off list</span>`;
+    }} else if (high90 && price && high90 > price) {{
+        const offPct = Math.round(((high90 - price) / high90) * 100);
+        if (offPct >= 5) badges += `<span class="badge badge-list">${{offPct}}% off recent high</span>`;
     }}
     if (pctBelow > 0) badges += `<span class="badge badge-savings">${{pctBelow.toFixed(0)}}% below avg</span>`;
     if (isAtLow) badges += '<span class="badge badge-low">90-day low</span>';
@@ -910,8 +931,8 @@ function renderCard(deal) {{
     const sourceLabel = getSourceLabel(deal);
     const meta = sourceLabel ? `Featured in ${{sourceLabel}}` : '';
     const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price data</span>';
-    // Use list_price for strikethrough when available, fall back to avg_90_day
-    const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((avg && price && avg > price) ? avg : null);
+    // Use list_price for strikethrough, then high_90_day, then avg_90_day
+    const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((high90 && price && high90 > price) ? high90 : ((avg && price && avg > price) ? avg : null));
     const origHtml = strikePrice ? `<span class="original">$${{strikePrice.toFixed(2)}}</span>` : '';
 
     return `
@@ -1057,6 +1078,7 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
             "benefit_description": p.get("benefit_description", ""),
             "issues": p.get("issues", []),
             "list_price": p.get("list_price"),
+            "high_90_day": p.get("high_90_day"),
             "availability": p.get("availability", ""),
             "savings_percent": p.get("savings_percent"),
         })
@@ -1495,14 +1517,24 @@ function renderDealsList() {{
     container.innerHTML = ITEMS.map((item, idx) => {{
         const price = item.current_price;
         const avg = item.avg_90_day;
+        const high90 = item.high_90_day;
         const pctBelow = item.percent_below_avg || 0;
         const listPrice = item.list_price;
         const availability = item.availability || '';
         const priceHtml = price ? `$${{price.toFixed(2)}}` : '<span style="color:#999">No price</span>';
-        // Show list price strikethrough when available, fall back to avg
-        const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((avg && price && avg > price) ? avg : null);
-        const origHtml = strikePrice ? `<span class="original">$${{strikePrice.toFixed(2)}}${{listPrice && avg && listPrice !== avg ? ' list' : ''}}</span>` : '';
-        const savingsHtml = pctBelow > 0 ? `${{pctBelow.toFixed(0)}}% below avg` : '';
+        // Show list price strikethrough, then high_90_day, then avg
+        const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((high90 && price && high90 > price) ? high90 : ((avg && price && avg > price) ? avg : null));
+        const strikeLabel = (listPrice && price && listPrice > price) ? ' list' : '';
+        const origHtml = strikePrice ? `<span class="original">$${{strikePrice.toFixed(2)}}${{strikeLabel}}</span>` : '';
+        let savingsHtml = '';
+        if (listPrice && price && listPrice > price) {{
+            const offPct = Math.round(((listPrice - price) / listPrice) * 100);
+            if (offPct >= 5) savingsHtml = `${{offPct}}% off list`;
+        }} else if (high90 && price && high90 > price) {{
+            const offPct = Math.round(((high90 - price) / high90) * 100);
+            if (offPct >= 5) savingsHtml = `${{offPct}}% off recent high`;
+        }}
+        if (!savingsHtml && pctBelow > 0) savingsHtml = `${{pctBelow.toFixed(0)}}% below avg`;
         const sourceLabel = getSourceLabel(item);
         const affUrl = item.affiliate_url || `https://amazon.com/dp/${{item.asin}}`;
 
