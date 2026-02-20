@@ -23,5 +23,33 @@
       "B009OOY3AQ": "https://geni.us/viewtainer",
       "B000YA8NYQ": "https://geni.us/gRde"
     }
+  },
+  {
+    "campaign_id": "e3631991e7",
+    "web_id": 9143746,
+    "date": "2026-02-20",
+    "subject": "Recomendo Deals - February 20, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B0C6DQS74L",
+      "B0000644AF",
+      "B003ESX9I0",
+      "B012T634SM",
+      "B001ANQVYU"
+    ],
+    "titles": {
+      "B0C6DQS74L": "100-Inch Long Cobweb Duster",
+      "B0000644AF": "Thermos Stainless Steel Beverage Can Insulator for 12 Ounce Can",
+      "B003ESX9I0": "Tala Cook's Measure",
+      "B012T634SM": "Magic Bullet Blender",
+      "B001ANQVYU": "Permethrin Insect Repellent"
+    },
+    "affiliate_urls": {
+      "B0C6DQS74L": "https://geni.us/spider-web-duster",
+      "B0000644AF": "https://geni.us/p2nCsp",
+      "B003ESX9I0": "https://geni.us/1kzQcD",
+      "B012T634SM": "http://amzn.to/2agA50j",
+      "B001ANQVYU": "https://geni.us/9sH5F4"
+    }
   }
 ]

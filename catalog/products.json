@@ -23189,17 +23189,7 @@
     "asin": "B003ESX9I0",
     "title": "Tala Cook's Measure",
     "amazon_url": "https://www.amazon.com/dp/B003ESX9I0",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "1kzQcD",
-      "productUrl": "https://www.amazon.com/dp/B003ESX9I0?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "1kzQcD"
-    },
+    "affiliate_url": "https://geni.us/1kzQcD",
     "issues": [
       {
         "url": "https://kk.org/cooltools/tala-cooks-meas/",
@@ -23270,17 +23260,7 @@
     "asin": "B001ANQVYU",
     "title": "Permethrin",
     "amazon_url": "https://www.amazon.com/dp/B001ANQVYU",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "9sH5F4",
-      "productUrl": "https://www.amazon.com/dp/B001ANQVYU?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "9sH5F4"
-    },
+    "affiliate_url": "https://geni.us/9sH5F4",
     "issues": [
       {
         "url": "https://kk.org/cooltools/permethrin/",
@@ -42715,17 +42695,7 @@
     "asin": "B0000644AF",
     "title": "Cool Tools 2016 Holiday Gift Guide: $10 or less",
     "amazon_url": "https://www.amazon.com/dp/B0000644AF",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "p2nCsp",
-      "productUrl": "https://www.amazon.com/dp/B0000644AF?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "p2nCsp"
-    },
+    "affiliate_url": "https://geni.us/p2nCsp",
     "issues": [
       {
         "url": "https://kk.org/cooltools/cool-tools-2015-holiday-gift-guide-tools-under-10-2/",
@@ -63062,7 +63032,7 @@
     ],
     "first_featured": "2016-07-30",
     "added_at": "2026-01-03T08:30:41.156253",
-    "benefit_description": "This e-reader provides a lightweight, comfortable reading experience with physical page-turn buttons and a wide grip area that prevents accidental page turns while holding it naturally like a traditional book."
+    "benefit_description": "Magic Bullet 11-Piece Set Blender and Food Processor"
   },
   "B00KLETH4A": {
     "asin": "B00KLETH4A",
