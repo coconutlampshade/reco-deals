@@ -590,7 +590,7 @@
         let badgesHtml = '';
         if (p.score >= 70) badgesHtml += '<span class="badge badge-deal">Top Deal</span>';
         if (p.price && p.low_90 && p.price <= p.low_90 * 1.05) badgesHtml += '<span class="badge badge-low">90-Day Low</span>';
-        if (p.prime) badgesHtml += '<span class="badge badge-prime"><a href="https://amzn.to/4c7wkNg" target="_blank">Prime</a></span>';
+        if (p.prime) badgesHtml += '<span class="badge badge-prime">Prime</span>';
         if (p.pct_off) badgesHtml += `<span class="badge badge-pct">${p.pct_off}% off</span>`;
 
         // Image
