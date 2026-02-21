@@ -27,11 +27,8 @@ def _extract_stat(current_stats: list, index: int) -> float | None:
 def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[float | None, str | None]:
     """Extract current price from Keepa data.
 
-    Priority order:
-    1. Amazon direct price (index 0) — most reliable when available
-    2. Buy Box price (index 18) — what customers actually see on Amazon
-    3. New 3rd party price (index 1) — only if Buy Box is also available
-       (if Buy Box is -1 but 3P has a price, the 3P price is likely stale)
+    Uses the lowest available price across Amazon direct, Buy Box, and
+    New 3rd party — this reflects what the customer actually pays.
 
     Returns:
         (current_price_dollars, price_source) where price_source is
@@ -39,30 +36,40 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
     """
     current_stats = stats.get("current", []) if stats else []
 
-    # 1. Amazon direct price
+    # Collect all available prices
+    candidates = []
+
     amazon_price = _extract_stat(current_stats, 0)
     if amazon_price is not None:
-        return amazon_price, "amazon"
+        candidates.append((amazon_price, "amazon"))
 
-    # 2. Buy Box price — what the customer actually sees
     buy_box_price = _extract_stat(current_stats, 18)
     if buy_box_price is not None:
-        return buy_box_price, "buy_box"
+        candidates.append((buy_box_price, "buy_box"))
 
-    # 3. New 3rd party price
     new_3p_price = _extract_stat(current_stats, 1)
     if new_3p_price is not None:
-        return new_3p_price, "new_3rd_party"
+        candidates.append((new_3p_price, "new_3rd_party"))
 
-    # 4. Fall back to CSV history (check Amazon, then Buy Box, then 3rd party)
+    # Return the lowest price (what the customer actually pays)
+    if candidates:
+        candidates.sort(key=lambda x: x[0])
+        return candidates[0]
+
+    # Fall back to CSV history — same logic, pick lowest
     csv = product_data.get("csv", [])
+    csv_candidates = []
     for csv_idx, source_name in [(0, "amazon"), (18, "buy_box"), (1, "new_3rd_party")]:
         if csv and len(csv) > csv_idx and csv[csv_idx]:
             csv_data = csv[csv_idx]
             if csv_data and len(csv_data) >= 2:
                 last_price = csv_data[-1]
                 if last_price is not None and last_price > 0:
-                    return last_price / 100.0, source_name
+                    csv_candidates.append((last_price / 100.0, source_name))
+
+    if csv_candidates:
+        csv_candidates.sort(key=lambda x: x[0])
+        return csv_candidates[0]
 
     return None, None
 
@@ -83,7 +90,7 @@ def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
         return result
 
     # Buy Box stats use index 18, Amazon uses 0, 3rd party uses 1
-    if price_source == "buy_box":
+    if price_source and price_source.startswith("buy_box"):
         price_idx = 18
     elif price_source == "amazon":
         price_idx = 0
@@ -115,65 +122,67 @@ def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
 
 
 def parse_keepa_buybox_price(product_data: dict) -> tuple[float | None, str | None]:
-    """Extract Buy Box winner's actual price from Keepa offers data.
+    """Extract best available price from Keepa offers data.
 
     Requires the product to have been fetched with offers=20 parameter.
 
-    Checks buyBoxSellerIdHistory to find the current Buy Box winner,
-    then looks up that seller's offer. If the offer has isPrimeExcl=true,
-    uses primeExclCSV (pairs: [time, price, ...]) for the Prime-exclusive price.
-    Otherwise uses offerCSV (triplets: [time, price, shipping, ...]).
+    Checks two things:
+    1. Buy Box winner's offer price (from buyBoxSellerIdHistory + offers)
+    2. Any Prime-exclusive offer from any FBA seller (these show as the
+       Prime member price on Amazon, even if from a non-Buy Box seller)
+
+    Returns the lowest price found, preferring Prime-exclusive deals.
 
     Returns:
         (price_dollars, source) where source is "buy_box_prime" or "buy_box_offer",
         or (None, None) if not available.
     """
-    # Get the current Buy Box winner seller ID
-    bb_history = product_data.get("buyBoxSellerIdHistory")
-    if not bb_history or len(bb_history) < 2:
-        return None, None
-
-    # Last entry: [..., time, sellerId] — seller ID is at odd indices
-    current_seller = bb_history[-1]
-    if not current_seller:
-        return None, None
-
-    # Find this seller in the offers array
     offers = product_data.get("offers", [])
     if not offers:
         return None, None
 
-    # A seller can have multiple offer entries (regular + Prime-exclusive).
-    # Scan all offers to find the best price from the Buy Box winner.
-    prime_price = None
-    regular_price = None
+    # Get the current Buy Box winner seller ID
+    bb_history = product_data.get("buyBoxSellerIdHistory")
+    current_seller = None
+    if bb_history and len(bb_history) >= 2:
+        current_seller = bb_history[-1]
+
+    best_prime_price = None
+    bb_regular_price = None
 
     for offer in offers:
-        if offer.get("sellerId") != current_seller:
+        seller = offer.get("sellerId")
+        condition = offer.get("condition", 0)
+
+        # Only consider new condition offers (condition=1)
+        if condition != 1:
             continue
 
-        # Check for Prime-exclusive price
-        if offer.get("isPrimeExcl") and offer.get("primeExclCSV"):
+        # Check for Prime-exclusive price from ANY FBA seller
+        if offer.get("isPrimeExcl") and offer.get("isFBA") and offer.get("primeExclCSV"):
             csv_data = offer["primeExclCSV"]
             if len(csv_data) >= 2:
                 last_price = csv_data[-1]
                 if last_price is not None and last_price > 0:
-                    prime_price = last_price / 100.0
+                    price = last_price / 100.0
+                    if best_prime_price is None or price < best_prime_price:
+                        best_prime_price = price
 
-        # Track regular offer price as fallback
-        if regular_price is None:
+        # Track Buy Box winner's regular offer price
+        if seller == current_seller and bb_regular_price is None:
             offer_csv = offer.get("offerCSV")
             if offer_csv and len(offer_csv) >= 2:
                 # offerCSV is triplets: [time, price, shipping, time, price, shipping, ...]
                 last_price = offer_csv[-2]
                 if last_price is not None and last_price > 0:
-                    regular_price = last_price / 100.0
+                    bb_regular_price = last_price / 100.0
 
-    # Prefer Prime-exclusive price (lower, what Prime members actually pay)
-    if prime_price is not None:
-        return prime_price, "buy_box_prime"
-    if regular_price is not None:
-        return regular_price, "buy_box_offer"
+    # Prefer Prime-exclusive price when it's lower
+    if best_prime_price is not None:
+        if bb_regular_price is None or best_prime_price <= bb_regular_price:
+            return best_prime_price, "buy_box_prime"
+    if bb_regular_price is not None:
+        return bb_regular_price, "buy_box_offer"
 
     return None, None
 

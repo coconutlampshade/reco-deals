@@ -1,9 +1,9 @@
-name: Weekly Catalog Update
+name: Daily Catalog Update
 
 on:
   schedule:
-    # Run at 5:00 AM PST (13:00 UTC) every Sunday
-    - cron: '0 13 * * 0'
+    # Run at 6:00 AM PT (14:00 UTC) every day — after daily price check finishes
+    - cron: '0 14 * * *'
 
   # Allow manual trigger
   workflow_dispatch:
@@ -28,14 +28,16 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Fetch latest Recomendo issue
+      - name: Fetch new products from Cool Tools newsletter
+        env:
+          MAILCHIMP_API_KEY: ${{ secrets.MAILCHIMP_API_KEY }}
         run: |
-          python fetch_latest_issue.py
+          python fetch_cooltools_campaigns.py
 
       - name: Check for changes
         id: changes
         run: |
-          if git diff --quiet catalog/products.json; then
+          if git diff --quiet catalog/products.json catalog/processed_campaigns.json; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "No new products found"
           else
@@ -48,8 +50,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add catalog/products.json
-          git commit -m "Add products from latest Recomendo issue
+          git add catalog/products.json catalog/processed_campaigns.json
+          git commit -m "Add products from Cool Tools newsletter
 
-          🤖 Automated weekly catalog update"
+          Automated daily catalog update"
           git push

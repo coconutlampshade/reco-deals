@@ -2,9 +2,9 @@ name: Daily Price Check
 
 on:
   schedule:
-    # Run at 3:30 AM PT (11:30 UTC) every day
-    # Takes ~2.5 hours to check all products, finishes by ~6am PT
-    - cron: '30 11 * * *'
+    # Run at 10:00 PM PT (06:00 UTC) every day
+    # Takes ~5-7 hours with offers data, finishes by 3-5am PT
+    - cron: '0 6 * * *'
 
   # Allow manual trigger from GitHub UI
   workflow_dispatch:
@@ -34,11 +34,15 @@ jobs:
         run: |
           python check_deals.py
 
+      - name: Generate catalog data
+        run: |
+          python generate_catalog_data.py
+
       - name: Commit updated deals data
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add catalog/deals.json
+          git add catalog/deals.json public/catalog-data.json
           git diff --staged --quiet || git commit -m "Update deal prices for all products
 
           🤖 Automated daily price check"

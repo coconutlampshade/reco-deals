@@ -65,6 +65,7 @@ def fetch_keepa_products(asins: list[str], api_key: str) -> dict:
         "domain": config.KEEPA_DOMAIN_ID,
         "asin": ",".join(asins),
         "stats": 90,  # Get 90-day statistics
+        "offers": 20,  # Include seller offers for Buy Box / Prime-exclusive pricing
     }
 
     from utils import api_request_with_retry
@@ -154,7 +155,7 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
 
     # Parse price, stats, rating, and deal metrics using shared utilities
     from keepa_utils import (
-        parse_keepa_current_price, parse_keepa_stats,
+        parse_keepa_current_price, parse_keepa_buybox_price, parse_keepa_stats,
         parse_keepa_rating, calculate_deal_metrics, calculate_deal_score,
     )
 
@@ -162,6 +163,12 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     if current_price is None:
         result["error"] = "No current price available"
         return result
+
+    # Override with Buy Box / Prime-exclusive price from offers data when available
+    bb_price, bb_source = parse_keepa_buybox_price(product_data)
+    if bb_price is not None and bb_price <= current_price:
+        current_price = bb_price
+        price_source = bb_source
 
     result["current_price"] = current_price
     result["price_source"] = price_source
