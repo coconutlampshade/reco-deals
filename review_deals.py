@@ -341,6 +341,7 @@ def check_keepa_prices(asins: list) -> dict:
     import requests
     from keepa_utils import (
         parse_keepa_current_price, parse_keepa_stats, calculate_deal_metrics,
+        parse_keepa_buybox_price,
     )
 
     api_key = os.getenv("KEEPA_API_KEY")
@@ -360,6 +361,7 @@ def check_keepa_prices(asins: list) -> dict:
             "domain": 1,  # Amazon.com
             "asin": ",".join(batch),
             "stats": 90,  # 90-day stats
+            "offers": 20,  # Include seller offers for Buy Box price
         }
 
         from utils import api_request_with_retry
@@ -384,6 +386,13 @@ def check_keepa_prices(asins: list) -> dict:
 
             current, price_source = parse_keepa_current_price(product, stats)
             stat_values = parse_keepa_stats(stats, price_source)
+
+            # Try Buy Box winner price (may include Prime-exclusive pricing)
+            bb_price, bb_source = parse_keepa_buybox_price(product)
+            if bb_price is not None:
+                current = bb_price
+                price_source = bb_source
+
             metrics = calculate_deal_metrics(
                 current, stat_values["avg_90_day"], stat_values["high_90_day"]
             ) if current else {}
@@ -394,6 +403,7 @@ def check_keepa_prices(asins: list) -> dict:
                 "avg_price_90": stat_values["avg_90_day"],
                 "min_price": stat_values["low_90_day"],
                 "max_price": stat_values["high_90_day"],
+                "list_price": stat_values.get("list_price"),
                 "percent_below_avg": metrics.get("percent_below_avg"),
                 "savings_dollars": metrics.get("savings_dollars"),
                 "price_source": price_source,
@@ -1521,6 +1531,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
         prices[asin] = {
             "current_price": deal.get("live_price"),
             "list_price": deal.get("live_list_price"),
+            "price_source": deal.get("price_source"),
             "title": title,
             "title_is_custom": title_is_custom,
             "image_url": deal.get("live_image"),

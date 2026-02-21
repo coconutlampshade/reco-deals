@@ -116,6 +116,7 @@ def merge_catalog_and_deals() -> dict:
             "rating": deal.get("rating"),
             "review_count": deal.get("review_count"),
             "deal_score": deal.get("deal_score", 0),
+            "price_source": deal.get("price_source"),
             "has_deal_data": asin in deals,
             "sales_qty": sales.get(asin, {}).get("qty", 0),
             "sales_revenue": sales.get(asin, {}).get("revenue", 0),
@@ -180,14 +181,23 @@ def prepare_candidates(products: dict) -> list:
 
         avg_price = d.get("avg_90_day") or 0
         current_price = d.get("current_price") or 0
+        list_price = d.get("list_price") or 0
         pct_below = d.get("percent_below_avg") or 0
+
+        # Prefer list price (MSRP) for discount display, fall back to 90-day avg
+        if list_price and current_price and list_price > current_price:
+            display_list_price = list_price
+        elif avg_price and current_price and avg_price > current_price:
+            display_list_price = avg_price
+        else:
+            display_list_price = current_price or None
 
         deal = {
             "asin": asin,
             "live_price": current_price or None,
             "live_title": d.get("title") or asin,
             "live_image": d.get("image_url", ""),
-            "live_list_price": avg_price if avg_price and current_price and avg_price > current_price else current_price or None,
+            "live_list_price": display_list_price,
             "savings_percent": pct_below if pct_below > 0 else 0,
             "review_count": d.get("review_count", 0),
             "star_rating": d.get("rating", 0),
@@ -206,6 +216,7 @@ def prepare_candidates(products: dict) -> list:
             "catalog_title": d.get("title", ""),
             "first_featured": d.get("first_featured", ""),
             "has_deal_data": d.get("has_deal_data", False),
+            "price_source": d.get("price_source"),
             "sales_qty": d.get("sales_qty", 0),
             "sales_revenue": d.get("sales_revenue", 0),
             "near_low_pct": round((current_price / d["low_90_day"] - 1) * 100, 1) if d.get("low_90_day") and current_price and d["low_90_day"] > 0 else None,
@@ -451,6 +462,7 @@ def build_html(merged_data: dict) -> str:
         .badge-cooldown {{ background: #fee2e2; color: #dc2626; }}
         .badge-unavailable {{ background: #fee2e2; color: #dc2626; }}
         .badge-list {{ background: #dbeafe; color: #2563eb; }}
+        .badge-prime {{ background: #dbeafe; color: #1d4ed8; }}
         .badge-discrepancy {{ background: #fef3c7; color: #d97706; }}
         .card-meta {{
             font-size: 12px;
@@ -894,6 +906,7 @@ function renderCard(deal) {{
     if (paPrice && price && Math.abs(paPrice - price) / price > 0.05) {{
         badges += `<span class="badge badge-discrepancy">PA: $${{paPrice.toFixed(2)}}</span>`;
     }}
+    if (deal.price_source === 'buy_box_prime') badges += '<span class="badge badge-prime"><a href="https://amzn.to/4c7wkNg" target="_blank" style="color:inherit;text-decoration:none">Prime exclusive deal</a></span>';
     if (deal._inCooldown) badges += `<span class="badge badge-cooldown">Featured ${{deal._daysSince}}d ago</span>`;
 
     // Rating and review count
@@ -1081,6 +1094,7 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
             "high_90_day": p.get("high_90_day"),
             "availability": p.get("availability", ""),
             "savings_percent": p.get("savings_percent"),
+            "price_source": p.get("price_source"),
         })
 
     items_json = json.dumps(items)
@@ -1549,6 +1563,7 @@ function renderDealsList() {{
                         <div class="deal-asin">${{item.asin}}</div>
                         <div class="deal-price">${{priceHtml}}${{origHtml}}</div>
                         ${{savingsHtml ? `<div class="deal-savings">${{savingsHtml}}</div>` : ''}}
+                        ${{item.price_source === 'buy_box_prime' ? '<div class="deal-savings" style="background:#dbeafe;color:#1d4ed8"><a href="https://amzn.to/4c7wkNg" target="_blank" style="color:inherit;text-decoration:none">Prime exclusive deal</a></div>' : ''}}
                         ${{sourceLabel ? `<div class="deal-source">${{sourceLabel}}</div>` : ''}}
                     </div>
                 </div>
@@ -2177,7 +2192,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 # Fall back to Keepa for price if PA API has none
                 current_price = info.get("current_price")
                 list_price = info.get("list_price")
-                avg_price = None
+                price_source = None
                 if current_price is None:
                     try:
                         print(f"  PA API has no price for {asin}, trying Keepa...")
@@ -2185,10 +2200,13 @@ class ReviewHandler(BaseHTTPRequestHandler):
                         keepa_info = keepa_data.get(asin, {})
                         if keepa_info.get("current_price"):
                             current_price = keepa_info["current_price"]
-                            avg_price = keepa_info.get("avg_price")
-                            # Use avg as list_price for savings display
-                            if avg_price and avg_price > current_price:
-                                list_price = avg_price
+                            price_source = keepa_info.get("price_source")
+                            # Prefer Keepa list price (MSRP), fall back to avg
+                            keepa_list = keepa_info.get("list_price")
+                            if keepa_list and keepa_list > current_price:
+                                list_price = keepa_list
+                            elif keepa_info.get("avg_price") and keepa_info["avg_price"] > current_price:
+                                list_price = keepa_info["avg_price"]
                     except Exception as ke:
                         print(f"  Keepa fallback failed: {ke}")
 
@@ -2199,6 +2217,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                     "title": info.get("title", f"Product {asin}"),
                     "current_price": current_price,
                     "list_price": list_price,
+                    "price_source": price_source,
                     "image_url": info.get("image_url", ""),
                     "availability": info.get("availability"),
                     "affiliate_url": f"https://www.amazon.com/dp/{asin}?tag=recomendos-20",

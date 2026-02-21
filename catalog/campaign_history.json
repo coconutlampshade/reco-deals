@@ -51,5 +51,61 @@
       "B012T634SM": "http://amzn.to/2agA50j",
       "B001ANQVYU": "https://geni.us/9sH5F4"
     }
+  },
+  {
+    "campaign_id": "d88b467c4a",
+    "web_id": 9143749,
+    "date": "2026-02-21",
+    "subject": "Recomendo Deals - February 21, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B07L4DHNVK",
+      "B005NACT38",
+      "B000MRR3GU",
+      "B00416S4YS",
+      "B0006IUW9U"
+    ],
+    "titles": {
+      "B07L4DHNVK": "Munchkin cups",
+      "B005NACT38": "Round Sanding Sticks",
+      "B000MRR3GU": "Copic Sketch, Alcohol-Based Markers, 12pc Set",
+      "B00416S4YS": "Flaming Squirrel Deterent Sauce",
+      "B0006IUW9U": "Babe-Bot Glue Bottle"
+    },
+    "affiliate_urls": {
+      "B07L4DHNVK": "https://geni.us/bS5fJYc",
+      "B005NACT38": "https://geni.us/eEDuml7",
+      "B000MRR3GU": "http://amzn.to/2DkKRCz",
+      "B00416S4YS": "https://geni.us/k5HHmQD",
+      "B0006IUW9U": "https://geni.us/C35x9a"
+    }
+  },
+  {
+    "campaign_id": "68f4ff529f",
+    "web_id": 9143750,
+    "date": "2026-02-21",
+    "subject": "Recomendo Deals - February 21, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B00CBFAF48",
+      "B0013J0HI2",
+      "B00XWPTUMY",
+      "B0002U33S4",
+      "B0018RF0IQ"
+    ],
+    "titles": {
+      "B00CBFAF48": "Thermos Funtainer",
+      "B0013J0HI2": "Paperclay Modeling Compound",
+      "B00XWPTUMY": "ThinOptics Rectangular Reading Glasses",
+      "B0002U33S4": "Zeroll Ice Cream Scoops",
+      "B0018RF0IQ": "Zebra Mini Mechanical Pencil"
+    },
+    "affiliate_urls": {
+      "B00CBFAF48": "https://geni.us/sj0z1j",
+      "B0013J0HI2": "https://geni.us/dFiKf",
+      "B00XWPTUMY": "https://geni.us/PCjTAk",
+      "B0002U33S4": "https://geni.us/QjfjPc",
+      "B0018RF0IQ": "https://geni.us/36HGR"
+    }
   }
 ]

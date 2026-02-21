@@ -70,13 +70,14 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
 def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
     """Extract 90-day price statistics from Keepa stats.
 
-    Returns dict with avg_90_day, high_90_day, low_90_day, all_time_low (all in dollars).
+    Returns dict with avg_90_day, high_90_day, low_90_day, all_time_low, list_price (all in dollars).
     """
     result = {
         "avg_90_day": None,
         "high_90_day": None,
         "low_90_day": None,
         "all_time_low": None,
+        "list_price": None,
     }
     if not stats:
         return result
@@ -105,7 +106,76 @@ def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
     if at_low_val:
         result["all_time_low"] = at_low_val / 100.0
 
+    # List price / MSRP is at stats.current[4]
+    list_price = _extract_stat(stats.get("current", []), 4)
+    if list_price is not None:
+        result["list_price"] = list_price
+
     return result
+
+
+def parse_keepa_buybox_price(product_data: dict) -> tuple[float | None, str | None]:
+    """Extract Buy Box winner's actual price from Keepa offers data.
+
+    Requires the product to have been fetched with offers=20 parameter.
+
+    Checks buyBoxSellerIdHistory to find the current Buy Box winner,
+    then looks up that seller's offer. If the offer has isPrimeExcl=true,
+    uses primeExclCSV (pairs: [time, price, ...]) for the Prime-exclusive price.
+    Otherwise uses offerCSV (triplets: [time, price, shipping, ...]).
+
+    Returns:
+        (price_dollars, source) where source is "buy_box_prime" or "buy_box_offer",
+        or (None, None) if not available.
+    """
+    # Get the current Buy Box winner seller ID
+    bb_history = product_data.get("buyBoxSellerIdHistory")
+    if not bb_history or len(bb_history) < 2:
+        return None, None
+
+    # Last entry: [..., time, sellerId] — seller ID is at odd indices
+    current_seller = bb_history[-1]
+    if not current_seller:
+        return None, None
+
+    # Find this seller in the offers array
+    offers = product_data.get("offers", [])
+    if not offers:
+        return None, None
+
+    # A seller can have multiple offer entries (regular + Prime-exclusive).
+    # Scan all offers to find the best price from the Buy Box winner.
+    prime_price = None
+    regular_price = None
+
+    for offer in offers:
+        if offer.get("sellerId") != current_seller:
+            continue
+
+        # Check for Prime-exclusive price
+        if offer.get("isPrimeExcl") and offer.get("primeExclCSV"):
+            csv_data = offer["primeExclCSV"]
+            if len(csv_data) >= 2:
+                last_price = csv_data[-1]
+                if last_price is not None and last_price > 0:
+                    prime_price = last_price / 100.0
+
+        # Track regular offer price as fallback
+        if regular_price is None:
+            offer_csv = offer.get("offerCSV")
+            if offer_csv and len(offer_csv) >= 2:
+                # offerCSV is triplets: [time, price, shipping, time, price, shipping, ...]
+                last_price = offer_csv[-2]
+                if last_price is not None and last_price > 0:
+                    regular_price = last_price / 100.0
+
+    # Prefer Prime-exclusive price (lower, what Prime members actually pay)
+    if prime_price is not None:
+        return prime_price, "buy_box_prime"
+    if regular_price is not None:
+        return regular_price, "buy_box_offer"
+
+    return None, None
 
 
 def parse_keepa_rating(product_data: dict) -> tuple[float | None, int | None]:

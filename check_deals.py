@@ -122,6 +122,7 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
         "is_deal": False,
         "deal_reasons": [],
         "current_price": None,
+        "list_price": None,
         "avg_90_day": None,
         "high_90_day": None,
         "low_90_day": None,

@@ -564,6 +564,10 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             background-color: #fef3c7;
             color: #d97706;
         }}
+        .deal-badge.prime-deal {{
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }}
         .deal-tag {{
             display: inline-block;
             background-color: #4384F3;
@@ -817,6 +821,8 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             badges.append('<span class="deal-badge top-deal">Top Deal</span>')
         if savings_dollars >= 20:
             badges.append(f'<span class="deal-badge big-savings">Save {format_price(savings_dollars)}</span>')
+        if live_price.get("price_source") == "buy_box_prime":
+            badges.append('<span class="deal-badge prime-deal"><a href="https://amzn.to/4c7wkNg" target="_blank" style="color:inherit;text-decoration:none">Prime exclusive deal</a></span>')
         if badges:
             badges_html = '<div class="deal-badges">' + ''.join(badges) + '</div>'
 

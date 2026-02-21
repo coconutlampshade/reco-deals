@@ -19474,17 +19474,7 @@
     "asin": "B0002U33S4",
     "title": "Zeroll Ice Cream Scoops",
     "amazon_url": "https://www.amazon.com/dp/B0002U33S4",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "QjfjPc",
-      "productUrl": "https://www.amazon.com/dp/B0002U33S4?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "QjfjPc"
-    },
+    "affiliate_url": "https://geni.us/QjfjPc",
     "issues": [
       {
         "url": "https://kk.org/cooltools/zeroll-ice-crea/",
@@ -30817,17 +30807,7 @@
     "asin": "B0013J0HI2",
     "title": "Author and Artist Howard Rheingold",
     "amazon_url": "https://www.amazon.com/dp/B0013J0HI2",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "dFiKf",
-      "productUrl": "https://www.amazon.com/dp/B0013J0HI2?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "dFiKf"
-    },
+    "affiliate_url": "https://geni.us/dFiKf",
     "issues": [
       {
         "url": "https://kk.org/cooltools/author-howard-rheingold-cool-tools-show-003/",
@@ -30838,7 +30818,7 @@
     ],
     "first_featured": "2014-06-11",
     "added_at": "2026-01-03T08:01:04.385149",
-    "benefit_description": "This podcast episode provides insights into how woodworking can enhance creative projects and introduces listeners to useful woodworking tools through an expert's personal experience."
+    "benefit_description": "Air hardening modeling material requires no firing or baking"
   },
   "B0051F905U": {
     "asin": "B0051F905U",
@@ -40193,33 +40173,6 @@
     "added_at": "2026-01-03T08:01:04.401149",
     "benefit_description": "This compact audio and lighting kit enables professional-quality video production in any location by providing multiple microphone options, dual-channel recording capabilities, and portable LED lights that can be quickly mounted or softened for interviews and fill lighting."
   },
-  "B000VJJQUU": {
-    "asin": "B000VJJQUU",
-    "title": "What's in my bag? — Dennis Nishi",
-    "amazon_url": "https://www.amazon.com/dp/B000VJJQUU",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "JJG5S",
-      "productUrl": "https://www.amazon.com/dp/B000VJJQUU?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "JJG5S"
-    },
-    "issues": [
-      {
-        "url": "https://kk.org/cooltools/whats-in-my-bag-dennis-nishi/",
-        "title": "What's in my bag? — Dennis Nishi",
-        "date": "2016-03-23",
-        "source": "cooltools"
-      }
-    ],
-    "first_featured": "2016-03-23",
-    "added_at": "2026-01-03T08:01:04.401153",
-    "benefit_description": "This portable audio and lighting kit enables professional-quality video production in any location by providing complete sound recording flexibility and compact LED lighting that can be quickly set up for interviews or outdoor shoots."
-  },
   "B0093CGG18": {
     "asin": "B0093CGG18",
     "title": "What's in my bag? — Dennis Nishi",
@@ -46596,17 +46549,7 @@
     "asin": "B0006IUW9U",
     "title": "FastCap Babe-Bot",
     "amazon_url": "https://www.amazon.com/dp/B0006IUW9U",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "C35x9a",
-      "productUrl": "https://www.amazon.com/dp/B0006IUW9U?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "C35x9a"
-    },
+    "affiliate_url": "https://geni.us/C35x9a",
     "issues": [
       {
         "url": "https://kk.org/cooltools/fastcap-babe-bot/",
@@ -47391,17 +47334,7 @@
     "asin": "B00CBFAF48",
     "title": "Thermos Funtainer",
     "amazon_url": "https://www.amazon.com/dp/B00CBFAF48",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "sj0z1j",
-      "productUrl": "https://www.amazon.com/dp/B00CBFAF48?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "sj0z1j"
-    },
+    "affiliate_url": "https://geni.us/sj0z1j",
     "issues": [
       {
         "url": "https://kk.org/cooltools/thermos-funtainer/",
@@ -56443,17 +56376,7 @@
     "asin": "B0018RF0IQ",
     "title": "What's in my bag? — Dan Shapiro",
     "amazon_url": "https://www.amazon.com/dp/B0018RF0IQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "36HGR",
-      "productUrl": "https://www.amazon.com/dp/B0018RF0IQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "36HGR"
-    },
+    "affiliate_url": "https://geni.us/36HGR",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-dan-shapiro/",
@@ -56464,7 +56387,7 @@
     ],
     "first_featured": "2020-04-08",
     "added_at": "2026-01-03T08:01:04.452413",
-    "benefit_description": "This bag maintains its soft yet durable feel and distinctive appearance after five years of daily use, consistently drawing compliments and questions from strangers about where to purchase it."
+    "benefit_description": "Compact size that fits perfectly in folios and purses"
   },
   "B003EM8008": {
     "asin": "B003EM8008",
@@ -64654,7 +64577,7 @@
     ],
     "first_featured": "2018-01-11",
     "added_at": "2026-01-03T08:33:20.992988",
-    "benefit_description": "This online study platform transforms memorization into an engaging experience by automatically generating quizzes, games, and multiple learning formats from user-created digital flashcards."
+    "benefit_description": "A fast-drying, transparent alcohol ink will not harm the surface or fibers in the paper allowing it to remain smooth."
   },
   "B00ETUNPM2": {
     "asin": "B00ETUNPM2",
@@ -69985,7 +69908,7 @@
     "asin": "B00XWPTUMY",
     "title": "What's in my bag? — Barbara Dace",
     "amazon_url": "https://www.amazon.com/dp/B00XWPTUMY",
-    "affiliate_url": "https://amzn.to/2liae3G?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter",
+    "affiliate_url": "https://geni.us/PCjTAk",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-barbara-dace/",
@@ -69996,7 +69919,7 @@
     ],
     "first_featured": "2019-10-02",
     "added_at": "2026-01-03T08:40:32.564283",
-    "benefit_description": "This compact crossbody bag forces you to carry only essentials by providing just enough organized storage compartments and pockets in an 8.25×6.5×2\" frame that can be worn multiple ways, preventing the common problem of overpacking larger bags with unnecessary weight."
+    "benefit_description": "Feather-light and engineered to grip with gentle pressure. They can be moved up or down your nose for optimal fit and comfort"
   },
   "B00BISIMYO": {
     "asin": "B00BISIMYO",
@@ -72994,7 +72917,7 @@
     ],
     "first_featured": "2025-11-21",
     "added_at": "2026-01-03T09:14:48.425021",
-    "benefit_description": "Provides practical DIY techniques and tool recommendations for hobbyists and small project makers, including creative solutions for challenging tasks like sanding in tight spaces."
+    "benefit_description": "Great for sanding inside rings and curved surfaces"
   },
   "B08YFMG6Z9": {
     "asin": "B08YFMG6Z9",
