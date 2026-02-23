@@ -58,12 +58,15 @@ def find_unavailable_asins(deals_data: dict) -> list[str]:
     unavailable = []
 
     for asin, data in all_results.items():
-        # Skip products that had API errors (e.g., 429 rate limit)
-        if data.get("error"):
+        if data.get("current_price") is not None:
+            continue
+        # Skip products where the API call itself failed (e.g., HTTP 429)
+        # These have short error strings without "No current price"
+        error = data.get("error", "")
+        if error and "No current price" not in error:
             continue
         # No current price = genuinely unavailable
-        if data.get("current_price") is None:
-            unavailable.append(asin)
+        unavailable.append(asin)
 
     return unavailable
 
