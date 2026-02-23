@@ -982,7 +982,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
 
     # URLs for footer links
     catalog_url = "https://reco-deals.vercel.app/"
-    archive_url = "https://reco-deals.vercel.app/archive"
+    archive_url = "https://reco-deals.vercel.app/archive.html"
 
     html += f"""
         <div class="catalog-cta">

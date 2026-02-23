@@ -1343,7 +1343,7 @@ def update_archive_index(public_dir):
             formatted_date = date_str
 
         archive_html += f"""            <li>
-                <a href="{newsletter.name}">{formatted_date}</a>
+                <a href="{newsletter.stem}">{formatted_date}</a>
                 <div class="date">View deals with live prices</div>
             </li>
 """

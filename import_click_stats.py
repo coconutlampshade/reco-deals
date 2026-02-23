@@ -68,13 +68,13 @@ def load_geniuslink_data() -> dict:
             # Map by short code
             code = entry.get("ShortUrlCode", "")
             if code:
-                by_code[code] = by_code.get(code, 0) + clicks
+                by_code[code] = max(by_code.get(code, 0), clicks)
 
             # Map by ASIN
             product_url = entry.get("ProductUrl", "")
             asin = extract_asin(product_url)
             if asin:
-                by_asin[asin] = by_asin.get(asin, 0) + clicks
+                by_asin[asin] = max(by_asin.get(asin, 0), clicks)
 
     return {"by_asin": by_asin, "by_code": by_code}
 

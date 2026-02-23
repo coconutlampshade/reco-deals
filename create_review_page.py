@@ -96,7 +96,7 @@ def merge_catalog_and_deals() -> dict:
         merged[asin] = {
             # Catalog fields — prefer Keepa title (actual product name) over
             # catalog title (may be an article/episode name for Cool Tools entries)
-            "title": deal.get("title") or product.get("title", asin),
+            "title": deal.get("title") or product.get("title") or asin,
             "image_url": deal.get("image_url") or result.get("image_url") or product.get("image_url", ""),
             "issues": product.get("issues", []),
             "affiliate_url": resolve_affiliate_url(product.get("affiliate_url")),
@@ -867,7 +867,7 @@ function sortDeals(deals) {{
             sorted.sort((a, b) => (b.percent_below_high || 0) - (a.percent_below_high || 0));
             break;
         case 'title-asc':
-            sorted.sort((a, b) => (a.catalog_title || a.title || '').localeCompare(b.catalog_title || b.title || ''));
+            sorted.sort((a, b) => (a.title || a.catalog_title || '').localeCompare(b.title || b.catalog_title || ''));
             break;
         case 'oldest-featured':
             sorted.sort((a, b) => (a.first_featured || 'zzzz').localeCompare(b.first_featured || 'zzzz'));
@@ -2276,6 +2276,13 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
+
+        # Fallthrough: unrecognized POST path
+        self.send_response(404)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps({"error": "Not found"}).encode())
 
 
 def run_server(html: str, candidates: list, products: dict, port: int = 8765):
