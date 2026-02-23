@@ -608,6 +608,38 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         .buy-button:hover {{
             background-color: #2b74f1;
         }}
+        .catalog-cta {{
+            text-align: center;
+            padding: 25px 20px;
+            margin: 30px 0;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            border-radius: 8px;
+            border: 1px solid #d0ddf5;
+        }}
+        .catalog-cta h3 {{
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #1a1a1a;
+        }}
+        .catalog-cta p {{
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }}
+        .catalog-cta a.cta-button {{
+            display: inline-block;
+            padding: 12px 28px;
+            background-color: #4384F3;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+        }}
+        .catalog-cta a.cta-button:hover {{
+            background-color: #2b74f1;
+        }}
         .footer {{
             font-size: 13px;
             color: #666;
@@ -948,13 +980,19 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         </div>
 """
 
-    # Archive URL for past deals with live prices
-    archive_url = "https://reco-deals.vercel.app/"
+    # URLs for footer links
+    catalog_url = "https://reco-deals.vercel.app/"
+    archive_url = "https://reco-deals.vercel.app/archive"
 
     html += f"""
+        <div class="catalog-cta">
+            <h3>Browse All Recomendo Deals</h3>
+            <p>Check live Amazon prices on every product we've ever recommended — updated daily.</p>
+            <a href="{catalog_url}" class="cta-button">See All Deals</a>
+        </div>
         <div class="footer">
             <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
-            <p><strong>Looking for more?</strong> Browse our <a href="https://cooltools.pages.dev/">full catalog</a> of every product we've recommended since 2020 across Recomendo, Cool Tools, our YouTube channel, podcast, and all our other newsletters.</p>
+            <p><strong>Looking for more?</strong> Browse our <a href="{catalog_url}">full catalog</a> of every product we've recommended since 2020 across Recomendo, Cool Tools, our YouTube channel, podcast, and all our other newsletters.</p>
             {'<p>Looking for past deals? <a href="' + archive_url + '">Browse our archive</a> for previous issues with up-to-date prices.</p>' if not web_mode else ''}
             <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
             <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>

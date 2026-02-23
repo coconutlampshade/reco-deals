@@ -107,5 +107,64 @@
       "B0002U33S4": "https://geni.us/QjfjPc",
       "B0018RF0IQ": "https://geni.us/36HGR"
     }
+  },
+  {
+    "campaign_id": "aea9681dc1",
+    "web_id": 9143751,
+    "date": "2026-02-22",
+    "subject": "Recomendo Deals - February 22, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B078Z24Q4H",
+      "B01MR00RI3",
+      "B0C6F29XDQ",
+      "B00ZS2R5WQ",
+      "B009QYH52C"
+    ],
+    "titles": {
+      "B078Z24Q4H": "Window Garden Mini Greenhouse Kit",
+      "B01MR00RI3": "Sakura Pigma Manga Basic Set",
+      "B0C6F29XDQ": "Zuihug Travel Pill Organizer",
+      "B00ZS2R5WQ": "Falari Baseball Cap",
+      "B009QYH52C": "PILOT FriXion Clicker Erasable Pens"
+    },
+    "affiliate_urls": {
+      "B078Z24Q4H": "https://geni.us/hw495M",
+      "B01MR00RI3": "https://geni.us/9vetH",
+      "B0C6F29XDQ": "https://geni.us/4o4B",
+      "B00ZS2R5WQ": "https://geni.us/cH1vy",
+      "B009QYH52C": "https://geni.us/frixion-pen"
+    }
+  },
+  {
+    "campaign_id": "9a0a281a78",
+    "web_id": 9143764,
+    "date": "2026-02-23",
+    "subject": "Recomendo Deals - February 23, 2026",
+    "deals_count": 6,
+    "asins": [
+      "B0000DI83G",
+      "B005HNZ5T6",
+      "B01NCK020B",
+      "B076BBW1WM",
+      "B005PO9T44",
+      "B001CEMCXQ"
+    ],
+    "titles": {
+      "B0000DI83G": "Suncast Wall-Mounted Long-Handled Garden-Tool Hanger, 4-Foot Storage Rack for Rakes, Shovels, and Brooms, Holds 12 Tools, 120 lb Capacity",
+      "B005HNZ5T6": "uni ball 207 Retractable",
+      "B01NCK020B": "Truck Bed Cargo Net",
+      "B076BBW1WM": "Plastic Razor Blades",
+      "B005PO9T44": "Zojirushi Stainless Steel Mug",
+      "B001CEMCXQ": "Elmer's Tac 'N Stik Reusable Adhesive"
+    },
+    "affiliate_urls": {
+      "B0000DI83G": "https://geni.us/c7eEc5",
+      "B005HNZ5T6": "Smooth-flowing pigment-based ink that won't fade.",
+      "B01NCK020B": "https://geni.us/hDUkU2v",
+      "B076BBW1WM": "https://geni.us/qzKxI",
+      "B005PO9T44": "http://amzn.to/2vdNl0e",
+      "B001CEMCXQ": "https://geni.us/Qpy7uog"
+    }
   }
 ]

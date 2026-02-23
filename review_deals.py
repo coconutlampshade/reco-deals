@@ -1350,6 +1350,7 @@ def update_archive_index(public_dir):
 
     archive_html += """        </ul>
         <div class="subscribe">
+            <p><a href="/">← Browse the full catalog</a></p>
             <p>Get deals delivered to your inbox: <a href="https://mailchi.mp/cool-tools/recomendo-deals">Subscribe free</a></p>
             <p><a href="feed.xml">RSS Feed</a></p>
         </div>
@@ -1358,11 +1359,11 @@ def update_archive_index(public_dir):
 </html>
 """
 
-    # Write archive index
-    index_path = public_dir / "index.html"
-    with open(index_path, "w") as f:
+    # Write archive index (archive.html — catalog homepage is index.html)
+    archive_path = public_dir / "archive.html"
+    with open(archive_path, "w") as f:
         f.write(archive_html)
-    print(f"Archive index updated: {index_path}")
+    print(f"Archive index updated: {archive_path}")
 
 
 def update_rss_feed(public_dir):

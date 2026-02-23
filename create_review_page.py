@@ -94,8 +94,9 @@ def merge_catalog_and_deals() -> dict:
         deal = deals.get(asin, {})
         result = all_results.get(asin, {})
         merged[asin] = {
-            # Catalog fields
-            "title": product.get("title", asin),
+            # Catalog fields — prefer Keepa title (actual product name) over
+            # catalog title (may be an article/episode name for Cool Tools entries)
+            "title": deal.get("title") or product.get("title", asin),
             "image_url": deal.get("image_url") or result.get("image_url") or product.get("image_url", ""),
             "issues": product.get("issues", []),
             "affiliate_url": resolve_affiliate_url(product.get("affiliate_url")),
@@ -606,6 +607,7 @@ def build_html(merged_data: dict) -> str:
                 <option value="proven-desc">Proven Sellers (DI revenue)</option>
                 <option value="rev-per-unit-desc">Revenue per Unit</option>
                 <option value="hidden-gems">Hidden Gems</option>
+                <option value="pct-off-list">% Off List Price</option>
                 <option value="savings-desc">Savings % (high to low)</option>
                 <option value="savings-asc">Savings % (low to high)</option>
                 <option value="price-asc">Price (low to high)</option>
@@ -837,6 +839,15 @@ function sortDeals(deals) {{
                 return (b.sales_revenue || 0) - (a.sales_revenue || 0);
             }});
             break;
+        case 'pct-off-list':
+            sorted.sort((a, b) => {{
+                const aPct = a.list_price && a.current_price && a.list_price > a.current_price
+                    ? ((a.list_price - a.current_price) / a.list_price) * 100 : 0;
+                const bPct = b.list_price && b.current_price && b.list_price > b.current_price
+                    ? ((b.list_price - b.current_price) / b.list_price) * 100 : 0;
+                return bPct - aPct;
+            }});
+            break;
         case 'savings-desc':
             sorted.sort((a, b) => (b.percent_below_avg || 0) - (a.percent_below_avg || 0));
             break;
@@ -872,7 +883,7 @@ function sortDeals(deals) {{
 }}
 
 function renderCard(deal) {{
-    const fullTitle = deal.catalog_title || deal.title || deal.asin;
+    const fullTitle = deal.title || deal.catalog_title || deal.asin;
     const price = deal.current_price;
     const avg = deal.avg_90_day;
     const listPrice = deal.list_price;
