@@ -171,6 +171,78 @@ def get_items(asins: list[str], resources: list[str] = None) -> dict:
     return response.json()
 
 
+def get_variations(asin: str, resources: list[str] = None) -> dict:
+    """
+    Get product variations (different colors, sizes, etc.) from PA API.
+
+    Args:
+        asin: Parent ASIN to get variations for
+        resources: List of resources to retrieve
+
+    Returns:
+        API response dict with variation items
+    """
+    if not PA_API_ACCESS_KEY or not PA_API_SECRET_KEY:
+        raise ValueError("PA API credentials not configured. Set PA_API_ACCESS_KEY and PA_API_SECRET_KEY in .env")
+
+    if resources is None:
+        resources = [
+            "ItemInfo.Title",
+            "CustomerReviews.Count",
+            "CustomerReviews.StarRating",
+            "Offers.Listings.Price",
+            "Offers.Listings.Availability.Type",
+            "Offers.Listings.Condition",
+            "Images.Primary.Medium",
+            "VariationSummary.VariationDimension",
+            "VariationSummary.Price.HighestPrice",
+            "VariationSummary.Price.LowestPrice",
+        ]
+
+    endpoint = f"https://{PA_API_HOST}/paapi5/getvariations"
+
+    payload = {
+        "ASIN": asin,
+        "PartnerTag": PA_API_PARTNER_TAG,
+        "PartnerType": "Associates",
+        "Marketplace": "www.amazon.com",
+        "Resources": resources,
+    }
+
+    payload_json = json.dumps(payload)
+
+    headers = {
+        'content-type': 'application/json; charset=utf-8',
+        'content-encoding': 'amz-1.0',
+        'x-amz-target': 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetVariations',
+    }
+
+    signed_headers = sign_request(
+        method='POST',
+        service='ProductAdvertisingAPI',
+        host=PA_API_HOST,
+        region=PA_API_REGION,
+        endpoint=endpoint,
+        headers=headers.copy(),
+        payload=payload_json,
+        access_key=PA_API_ACCESS_KEY,
+        secret_key=PA_API_SECRET_KEY,
+    )
+
+    response = requests.post(
+        endpoint,
+        headers=signed_headers,
+        data=payload_json,
+        timeout=30,
+    )
+
+    if response.status_code != 200:
+        error_msg = f"PA API GetVariations error {response.status_code}: {response.text}"
+        raise Exception(error_msg)
+
+    return response.json()
+
+
 def extract_price_info(item: dict) -> dict:
     """
     Extract price information from a PA API item response.

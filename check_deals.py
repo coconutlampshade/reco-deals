@@ -48,13 +48,14 @@ def get_api_key() -> str:
     return key
 
 
-def fetch_keepa_products(asins: list[str], api_key: str) -> dict:
+def fetch_keepa_products(asins: list[str], api_key: str, include_offers: bool = False) -> dict:
     """
     Fetch product data from Keepa API.
 
     Args:
         asins: List of ASINs to look up (max 100)
         api_key: Keepa API key
+        include_offers: If True, include offers=20 (costs 3 tokens/ASIN instead of 1)
 
     Returns:
         API response dict with product data
@@ -65,8 +66,9 @@ def fetch_keepa_products(asins: list[str], api_key: str) -> dict:
         "domain": config.KEEPA_DOMAIN_ID,
         "asin": ",".join(asins),
         "stats": 90,  # Get 90-day statistics
-        "offers": 20,  # Include seller offers for Buy Box / Prime-exclusive pricing
     }
+    if include_offers:
+        params["offers"] = 20  # Include seller offers for Buy Box / Prime-exclusive pricing
 
     from utils import api_request_with_retry
 
@@ -197,25 +199,29 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     return result
 
 
-def check_products(asins: list[str], catalog: dict) -> dict:
+def _run_batches(asins: list[str], catalog: dict, api_key: str,
+                  include_offers: bool = False, label: str = "Scan") -> dict:
     """
-    Check prices for a list of ASINs and identify deals.
+    Run Keepa batches for a list of ASINs.
 
     Args:
         asins: List of ASINs to check
         catalog: Product catalog dict
+        api_key: Keepa API key
+        include_offers: Whether to include offers data (3 tokens/ASIN vs 1)
+        label: Label for log output
 
     Returns:
         Dict of ASIN -> analysis results
     """
-    api_key = get_api_key()
     results = {}
-
-    # Process in batches
     batch_size = config.KEEPA_BATCH_SIZE
+    tokens_per_product = 3 if include_offers else 1
     total_batches = (len(asins) + batch_size - 1) // batch_size
 
-    print(f"Checking {len(asins)} products in {total_batches} batches...")
+    print(f"\n{'='*50}")
+    print(f"{label}: {len(asins)} products in {total_batches} batches "
+          f"({tokens_per_product} token{'s' if tokens_per_product > 1 else ''}/product)")
     print(f"Rate limit: {config.KEEPA_TOKENS_PER_MINUTE} tokens/minute")
 
     for i in range(0, len(asins), batch_size):
@@ -225,7 +231,7 @@ def check_products(asins: list[str], catalog: dict) -> dict:
         print(f"\nBatch {batch_num}/{total_batches}: {len(batch)} products")
 
         try:
-            response = fetch_keepa_products(batch, api_key)
+            response = fetch_keepa_products(batch, api_key, include_offers=include_offers)
 
             # Check tokens remaining
             tokens_left = response.get("tokensLeft", 0)
@@ -259,9 +265,11 @@ def check_products(asins: list[str], catalog: dict) -> dict:
                 price_str = f"${analysis['current_price']:.2f}" if analysis.get("current_price") else "N/A"
                 print(f"  {asin}: {price_str} - {status}")
 
-            # Rate limiting: wait if we need more tokens
-            if tokens_left < batch_size and i + batch_size < len(asins):
-                wait_time = max(refill_in / 1000 + 1, 60 / config.KEEPA_TOKENS_PER_MINUTE * batch_size)
+            # Rate limiting: calculate wait based on actual token cost
+            tokens_used = len(batch) * tokens_per_product
+            if tokens_left < tokens_used and i + batch_size < len(asins):
+                wait_time = max(refill_in / 1000 + 1,
+                                60 / config.KEEPA_TOKENS_PER_MINUTE * tokens_used)
                 print(f"  Waiting {wait_time:.1f}s for token refill...")
                 time.sleep(wait_time)
 
@@ -270,6 +278,61 @@ def check_products(asins: list[str], catalog: dict) -> dict:
             # Mark batch as failed
             for asin in batch:
                 results[asin] = {"error": str(e)}
+
+    return results
+
+
+def check_products(asins: list[str], catalog: dict) -> dict:
+    """
+    Check prices for a list of ASINs using a two-pass approach.
+
+    Pass 1 (lightweight): Check all products at 1 token each (no offers data).
+    Pass 2 (deep scan): Re-check deal candidates with offers=20 (3 tokens each)
+                         to get accurate Buy Box / Prime-exclusive pricing.
+
+    Args:
+        asins: List of ASINs to check
+        catalog: Product catalog dict
+
+    Returns:
+        Dict of ASIN -> analysis results
+    """
+    api_key = get_api_key()
+
+    # --- Pass 1: Lightweight scan of all products (1 token/ASIN) ---
+    results = _run_batches(asins, catalog, api_key,
+                           include_offers=False, label="Pass 1 — Lightweight scan")
+
+    # Identify deal candidates for Pass 2
+    # Include: flagged deals, near-deals (5%+ below avg), and products with good scores
+    deal_candidates = []
+    for asin, data in results.items():
+        if data.get("error"):
+            continue
+        if data.get("is_deal"):
+            deal_candidates.append(asin)
+        elif (data.get("percent_below_avg") or 0) >= 5:
+            deal_candidates.append(asin)
+        elif (data.get("deal_score") or 0) >= 20:
+            deal_candidates.append(asin)
+
+    print(f"\n{'='*50}")
+    print(f"Pass 1 complete: {len(results)} checked, {len(deal_candidates)} candidates for deep scan")
+
+    if not deal_candidates:
+        return results
+
+    # --- Pass 2: Deep scan deal candidates with offers data (3 tokens/ASIN) ---
+    deep_results = _run_batches(deal_candidates, catalog, api_key,
+                                include_offers=True, label="Pass 2 — Deep scan (with offers)")
+
+    # Merge: deep scan results override pass 1 for these ASINs
+    for asin, data in deep_results.items():
+        if not data.get("error"):
+            results[asin] = data
+
+    print(f"\n{'='*50}")
+    print(f"Pass 2 complete: {len(deep_results)} products re-checked with offer data")
 
     return results
 
