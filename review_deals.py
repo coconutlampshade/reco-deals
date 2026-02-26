@@ -157,51 +157,45 @@ def extract_product_context(html: str, asin: str, product_title: str) -> str:
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'\n\s*\n', '\n\n', text)
 
-    # Find the product mention - look for ASIN, product title, or Amazon link
-    patterns = [
-        rf'amazon\.com/dp/{asin}',
-        rf'amazon\.com.*?{asin}',
-        rf'amzn\.to/\w+',
-        rf'geni\.us/\w+',
-    ]
-
-    # Also search for product title words
-    if product_title:
-        # Use first few significant words of title
-        title_words = [w for w in product_title.split()[:4] if len(w) > 3]
-        if title_words:
-            patterns.append(r'\b' + r'\b.*?\b'.join(re.escape(w) for w in title_words) + r'\b')
-
-    # Search HTML for link context (more reliable for finding the exact mention)
+    # Strategy 1: Find ASIN link in HTML (most reliable for Amazon affiliate links)
     link_match = re.search(rf'<a[^>]*href=["\'][^"\']*{asin}[^"\']*["\'][^>]*>([^<]+)</a>', html, re.IGNORECASE)
-    link_text = link_match.group(1) if link_match else ""
+    link_text = link_match.group(1).strip() if link_match else ""
 
-    # Find position in text
     best_pos = -1
-    for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            best_pos = match.start()
-            break
-
-    # If we found it in HTML link, search for link text in plain text
-    if best_pos < 0 and link_text:
-        match = re.search(re.escape(link_text[:30]), text, re.IGNORECASE)
+    if link_text:
+        match = re.search(re.escape(link_text[:40]), text, re.IGNORECASE)
         if match:
             best_pos = match.start()
 
-    # Extract surrounding context (about 500 chars before and after)
+    # Strategy 2: Search plain text for ASIN URLs or product title words
+    if best_pos < 0:
+        patterns = [
+            rf'amazon\.com/dp/{asin}',
+            rf'amazon\.com.*?{asin}',
+        ]
+        if product_title:
+            title_words = [w for w in product_title.split()[:4] if len(w) > 3]
+            if title_words:
+                patterns.append(r'\b' + r'\b.*?\b'.join(re.escape(w) for w in title_words) + r'\b')
+
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                best_pos = match.start()
+                break
+
+    # Extract surrounding context (narrower window to avoid adjacent product bleed)
     if best_pos >= 0:
-        start = max(0, best_pos - 500)
-        end = min(len(text), best_pos + 500)
+        start = max(0, best_pos - 300)
+        end = min(len(text), best_pos + 400)
 
         # Try to start/end at sentence boundaries
         if start > 0:
-            sentence_start = text.rfind('.', start - 200, start)
+            sentence_start = text.rfind('.', start - 100, start)
             if sentence_start > 0:
                 start = sentence_start + 1
         if end < len(text):
-            sentence_end = text.find('.', end, end + 200)
+            sentence_end = text.find('.', end, end + 100)
             if sentence_end > 0:
                 end = sentence_end + 1
 
@@ -280,12 +274,13 @@ def generate_benefit_description(asin: str, deal: dict, catalog: dict) -> str:
             top_features = features[:5]
             features_text = "\n\nAmazon product features:\n" + "\n".join(f"- {f}" for f in top_features)
 
-        prompt = f"""Given this excerpt from a product review, write ONE sentence describing the key benefit of this product. Focus on what makes it useful or special. Be specific and concrete.
+        prompt = f"""Given this excerpt from a product review page, write ONE sentence describing the key benefit of "{product_title}". The page may review multiple products — ONLY describe "{product_title}", ignore any other products mentioned.
 
 Rules:
 - Do NOT mention the product name or brand
 - Do NOT mention the price
 - Start directly with what the product does or why it's useful
+- Be specific and concrete
 
 Product: {product_title}
 Review excerpt: {context}{features_text}
@@ -299,6 +294,11 @@ Write only the benefit sentence, no preamble."""
         )
 
         benefit = response.content[0].text.strip()
+
+        # Reject non-descriptions (Claude couldn't match the product)
+        if benefit.lower().startswith("i cannot") or benefit.lower().startswith("i'm unable"):
+            print(f"    Warning: Claude couldn't match product in context")
+            return ""
 
         # Cache the result
         if asin in catalog:

@@ -8,6 +8,12 @@ on:
 
   # Allow manual trigger from GitHub UI
   workflow_dispatch:
+    inputs:
+      full_scan:
+        description: 'Check all products including long-unavailable ones'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check-prices:
@@ -32,7 +38,14 @@ jobs:
         env:
           KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
         run: |
-          python check_deals.py
+          # Full scan on Sundays (day 0) or when manually requested
+          DAY_OF_WEEK=$(date -u +%w)
+          if [ "$DAY_OF_WEEK" = "0" ] || [ "${{ inputs.full_scan }}" = "true" ]; then
+            echo "Running full scan (including long-unavailable products)"
+            python check_deals.py --full-scan
+          else
+            python check_deals.py
+          fi
 
       - name: Generate catalog data
         run: |
@@ -42,7 +55,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add catalog/deals.json public/catalog-data.json
+          git add catalog/deals.json catalog/unavailable_tracking.json public/catalog-data.json
           git diff --staged --quiet || git commit -m "Update deal prices for all products
 
           🤖 Automated daily price check"

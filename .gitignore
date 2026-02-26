@@ -39,6 +39,9 @@ substack_export/
 # Cruft folder
 cruft/
 
+# Checkpoint (transient, not committed)
+catalog/check_checkpoint.json
+
 # Vercel
 .vercel/
 .vercel

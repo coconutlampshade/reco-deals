@@ -27,8 +27,9 @@ def _extract_stat(current_stats: list, index: int) -> float | None:
 def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[float | None, str | None]:
     """Extract current price from Keepa data.
 
-    Uses the lowest available price across Amazon direct, Buy Box, and
-    New 3rd party — this reflects what the customer actually pays.
+    Priority: Buy Box (what customer sees) > Amazon direct > New 3rd party.
+    The Buy Box price is what's shown on the product page. The raw "new 3rd
+    party" price can be a cheap obscure seller the customer never sees.
 
     Returns:
         (current_price_dollars, price_source) where price_source is
@@ -36,40 +37,30 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
     """
     current_stats = stats.get("current", []) if stats else []
 
-    # Collect all available prices
-    candidates = []
-
-    amazon_price = _extract_stat(current_stats, 0)
-    if amazon_price is not None:
-        candidates.append((amazon_price, "amazon"))
-
+    # Prefer Buy Box price — this is what the customer actually sees
     buy_box_price = _extract_stat(current_stats, 18)
     if buy_box_price is not None:
-        candidates.append((buy_box_price, "buy_box"))
+        return buy_box_price, "buy_box"
 
+    # Then Amazon-direct price
+    amazon_price = _extract_stat(current_stats, 0)
+    if amazon_price is not None:
+        return amazon_price, "amazon"
+
+    # Last resort: 3rd party (may not reflect what customer sees)
     new_3p_price = _extract_stat(current_stats, 1)
     if new_3p_price is not None:
-        candidates.append((new_3p_price, "new_3rd_party"))
+        return new_3p_price, "new_3rd_party"
 
-    # Return the lowest price (what the customer actually pays)
-    if candidates:
-        candidates.sort(key=lambda x: x[0])
-        return candidates[0]
-
-    # Fall back to CSV history — same logic, pick lowest
+    # Fall back to CSV history — same priority order
     csv = product_data.get("csv", [])
-    csv_candidates = []
-    for csv_idx, source_name in [(0, "amazon"), (18, "buy_box"), (1, "new_3rd_party")]:
+    for csv_idx, source_name in [(18, "buy_box"), (0, "amazon"), (1, "new_3rd_party")]:
         if csv and len(csv) > csv_idx and csv[csv_idx]:
             csv_data = csv[csv_idx]
             if csv_data and len(csv_data) >= 2:
                 last_price = csv_data[-1]
                 if last_price is not None and last_price > 0:
-                    csv_candidates.append((last_price / 100.0, source_name))
-
-    if csv_candidates:
-        csv_candidates.sort(key=lambda x: x[0])
-        return csv_candidates[0]
+                    return last_price / 100.0, source_name
 
     return None, None
 

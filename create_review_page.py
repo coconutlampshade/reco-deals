@@ -504,7 +504,80 @@ def build_html(merged_data: dict) -> str:
             accent-color: #27ae60;
         }}
 
-        /* card-edit removed — editing happens on the /edit page */
+        /* Inline edit panel on review cards */
+        .card-edit-toggle {{
+            position: absolute;
+            top: 12px;
+            right: 40px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            z-index: 2;
+        }}
+        .card-edit-toggle:hover {{ border-color: #4384F3; color: #4384F3; }}
+        .card.has-edits .card-edit-toggle {{ color: #27ae60; border-color: #27ae60; }}
+        .card-edit-panel {{
+            display: none;
+            padding: 0 16px 14px;
+            border-top: 1px solid #eee;
+        }}
+        .card-edit-panel.open {{ display: block; }}
+        .card-edit-panel .edit-field {{
+            margin-top: 10px;
+        }}
+        .card-edit-panel .edit-label {{
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }}
+        .card-edit-panel .edit-row {{
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+        }}
+        .card-edit-panel input,
+        .card-edit-panel textarea {{
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }}
+        .card-edit-panel input:focus,
+        .card-edit-panel textarea:focus {{ border-color: #4384F3; }}
+        .card-edit-panel textarea {{ resize: vertical; min-height: 54px; }}
+        .card-edit-panel .edit-btn {{
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            color: #555;
+            transition: all 0.15s;
+        }}
+        .card-edit-panel .edit-btn:hover {{ border-color: #4384F3; color: #4384F3; }}
+        .card-edit-panel .edit-btn:disabled {{ opacity: 0.5; cursor: wait; }}
+        .card-edit-panel .edit-btn.generating {{
+            color: #999;
+            border-style: dashed;
+        }}
 
         /* Selection bar */
         .selection-bar {{
@@ -656,6 +729,8 @@ let activeFilter = 'all';
 let activeSourceFilter = null;
 let hideFeatured = false;
 let selectedAsins = new Set();
+let cardEdits = {{}};       // {{asin: {{title: '...', benefit: '...'}}}}
+let openEditPanels = new Set();
 
 function init() {{
     const today = new Date();
@@ -959,8 +1034,14 @@ function renderCard(deal) {{
     const strikePrice = (listPrice && price && listPrice > price) ? listPrice : ((high90 && price && high90 > price) ? high90 : ((avg && price && avg > price) ? avg : null));
     const origHtml = strikePrice ? `<span class="original">$${{strikePrice.toFixed(2)}}</span>` : '';
 
+    const hasEdits = cardEdits[deal.asin] && (cardEdits[deal.asin].title || cardEdits[deal.asin].benefit);
+    const editTitle = (cardEdits[deal.asin] && cardEdits[deal.asin].title) || '';
+    const editBenefit = (cardEdits[deal.asin] && cardEdits[deal.asin].benefit) || CATALOG_BENEFITS[deal.asin] || '';
+    const panelOpen = openEditPanels.has(deal.asin);
+
     return `
-        <div class="card ${{isSelected ? 'selected' : ''}} ${{deal._inCooldown ? 'cooldown' : ''}}" data-asin="${{deal.asin}}">
+        <div class="card ${{isSelected ? 'selected' : ''}} ${{deal._inCooldown ? 'cooldown' : ''}} ${{hasEdits ? 'has-edits' : ''}}" data-asin="${{deal.asin}}">
+            <button class="card-edit-toggle" onclick="toggleEditPanel('${{deal.asin}}', event)" title="Edit title &amp; benefit">&#9998;</button>
             <input type="checkbox" class="card-checkbox" ${{isSelected ? 'checked' : ''}} onclick="toggleSelect('${{deal.asin}}', event)">
             <div class="card-top" onclick="toggleSelect('${{deal.asin}}', event)">
                 <div class="card-image">
@@ -968,13 +1049,29 @@ function renderCard(deal) {{
                 </div>
                 <div class="card-body">
                     <div class="card-title-row">
-                        <div class="card-title"><a href="${{buyUrl}}" target="_blank" onclick="event.stopPropagation()">${{escapeHtml(fullTitle)}}</a></div>
+                        <div class="card-title"><a href="${{buyUrl}}" target="_blank" onclick="event.stopPropagation()">${{escapeHtml(editTitle || fullTitle)}}</a></div>
                         <a href="https://amazon.com/dp/${{deal.asin}}" target="_blank" class="card-link" onclick="event.stopPropagation()" title="View on Amazon">&#8599;</a>
                     </div>
                     <div class="card-price">${{priceHtml}}${{origHtml}}</div>
                     <div class="card-badges">${{badges}}</div>
                     ${{(ratingHtml || scoreHtml || salesHtml) ? `<div class="card-extra">${{ratingHtml}}${{scoreHtml}}${{salesHtml}}</div>` : ''}}
                     <div class="card-meta">${{meta}}</div>
+                </div>
+            </div>
+            <div class="card-edit-panel ${{panelOpen ? 'open' : ''}}" onclick="event.stopPropagation()">
+                <div class="edit-field">
+                    <div class="edit-label">Title</div>
+                    <div class="edit-row">
+                        <input type="text" value="${{escapeHtml(editTitle || fullTitle)}}" placeholder="Product title" oninput="saveCardEdit('${{deal.asin}}', 'title', this.value)" data-edit-title="${{deal.asin}}">
+                        <button class="edit-btn" onclick="inlineShortenTitle('${{deal.asin}}')">Shorten</button>
+                    </div>
+                </div>
+                <div class="edit-field">
+                    <div class="edit-label">Benefit Description</div>
+                    <div class="edit-row">
+                        <textarea placeholder="Why this product is great..." oninput="saveCardEdit('${{deal.asin}}', 'benefit', this.value)" data-edit-benefit="${{deal.asin}}">${{escapeHtml(editBenefit)}}</textarea>
+                        <button class="edit-btn" onclick="inlineGenerateBenefit('${{deal.asin}}')" data-gen-btn="${{deal.asin}}">Generate</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -985,6 +1082,78 @@ function escapeHtml(str) {{
     const div = document.createElement('div');
     div.textContent = str || '';
     return div.innerHTML;
+}}
+
+function toggleEditPanel(asin, event) {{
+    event.stopPropagation();
+    if (openEditPanels.has(asin)) {{
+        openEditPanels.delete(asin);
+    }} else {{
+        openEditPanels.add(asin);
+    }}
+    // Toggle panel without full re-render to preserve input focus
+    const card = document.querySelector(`.card[data-asin="${{asin}}"]`);
+    if (card) {{
+        const panel = card.querySelector('.card-edit-panel');
+        if (panel) panel.classList.toggle('open');
+    }}
+}}
+
+function saveCardEdit(asin, field, value) {{
+    if (!cardEdits[asin]) cardEdits[asin] = {{}};
+    cardEdits[asin][field] = value;
+}}
+
+function inlineShortenTitle(asin) {{
+    const input = document.querySelector(`[data-edit-title="${{asin}}"]`);
+    if (!input) return;
+    const deal = allDeals.find(d => d.asin === asin);
+    if (!deal) return;
+    // Use shorten_title imported from review_deals (via the edit page endpoint)
+    // For now, do a simple client-side shortening: strip brand prefix, trim parenthetical suffixes
+    let title = input.value || deal.live_title || '';
+    // Remove common trailing parenthetical details
+    title = title.replace(/\\s*\\([^)]*\\)\\s*$/g, '').replace(/\\s*,\\s*[^,]{{0,30}}$/g, '').trim();
+    // Truncate to ~60 chars on word boundary
+    if (title.length > 60) {{
+        title = title.substring(0, 57).replace(/\\s+\\S*$/, '') + '...';
+    }}
+    input.value = title;
+    saveCardEdit(asin, 'title', title);
+}}
+
+async function inlineGenerateBenefit(asin) {{
+    const btn = document.querySelector(`[data-gen-btn="${{asin}}"]`);
+    const textarea = document.querySelector(`[data-edit-benefit="${{asin}}"]`);
+    if (!btn || !textarea) return;
+
+    const deal = allDeals.find(d => d.asin === asin);
+    const title = (cardEdits[asin] && cardEdits[asin].title) || (deal && deal.live_title) || asin;
+
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    btn.classList.add('generating');
+
+    try {{
+        const resp = await fetch('/generate-benefit', {{
+            method: 'POST',
+            headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{ asin, title }})
+        }});
+        const result = await resp.json();
+        if (result.success && result.benefit) {{
+            textarea.value = result.benefit;
+            saveCardEdit(asin, 'benefit', result.benefit);
+        }} else {{
+            textarea.value = result.error || 'Could not generate benefit';
+        }}
+    }} catch (err) {{
+        textarea.value = 'Error: ' + err.message;
+    }} finally {{
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+        btn.classList.remove('generating');
+    }}
 }}
 
 function render() {{
@@ -1058,11 +1227,11 @@ function confirmAndSend() {{
     btn.disabled = true;
     btn.textContent = 'Loading...';
 
-    // Navigate to edit page with selected ASINs
+    // Navigate to edit page with selected ASINs + any inline edits
     fetch('/edit', {{
         method: 'POST',
         headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ asins: selected }})
+        body: JSON.stringify({{ asins: selected, edits: cardEdits }})
     }})
     .then(r => r.text())
     .then(html => {{
@@ -1083,23 +1252,28 @@ document.addEventListener('DOMContentLoaded', init);
 </html>"""
 
 
-def build_edit_html(selected_asins: list, products: dict) -> str:
+def build_edit_html(selected_asins: list, products: dict, inline_edits: dict = None) -> str:
     """Build the interim editing page for selected deals."""
+    inline_edits = inline_edits or {}
     # Build items data for the edit page
     items = []
     for asin in selected_asins:
         p = products.get(asin, {})
         full_title = p.get("title", asin)
+        edits = inline_edits.get(asin, {})
+        # Apply inline edits from the review page if present
+        item_title = edits.get("title") or full_title
+        item_benefit = edits.get("benefit") or p.get("benefit_description", "")
         items.append({
             "asin": asin,
-            "title": full_title,
+            "title": item_title,
             "short_title": shorten_title(full_title),
             "image_url": p.get("image_url", ""),
             "current_price": p.get("current_price"),
             "avg_90_day": p.get("avg_90_day"),
             "percent_below_avg": p.get("percent_below_avg") or 0,
             "affiliate_url": p.get("affiliate_url", ""),
-            "benefit_description": p.get("benefit_description", ""),
+            "benefit_description": item_benefit,
             "issues": p.get("issues", []),
             "list_price": p.get("list_price"),
             "high_90_day": p.get("high_90_day"),
@@ -1372,24 +1546,34 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
         .btn-generate:hover {{ background: #f5f0ff; }}
         .btn-generate:disabled {{ opacity: 0.5; cursor: not-allowed; }}
 
-        /* Drag handle */
         .deal-card {{
-            cursor: grab;
             position: relative;
         }}
-        .deal-card.dragging {{
-            opacity: 0.5;
-            cursor: grabbing;
+        .reorder-btns {{
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }}
-        .deal-card.drag-over {{
-            border-top: 3px solid #4384F3;
+        .reorder-btn {{
+            width: 28px;
+            height: 24px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            padding: 0;
         }}
-        .drag-hint {{
-            text-align: center;
-            font-size: 13px;
-            color: #999;
-            margin-bottom: 16px;
-        }}
+        .reorder-btn:hover {{ border-color: #4384F3; color: #4384F3; }}
+        .reorder-btn:disabled {{ opacity: 0.25; cursor: default; }}
 
         /* Modal */
         .modal-overlay {{
@@ -1474,7 +1658,7 @@ def build_edit_html(selected_asins: list, products: dict) -> str:
 
     <div class="container">
         <div class="verify-banner" id="verifyBanner"></div>
-        <p class="drag-hint">Drag to reorder. Edit titles and descriptions below.</p>
+        <p style="text-align:center;font-size:13px;color:#999;margin-bottom:16px">Use arrows to reorder. Edit titles and descriptions below.</p>
         <div id="dealsList"></div>
 
         <div class="unclassified-ad-section">
@@ -1564,7 +1748,11 @@ function renderDealsList() {{
         const affUrl = item.affiliate_url || `https://amazon.com/dp/${{item.asin}}`;
 
         return `
-            <div class="deal-card" draggable="true" data-idx="${{idx}}">
+            <div class="deal-card" data-idx="${{idx}}">
+                <div class="reorder-btns">
+                    <button class="reorder-btn" onclick="moveItem(${{idx}}, -1)" title="Move up" ${{idx === 0 ? 'disabled' : ''}}>&#9650;</button>
+                    <button class="reorder-btn" onclick="moveItem(${{idx}}, 1)" title="Move down" ${{idx === ITEMS.length - 1 ? 'disabled' : ''}}>&#9660;</button>
+                </div>
                 <div class="deal-number">Deal #${{idx + 1}}</div>
                 <div class="deal-top">
                     <div class="deal-image">
@@ -1605,44 +1793,18 @@ function renderDealsList() {{
         `;
     }}).join('');
 
-    initDragAndDrop();
 }}
 
-// Drag and drop reordering
-let dragIdx = null;
-
-function initDragAndDrop() {{
+function moveItem(idx, direction) {{
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= ITEMS.length) return;
+    saveEditsToItems();
+    const moved = ITEMS.splice(idx, 1)[0];
+    ITEMS.splice(newIdx, 0, moved);
+    renderDealsList();
+    // Scroll the moved card into view
     const cards = document.querySelectorAll('.deal-card');
-    cards.forEach(card => {{
-        card.addEventListener('dragstart', (e) => {{
-            dragIdx = parseInt(card.dataset.idx);
-            card.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }});
-        card.addEventListener('dragend', () => {{
-            card.classList.remove('dragging');
-            document.querySelectorAll('.deal-card').forEach(c => c.classList.remove('drag-over'));
-        }});
-        card.addEventListener('dragover', (e) => {{
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            card.classList.add('drag-over');
-        }});
-        card.addEventListener('dragleave', () => {{
-            card.classList.remove('drag-over');
-        }});
-        card.addEventListener('drop', (e) => {{
-            e.preventDefault();
-            const dropIdx = parseInt(card.dataset.idx);
-            if (dragIdx !== null && dragIdx !== dropIdx) {{
-                // Save current edits before reorder
-                saveEditsToItems();
-                const moved = ITEMS.splice(dragIdx, 1)[0];
-                ITEMS.splice(dropIdx, 0, moved);
-                renderDealsList();
-            }}
-        }});
-    }});
+    if (cards[newIdx]) cards[newIdx].scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
 }}
 
 function saveEditsToItems() {{
@@ -1996,9 +2158,10 @@ class ReviewHandler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data)
             selected_asins = data.get("asins", [])
+            inline_edits = data.get("edits", {})
 
             try:
-                edit_html = build_edit_html(selected_asins, self.products)
+                edit_html = build_edit_html(selected_asins, self.products, inline_edits)
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
@@ -2293,6 +2456,7 @@ def run_server(html: str, candidates: list, products: dict, port: int = 8765):
     ReviewHandler.candidates = candidates
     ReviewHandler.products = products
 
+    HTTPServer.allow_reuse_address = True
     server = HTTPServer(("localhost", port), ReviewHandler)
     server.timeout = 1
 

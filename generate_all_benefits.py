@@ -7,9 +7,11 @@ for all products. It fetches the original article HTML and uses Claude API
 to generate a one-sentence benefit description.
 
 Usage:
-    python generate_all_benefits.py                 # Process all products without benefits
-    python generate_all_benefits.py --limit 100    # Process at most 100 products
-    python generate_all_benefits.py --dry-run      # Show what would be processed
+    python generate_all_benefits.py                             # Process all products without benefits
+    python generate_all_benefits.py --limit 100                # Process at most 100 products
+    python generate_all_benefits.py --dry-run                  # Show what would be processed
+    python generate_all_benefits.py --force --source cooltools  # Regenerate all Cool Tools descriptions
+    python generate_all_benefits.py --asin B00MQ5KU7U          # Regenerate a specific product
 """
 
 import argparse
@@ -29,6 +31,60 @@ try:
 except Exception as e:
     print(f"Warning: Could not initialize Anthropic client: {e}")
     ANTHROPIC_CLIENT = None
+
+# Set by --claude-cli flag
+USE_CLAUDE_CLI = False
+
+
+def _call_claude_cli(prompt: str) -> str:
+    """Call the claude CLI to generate a response using Claude Max subscription."""
+    import subprocess, os
+    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+    result = subprocess.run(
+        ["claude", "-p", prompt, "--model", "sonnet", "--no-session-persistence"],
+        capture_output=True, text=True, timeout=30, env=env,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"claude CLI failed: {result.stderr.strip()}")
+    return result.stdout.strip()
+
+
+def load_deals() -> dict:
+    """Load deals.json with Keepa-sourced titles and prices."""
+    deals_path = config.CATALOG_DIR / "deals.json"
+    if not deals_path.exists():
+        return {}
+    with open(deals_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("deals", {})
+
+
+# Article titles that got stored as product titles during Cool Tools import
+ARTICLE_TITLE_KEYWORDS = [
+    'gift guide', 'holiday', 'picks', 'cool tools', 'untried',
+    'videocast', 'podcast', 'show and tell', 'complete 20',
+]
+
+
+def is_article_title(title: str) -> bool:
+    """Check if a title looks like an article title rather than a product name."""
+    lower = (title or "").lower()
+    return any(kw in lower for kw in ARTICLE_TITLE_KEYWORDS)
+
+
+def fix_catalog_titles(catalog: dict, deals: dict) -> int:
+    """Fix catalog entries that have article titles instead of product titles.
+
+    Uses Keepa titles from deals.json when available.
+    """
+    fixed = 0
+    for asin, product in catalog.items():
+        if is_article_title(product.get("title", "")):
+            keepa_title = deals.get(asin, {}).get("title", "")
+            if keepa_title and not is_article_title(keepa_title):
+                catalog[asin]["title"] = keepa_title
+                fixed += 1
+    return fixed
 
 
 def load_catalog() -> dict:
@@ -109,51 +165,45 @@ def extract_product_context(html: str, asin: str, product_title: str) -> str:
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'\n\s*\n', '\n\n', text)
 
-    # Find the product mention - look for ASIN, product title, or Amazon link
-    patterns = [
-        rf'amazon\.com/dp/{asin}',
-        rf'amazon\.com.*?{asin}',
-        rf'amzn\.to/\w+',
-        rf'geni\.us/\w+',
-    ]
-
-    # Also search for product title words
-    if product_title:
-        # Use first few significant words of title
-        title_words = [w for w in product_title.split()[:4] if len(w) > 3]
-        if title_words:
-            patterns.append(r'\b' + r'\b.*?\b'.join(re.escape(w) for w in title_words) + r'\b')
-
-    # Search HTML for link context (more reliable for finding the exact mention)
+    # Strategy 1: Find ASIN link in HTML (most reliable for Amazon affiliate links)
     link_match = re.search(rf'<a[^>]*href=["\'][^"\']*{asin}[^"\']*["\'][^>]*>([^<]+)</a>', html, re.IGNORECASE)
-    link_text = link_match.group(1) if link_match else ""
+    link_text = link_match.group(1).strip() if link_match else ""
 
-    # Find position in text
     best_pos = -1
-    for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            best_pos = match.start()
-            break
-
-    # If we found it in HTML link, search for link text in plain text
-    if best_pos < 0 and link_text:
-        match = re.search(re.escape(link_text[:30]), text, re.IGNORECASE)
+    if link_text:
+        match = re.search(re.escape(link_text[:40]), text, re.IGNORECASE)
         if match:
             best_pos = match.start()
 
-    # Extract surrounding context (about 500 chars before and after)
+    # Strategy 2: Search plain text for ASIN URLs or product title words
+    if best_pos < 0:
+        patterns = [
+            rf'amazon\.com/dp/{asin}',
+            rf'amazon\.com.*?{asin}',
+        ]
+        if product_title:
+            title_words = [w for w in product_title.split()[:4] if len(w) > 3]
+            if title_words:
+                patterns.append(r'\b' + r'\b.*?\b'.join(re.escape(w) for w in title_words) + r'\b')
+
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                best_pos = match.start()
+                break
+
+    # Extract surrounding context (narrower window to avoid adjacent product bleed)
     if best_pos >= 0:
-        start = max(0, best_pos - 500)
-        end = min(len(text), best_pos + 500)
+        start = max(0, best_pos - 300)
+        end = min(len(text), best_pos + 400)
 
         # Try to start/end at sentence boundaries
         if start > 0:
-            sentence_start = text.rfind('.', start - 200, start)
+            sentence_start = text.rfind('.', start - 100, start)
             if sentence_start > 0:
                 start = sentence_start + 1
         if end < len(text):
-            sentence_end = text.find('.', end, end + 200)
+            sentence_end = text.find('.', end, end + 100)
             if sentence_end > 0:
                 end = sentence_end + 1
 
@@ -170,7 +220,7 @@ def extract_product_context(html: str, asin: str, product_title: str) -> str:
     return text[:1500].strip()
 
 
-def generate_benefit_description(asin: str, product: dict) -> str:
+def generate_benefit_description(asin: str, product: dict, deals: dict = None) -> str:
     """
     Generate a one-sentence benefit description for a product.
 
@@ -193,7 +243,12 @@ def generate_benefit_description(asin: str, product: dict) -> str:
     if not article_url:
         return ""
 
+    # Use best available product title (Keepa > catalog, skip article titles)
     product_title = product.get("title", "")
+    if deals and (is_article_title(product_title) or not product_title):
+        keepa_title = deals.get(asin, {}).get("title", "")
+        if keepa_title:
+            product_title = keepa_title
 
     # Fetch article HTML
     html = fetch_article_html(article_url)
@@ -207,26 +262,35 @@ def generate_benefit_description(asin: str, product: dict) -> str:
         return ""
 
     # Generate benefit description using Claude
-    try:
-        prompt = f"""Given this excerpt from a product review, write ONE sentence describing the key benefit of this product. Focus on what makes it useful or special. Be specific and concrete.
+    prompt = f"""Given this excerpt from a product review page, write ONE sentence describing the key benefit of "{product_title}". The page may review multiple products — ONLY describe "{product_title}", ignore any other products mentioned.
 
 Rules:
 - Do NOT mention the product name or brand
 - Do NOT mention the price
 - Start directly with what the product does or why it's useful
+- Be specific and concrete
 
 Product: {product_title}
 Review excerpt: {context}
 
 Write only the benefit sentence, no preamble."""
 
-        response = ANTHROPIC_CLIENT.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=150,
-            messages=[{"role": "user", "content": prompt}]
-        )
+    try:
+        if USE_CLAUDE_CLI:
+            benefit = _call_claude_cli(prompt)
+        else:
+            response = ANTHROPIC_CLIENT.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=150,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            benefit = response.content[0].text.strip()
 
-        benefit = response.content[0].text.strip()
+        # Reject non-descriptions (Claude couldn't match the product)
+        if benefit.lower().startswith("i cannot") or benefit.lower().startswith("i'm unable"):
+            print(f"    Warning: Claude couldn't match product in context")
+            return ""
+
         return benefit
 
     except Exception as e:
@@ -239,34 +303,77 @@ def main():
     parser.add_argument("--limit", type=int, help="Maximum number of products to process")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be processed without making changes")
     parser.add_argument("--save-interval", type=int, default=50, help="Save progress every N products (default: 50)")
+    parser.add_argument("--force", action="store_true", help="Regenerate existing benefit descriptions")
+    parser.add_argument("--source", choices=["cooltools", "recomendo"], help="Only process products from this source")
+    parser.add_argument("--asin", help="Regenerate for a specific ASIN")
+    parser.add_argument("--claude-cli", action="store_true", help="Use claude CLI (Max subscription) instead of Anthropic API")
     args = parser.parse_args()
+
+    global USE_CLAUDE_CLI
+    if args.claude_cli:
+        USE_CLAUDE_CLI = True
+        print("Using claude CLI (Max subscription)")
 
     print("Loading catalog...")
     catalog = load_catalog()
     total_products = len(catalog)
     print(f"Total products in catalog: {total_products}")
 
-    # Find products without benefit descriptions
-    products_without_benefits = [
-        (asin, product) for asin, product in catalog.items()
-        if not product.get("benefit_description")
-    ]
-    print(f"Products without benefit_description: {len(products_without_benefits)}")
+    # Load deals.json for Keepa-sourced titles
+    deals = load_deals()
+    if deals:
+        fixed = fix_catalog_titles(catalog, deals)
+        if fixed:
+            print(f"Fixed {fixed} article-style titles from Keepa data")
+            save_catalog(catalog)
+
+    # Build candidate list
+    if args.asin:
+        if args.asin not in catalog:
+            print(f"ASIN {args.asin} not found in catalog")
+            return
+        candidates = [(args.asin, catalog[args.asin])]
+    else:
+        candidates = list(catalog.items())
+
+    # Filter by source
+    if args.source:
+        if args.source == "cooltools":
+            candidates = [
+                (asin, p) for asin, p in candidates
+                if any(i.get("source") == "cooltools" for i in p.get("issues", []))
+            ]
+        else:
+            candidates = [
+                (asin, p) for asin, p in candidates
+                if any(i.get("source") != "cooltools" for i in p.get("issues", []))
+            ]
+        print(f"Filtered to {len(candidates)} {args.source} products")
+
+    # Filter by benefit status (--asin always regenerates, --force regenerates all)
+    if args.asin or args.force:
+        to_process = candidates
+        if not args.asin:
+            has_existing = sum(1 for _, p in to_process if p.get("benefit_description"))
+            print(f"Regenerating {has_existing} existing + {len(to_process) - has_existing} missing descriptions")
+    else:
+        to_process = [(asin, p) for asin, p in candidates if not p.get("benefit_description")]
+        print(f"Products without benefit_description: {len(to_process)}")
 
     if args.dry_run:
-        print("\nDry run - would process these products:")
-        for i, (asin, product) in enumerate(products_without_benefits[:10]):
-            print(f"  {i+1}. {asin}: {product.get('title', 'No title')[:50]}")
-        if len(products_without_benefits) > 10:
-            print(f"  ... and {len(products_without_benefits) - 10} more")
+        print(f"\nDry run - would process {len(to_process)} products:")
+        for i, (asin, product) in enumerate(to_process[:10]):
+            existing = "  [has description]" if product.get("benefit_description") else ""
+            print(f"  {i+1}. {asin}: {product.get('title', 'No title')[:50]}{existing}")
+        if len(to_process) > 10:
+            print(f"  ... and {len(to_process) - 10} more")
         return
 
-    if not ANTHROPIC_CLIENT:
-        print("Error: Anthropic client not available. Set ANTHROPIC_API_KEY environment variable.")
+    if not USE_CLAUDE_CLI and not ANTHROPIC_CLIENT:
+        print("Error: Anthropic client not available. Set ANTHROPIC_API_KEY or use --claude-cli.")
         return
 
     # Limit if requested
-    to_process = products_without_benefits
     if args.limit:
         to_process = to_process[:args.limit]
         print(f"Processing limited to {args.limit} products")
@@ -287,7 +394,7 @@ def main():
         if i > 0:
             time.sleep(0.5)
 
-        benefit = generate_benefit_description(asin, product)
+        benefit = generate_benefit_description(asin, product, deals)
         if benefit:
             catalog[asin]["benefit_description"] = benefit
             success += 1

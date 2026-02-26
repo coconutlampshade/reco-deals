@@ -9,6 +9,8 @@ CATALOG_FILE = CATALOG_DIR / "products.json"
 SUBSTACK_EXPORT_DIR = PROJECT_ROOT / "substack_export"
 DASHBOARD_DIR = PROJECT_ROOT / "dashboard"
 HISTORY_DIR = PROJECT_ROOT / "history"
+UNAVAILABLE_TRACKING_FILE = CATALOG_DIR / "unavailable_tracking.json"
+CHECKPOINT_FILE = CATALOG_DIR / "check_checkpoint.json"
 
 # Shortlink resolution
 SHORTLINK_RATE_LIMIT = 1.0  # seconds between requests
@@ -57,6 +59,10 @@ SCORE_WEIGHT_REVIEWS = 10       # Max points from review count (full at 500+)
 SCORE_WEIGHT_RATING = 10        # Max points from star rating (full at 4.5+)
 SCORE_WEIGHT_DOLLARS = 20       # Max points from dollar savings (full at $25+)
 SCORE_WEIGHT_NEAR_LOW = 20      # Bonus points if within 5% of 90-day low
+
+# Unavailable product tracking
+UNAVAILABLE_SKIP_AFTER_DAYS = 3   # Skip products unavailable for this many consecutive days
+UNAVAILABLE_RECHECK_DAYS = 7      # Re-check all products every N days (Sunday full scan)
 
 # Price history settings
 PRICE_HISTORY_DAYS = 90         # Days of price history to analyze

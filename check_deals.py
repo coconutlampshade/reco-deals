@@ -3,7 +3,8 @@
 Check prices for catalog products using Keepa API and identify deals.
 
 Usage:
-    python check_deals.py              # Check all products
+    python check_deals.py              # Check all products (skips long-unavailable)
+    python check_deals.py --full-scan  # Check ALL products including long-unavailable
     python check_deals.py --limit 50   # Check first 50 products
     python check_deals.py --asin B09V3KXJPB  # Check specific ASIN
     python check_deals.py --random 1000  # Random sample of 1000 products (weighted toward unfeatured)
@@ -142,18 +143,25 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
     }
 
     # Extract product image
-    # Keepa stores images as comma-separated list of image codes (e.g., "61k2kPFbeML.jpg")
-    images_csv = product_data.get("imagesCSV")
-    if images_csv:
-        # Get first image code
-        image_codes = images_csv.split(",")
-        if image_codes and image_codes[0]:
-            image_code = image_codes[0]
-            # Remove .jpg extension if present (we'll add size suffix)
+    # Try new `images` array first (Keepa replacing imagesCSV on April 20, 2026)
+    images = product_data.get("images")
+    if images and len(images) > 0:
+        # New format: array of Image objects with 'l' (large) and 'm' (medium) filenames
+        image_code = images[0].get("l") or images[0].get("m", "")
+        if image_code:
             if image_code.endswith(".jpg"):
                 image_code = image_code[:-4]
-            # Build Amazon image URL (300px size)
             result["image_url"] = f"https://m.media-amazon.com/images/I/{image_code}._SL300_.jpg"
+    else:
+        # Legacy fallback (imagesCSV removed April 20, 2026)
+        images_csv = product_data.get("imagesCSV")
+        if images_csv:
+            image_codes = images_csv.split(",")
+            if image_codes and image_codes[0]:
+                image_code = image_codes[0]
+                if image_code.endswith(".jpg"):
+                    image_code = image_code[:-4]
+                result["image_url"] = f"https://m.media-amazon.com/images/I/{image_code}._SL300_.jpg"
 
     # Parse price, stats, rating, and deal metrics using shared utilities
     from keepa_utils import (
@@ -200,7 +208,8 @@ def analyze_product(product_data: dict, stats: dict) -> dict:
 
 
 def _run_batches(asins: list[str], catalog: dict, api_key: str,
-                  include_offers: bool = False, label: str = "Scan") -> dict:
+                  include_offers: bool = False, label: str = "Scan",
+                  checkpoint_enabled: bool = False) -> dict:
     """
     Run Keepa batches for a list of ASINs.
 
@@ -210,6 +219,7 @@ def _run_batches(asins: list[str], catalog: dict, api_key: str,
         api_key: Keepa API key
         include_offers: Whether to include offers data (3 tokens/ASIN vs 1)
         label: Label for log output
+        checkpoint_enabled: If True, save checkpoint every 10 batches
 
     Returns:
         Dict of ASIN -> analysis results
@@ -265,6 +275,12 @@ def _run_batches(asins: list[str], catalog: dict, api_key: str,
                 price_str = f"${analysis['current_price']:.2f}" if analysis.get("current_price") else "N/A"
                 print(f"  {asin}: {price_str} - {status}")
 
+            # Save checkpoint every 10 batches during Pass 1
+            if checkpoint_enabled and batch_num % 10 == 0:
+                remaining = asins[i + batch_size:]
+                save_checkpoint(results, remaining)
+                print(f"  Checkpoint saved ({len(results)} results, {len(remaining)} remaining)")
+
             # Rate limiting: calculate wait based on actual token cost
             tokens_used = len(batch) * tokens_per_product
             if tokens_left < tokens_used and i + batch_size < len(asins):
@@ -299,9 +315,31 @@ def check_products(asins: list[str], catalog: dict) -> dict:
     """
     api_key = get_api_key()
 
-    # --- Pass 1: Lightweight scan of all products (1 token/ASIN) ---
-    results = _run_batches(asins, catalog, api_key,
-                           include_offers=False, label="Pass 1 — Lightweight scan")
+    # --- Check for checkpoint from a previous interrupted run ---
+    results = {}
+    checkpoint = load_checkpoint()
+    if checkpoint:
+        results = checkpoint["results"]
+        remaining = checkpoint["remaining_asins"]
+        # Only resume if remaining ASINs are a subset of requested ASINs
+        requested_set = set(asins)
+        remaining = [a for a in remaining if a in requested_set]
+        print(f"\nResuming from checkpoint: {len(results)} already done, "
+              f"{len(remaining)} remaining")
+        if remaining:
+            resumed = _run_batches(remaining, catalog, api_key,
+                                   include_offers=False,
+                                   label="Pass 1 — Resumed lightweight scan",
+                                   checkpoint_enabled=True)
+            results.update(resumed)
+        else:
+            print("No remaining ASINs to check, using checkpoint results")
+    else:
+        # --- Pass 1: Lightweight scan of all products (1 token/ASIN) ---
+        results = _run_batches(asins, catalog, api_key,
+                               include_offers=False,
+                               label="Pass 1 — Lightweight scan",
+                               checkpoint_enabled=True)
 
     # Identify deal candidates for Pass 2
     # Include: flagged deals, near-deals (5%+ below avg), and products with good scores
@@ -384,12 +422,100 @@ def load_featured_history() -> set:
     return set()
 
 
+def load_unavailable_tracking() -> dict:
+    """Load unavailable product tracking data."""
+    if config.UNAVAILABLE_TRACKING_FILE.exists():
+        with open(config.UNAVAILABLE_TRACKING_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def save_unavailable_tracking(tracking: dict):
+    """Save unavailable product tracking data."""
+    from utils import atomic_json_write
+    atomic_json_write(config.UNAVAILABLE_TRACKING_FILE, tracking)
+
+
+def update_unavailable_tracking(tracking: dict, results: dict) -> dict:
+    """
+    Update tracking based on scan results.
+
+    Products with no current price get their consecutive_days incremented.
+    Products with a valid price are removed from tracking.
+    """
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    for asin, data in results.items():
+        has_price = data.get("current_price") is not None
+
+        if has_price:
+            # Product is available — remove from tracking
+            tracking.pop(asin, None)
+        else:
+            # Product is unavailable — update tracking
+            if asin in tracking:
+                tracking[asin]["consecutive_days"] += 1
+                tracking[asin]["last_checked"] = today
+            else:
+                tracking[asin] = {
+                    "first_unavailable": today,
+                    "last_checked": today,
+                    "consecutive_days": 1,
+                }
+
+    return tracking
+
+
+def get_skippable_asins(tracking: dict) -> set:
+    """Return ASINs that should be skipped (unavailable for too many consecutive days)."""
+    return {
+        asin for asin, info in tracking.items()
+        if info.get("consecutive_days", 0) >= config.UNAVAILABLE_SKIP_AFTER_DAYS
+    }
+
+
+def save_checkpoint(results: dict, remaining_asins: list[str]):
+    """Save checkpoint with partial results and remaining ASINs."""
+    checkpoint = {
+        "saved_at": datetime.now().isoformat(),
+        "results": results,
+        "remaining_asins": remaining_asins,
+    }
+    from utils import atomic_json_write
+    atomic_json_write(config.CHECKPOINT_FILE, checkpoint)
+
+
+def load_checkpoint() -> Optional[dict]:
+    """Load checkpoint if it exists and is less than 6 hours old."""
+    if not config.CHECKPOINT_FILE.exists():
+        return None
+
+    with open(config.CHECKPOINT_FILE, "r", encoding="utf-8") as f:
+        checkpoint = json.load(f)
+
+    saved_at = datetime.fromisoformat(checkpoint["saved_at"])
+    if datetime.now() - saved_at > timedelta(hours=6):
+        print("Checkpoint found but too old (>6 hours), starting fresh")
+        clear_checkpoint()
+        return None
+
+    return checkpoint
+
+
+def clear_checkpoint():
+    """Remove checkpoint file after successful completion."""
+    if config.CHECKPOINT_FILE.exists():
+        config.CHECKPOINT_FILE.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Check prices and find deals")
     parser.add_argument("--limit", type=int, help="Limit number of products to check")
     parser.add_argument("--asin", type=str, help="Check a specific ASIN")
     parser.add_argument("--random", type=int, metavar="N",
                         help="Randomly sample N products (weighted toward unfeatured)")
+    parser.add_argument("--full-scan", action="store_true",
+                        help="Check all products including long-unavailable ones")
     parser.add_argument("--output", type=str, default="catalog/deals.json",
                         help="Output file path")
     args = parser.parse_args()
@@ -427,6 +553,18 @@ def main():
         if args.limit:
             asins = asins[:args.limit]
 
+    # Filter out long-unavailable products (unless --full-scan or --asin)
+    skipped_count = 0
+    if not args.asin and not args.full_scan:
+        tracking = load_unavailable_tracking()
+        skippable = get_skippable_asins(tracking)
+        if skippable:
+            before = len(asins)
+            asins = [a for a in asins if a not in skippable]
+            skipped_count = before - len(asins)
+            print(f"Skipping {skipped_count} long-unavailable products "
+                  f"({skipped_count + len(asins)} total, {len(asins)} to check)")
+
     # Check prices
     results = check_products(asins, catalog)
 
@@ -436,6 +574,17 @@ def main():
         output_path = config.PROJECT_ROOT / output_path
 
     deals = save_deals(results, output_path)
+
+    # Update unavailable tracking
+    tracking = load_unavailable_tracking()
+    tracking = update_unavailable_tracking(tracking, results)
+    save_unavailable_tracking(tracking)
+    skippable_after = len(get_skippable_asins(tracking))
+    print(f"Unavailable tracking: {len(tracking)} products tracked, "
+          f"{skippable_after} will be skipped next run")
+
+    # Clear checkpoint on successful completion
+    clear_checkpoint()
 
     # Print summary
     print(f"\n{'='*50}")
