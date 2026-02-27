@@ -1,19 +1,12 @@
 # Recomendo Deals Newsletter
 
-## Workflow
+## Rules
+- Don't run `check_deals.py` locally — it takes 2+ hours and runs automatically via GitHub Actions at 3:30am PT
+- Always pull latest before generating reports (automated via SessionStart hook)
 
-### "review deals" or "send newsletter"
-1. Pull latest from git first (`git pull`)
-2. Run `python3 create_review_page.py` to open the review interface
-3. User selects deals and clicks "Review & Edit"
-4. Edit titles, benefit descriptions, and affiliate URLs on the editing page
-5. Drag to reorder deals, then click "Send to Mailchimp" to create draft
+## Key References
+- @config.py for all constants, thresholds, and score weights
+- @catalog/products.json for the full product catalog (~2900 items)
 
-### Daily schedule
-- **3:30am PT** — GitHub Actions checks all ~2900 products via Keepa (takes ~2.5 hours)
-- **~6:00am PT** — Fresh prices are committed to `catalog/deals.json`
-- User pulls latest and runs `create_review_page.py` to review and send
-
-## Preferences
-- Don't re-run check_deals.py locally (takes 2+ hours, runs automatically via GitHub Actions)
-- Always pull latest before generating reports
+## Daily Workflow
+Use `/review-deals` to pull latest and launch the review interface, then `/push-newsletter` to commit and push.
