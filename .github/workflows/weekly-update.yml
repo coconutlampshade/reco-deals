@@ -54,4 +54,5 @@ jobs:
           git commit -m "Add products from Cool Tools newsletter
 
           Automated daily catalog update"
+          git pull --rebase
           git push
