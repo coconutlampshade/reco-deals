@@ -393,6 +393,7 @@
             <option value="100+">$100+</option>
         </select>
         <select class="filter-select" id="sortSelect">
+            <option value="random">Random</option>
             <option value="pct-off">Biggest Discount</option>
             <option value="score">Best Deals</option>
             <option value="price-asc">Price: Low → High</option>
@@ -435,7 +436,7 @@
     const PAGE_SIZE = 48;
     let searchQuery = '';
     let priceRange = 'all';
-    let sortBy = 'pct-off';
+    let sortBy = 'random';
     let generatedAt = '';
     let livePriceMap = {};
     let pricesFetchedAt = null;
@@ -519,8 +520,16 @@
         });
 
         // Sort
+        if (sortBy === 'random') {
+            for (let i = filtered.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+            }
+        }
         filtered.sort((a, b) => {
             switch (sortBy) {
+                case 'random':
+                    return 0;
                 case 'pct-off':
                     return (b.pct_off || 0) - (a.pct_off || 0);
                 case 'score':
