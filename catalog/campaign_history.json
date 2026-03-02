@@ -290,5 +290,42 @@
       "B00FIX126K": "https://geni.us/KAfzC",
       "B001DIZ1NO": "https://geni.us/jQ47"
     }
+  },
+  {
+    "campaign_id": "1869328608",
+    "web_id": 9143802,
+    "date": "2026-03-02",
+    "subject": "Recomendo Deals - March 02, 2026",
+    "deals_count": 8,
+    "asins": [
+      "B001Q9EFUK",
+      "B001AZNATC",
+      "B07C1SJSC7",
+      "B00DH5N2LO",
+      "B00004UE75",
+      "B001GN7QWA",
+      "B078V2Q9BZ",
+      "B09T3NLMTM"
+    ],
+    "titles": {
+      "B001Q9EFUK": "Weatherproof Outdoor Electrical Outlet Switch With Remote",
+      "B001AZNATC": "Outdoor Products Ultimate Dry Sack 3-Pack",
+      "B07C1SJSC7": "Parker Jotter Fountain Pen",
+      "B00DH5N2LO": "Jewelers Eye Loupe Magnifying Glass",
+      "B00004UE75": "Norpro Egg Perfect Egg Timer",
+      "B001GN7QWA": "Cramer Kik Step Steel Step Stool",
+      "B078V2Q9BZ": "Clip on Desk Lamp",
+      "B09T3NLMTM": "Portable Outdoor Bonfire Pit with Poker"
+    },
+    "affiliate_urls": {
+      "B001Q9EFUK": "https://amzn.to/2L2GzCa",
+      "B001AZNATC": "http://amzn.to/2afx0Ua",
+      "B07C1SJSC7": "https://geni.us/MqZ3swB",
+      "B00DH5N2LO": "http://amzn.to/2xZx81j",
+      "B00004UE75": "https://geni.us/e7aJ9w",
+      "B001GN7QWA": "https://geni.us/DwFY8q",
+      "B078V2Q9BZ": "https://geni.us/CrDn9M",
+      "B09T3NLMTM": "https://geni.us/M9h8haW"
+    }
   }
 ]
