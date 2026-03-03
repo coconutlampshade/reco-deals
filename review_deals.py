@@ -540,7 +540,7 @@ def fetch_candidates_cached(top_n: int = 50) -> list:
             continue
 
         # Only include if it's actually a deal (percent_below_avg > 15%)
-        pct_below_avg = deal.get("percent_below_avg", 0)
+        pct_below_avg = deal.get("percent_below_avg") or 0
         if pct_below_avg < 15:
             continue
 
