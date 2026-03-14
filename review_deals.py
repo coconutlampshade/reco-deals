@@ -212,6 +212,78 @@ def extract_product_context(html: str, asin: str, product_title: str) -> str:
     return text[:1500].strip()
 
 
+# Phrases that indicate a failed or placeholder benefit generation
+_REFUSAL_PHRASES = [
+    "i cannot", "i'm unable", "i can't", "i am unable",
+    "based on the limited excerpt", "cannot identify",
+    "not enough information", "no specific", "unable to determine",
+    "i don't have enough", "the excerpt does not",
+]
+
+
+def _validate_benefit(benefit: str) -> str | None:
+    """Validate a generated benefit description.
+
+    Returns None if valid, or a rejection reason string if invalid.
+    """
+    if not benefit or len(benefit) < 20:
+        return "too short"
+
+    lower = benefit.lower()
+    for phrase in _REFUSAL_PHRASES:
+        if phrase in lower:
+            return f"refusal phrase: '{phrase}'"
+
+    return None
+
+
+def _retry_benefit_with_features(asin: str, product_title: str) -> str:
+    """Retry benefit generation using PA API product features as context."""
+    try:
+        from pa_api import get_prices_for_asins
+        pa_data = get_prices_for_asins([asin])
+        info = pa_data.get(asin, {})
+        features = info.get("product_features", [])
+    except Exception as e:
+        print(f"    PA API fallback failed: {e}")
+        return ""
+
+    if not features:
+        print(f"    No PA API features available for retry")
+        return ""
+
+    features_text = "\n".join(f"- {f}" for f in features[:5])
+    prompt = f"""Based on the Amazon product listing below, write ONE sentence describing the key benefit of "{product_title}".
+
+Rules:
+- Do NOT mention the product name or brand
+- Do NOT mention the price
+- Start directly with what the product does or why it's useful
+- Be specific and concrete
+
+Product: {product_title}
+Amazon product features:
+{features_text}
+
+Write only the benefit sentence, no preamble."""
+
+    try:
+        response = ANTHROPIC_CLIENT.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=150,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        benefit = response.content[0].text.strip()
+        rejection = _validate_benefit(benefit)
+        if rejection:
+            print(f"    Retry also failed validation ({rejection})")
+            return ""
+        return benefit
+    except Exception as e:
+        print(f"    Retry Claude API error: {e}")
+        return ""
+
+
 def generate_benefit_description(asin: str, deal: dict, catalog: dict) -> str:
     """
     Generate a one-sentence benefit description for a product.
@@ -322,10 +394,12 @@ Write only the benefit sentence, no preamble."""
 
         benefit = response.content[0].text.strip()
 
-        # Reject non-descriptions (Claude couldn't match the product)
-        if benefit.lower().startswith("i cannot") or benefit.lower().startswith("i'm unable"):
-            print(f"    Warning: Claude couldn't match product in context")
-            return ""
+        rejection = _validate_benefit(benefit)
+        if rejection:
+            print(f"    Benefit rejected ({rejection}), retrying with PA API features...")
+            benefit = _retry_benefit_with_features(asin, product_title)
+            if not benefit:
+                return ""
 
         # Cache the result
         if asin in catalog:

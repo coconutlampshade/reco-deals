@@ -46,7 +46,7 @@ KEEPA_DOMAIN_ID = 1  # 1 = amazon.com (US)
 # A product is considered a "deal" if ANY of these conditions are met:
 DEAL_PERCENT_BELOW_AVG = 10      # Current price is 10%+ below 90-day average
 DEAL_PERCENT_BELOW_HIGH = 30    # Current price is 30%+ below 90-day high
-DEAL_NEAR_LOW_PERCENT = 5       # Current price is within 5% of all-time low
+DEAL_NEAR_LOW_PERCENT = 5       # Current price is within 5% of 90-day low
 DEAL_MIN_DISCOUNT_DOLLARS = 5   # Minimum dollar savings to qualify as deal
 
 # Deal quality filters (optional - for ranking deals)
@@ -63,6 +63,9 @@ SCORE_WEIGHT_NEAR_LOW = 20      # Bonus points if within 5% of 90-day low
 # Unavailable product tracking
 UNAVAILABLE_SKIP_AFTER_DAYS = 3   # Skip products unavailable for this many consecutive days
 UNAVAILABLE_RECHECK_DAYS = 7      # Re-check all products every N days (Sunday full scan)
+
+# Newsletter quality floor
+DEAL_MIN_NEWSLETTER_SCORE = 40  # Minimum deal_score to include in newsletter
 
 # Price history settings
 PRICE_HISTORY_DAYS = 90         # Days of price history to analyze

@@ -7,7 +7,6 @@ deal data. It is used by review_deals.py for the interactive newsletter workflow
 """
 
 import json
-import math
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -267,69 +266,9 @@ def limit_media_items(deals: list, live_prices: dict, max_total: int = 1) -> lis
     return filtered
 
 
-def score_deal(deal: dict) -> float:
-    """
-    Calculate a deal score for ranking (Keepa data).
-    Higher score = better deal.
-    """
-    score = 0
-
-    # Percent below average (weight: 2x)
-    if deal.get("percent_below_avg") and deal["percent_below_avg"] > 0:
-        score += deal["percent_below_avg"] * 2
-
-    # Percent below high (weight: 1x)
-    if deal.get("percent_below_high") and deal["percent_below_high"] > 0:
-        score += deal["percent_below_high"]
-
-    # Near all-time low bonus
-    if deal.get("all_time_low") and deal.get("current_price"):
-        if deal["current_price"] <= deal["all_time_low"] * 1.05:
-            score += 50  # Big bonus for all-time low
-
-    # Dollar savings bonus (for expensive items)
-    if deal.get("savings_dollars") and deal["savings_dollars"] > 0:
-        score += min(deal["savings_dollars"], 20)  # Cap at 20 points
-
-    return score
-
-
-def score_live_deal(asin: str, live_prices: dict) -> float:
-    """
-    Calculate deal score using PA API live price data.
-    Higher score = better deal.
-    """
-    price_info = live_prices.get(asin, {})
-    if not price_info.get("list_price") or not price_info.get("current_price"):
-        return 0
-
-    # Savings percentage (0-100 scale)
-    savings_pct = ((price_info["list_price"] - price_info["current_price"])
-                  / price_info["list_price"]) * 100
-
-    # Popularity score based on review count (log scale, 0-30 points)
-    review_count = price_info.get("review_count") or 0
-    if review_count > 0:
-        popularity = min(math.log10(review_count + 1) * 10, 30)
-    else:
-        popularity = 0
-
-    # Quality bonus for high ratings (0-10 points)
-    star_rating = price_info.get("star_rating") or 0
-    if star_rating >= 4.5:
-        quality = 10
-    elif star_rating >= 4.0:
-        quality = 5
-    else:
-        quality = 0
-
-    # Composite: savings is primary, popularity and quality are secondary
-    return savings_pct + (popularity * 0.5) + (quality * 0.5)
-
-
 def filter_and_sort_deals(deals: dict, min_savings: float = 0, top_n: int = None) -> list:
     """
-    Filter and sort deals by score.
+    Filter and sort deals by deal_score (from keepa_utils.calculate_deal_score).
 
     Returns list of (asin, deal_data) tuples.
     Includes all products with valid prices (not just strict deals).
@@ -347,8 +286,16 @@ def filter_and_sort_deals(deals: dict, min_savings: float = 0, top_n: int = None
             if (data.get("savings_dollars") or 0) >= min_savings
         ]
 
-    # Sort by score (highest first) - strict deals will rank higher due to better savings
-    valid_deals.sort(key=lambda x: score_deal(x[1]), reverse=True)
+    # Filter by minimum newsletter quality score
+    min_score = getattr(__import__('config'), 'DEAL_MIN_NEWSLETTER_SCORE', 0)
+    if min_score > 0:
+        valid_deals = [
+            (asin, data) for asin, data in valid_deals
+            if data.get("deal_score", 0) >= min_score
+        ]
+
+    # Sort by deal_score computed by keepa_utils.calculate_deal_score
+    valid_deals.sort(key=lambda x: x[1].get("deal_score", 0), reverse=True)
 
     # Limit to top N
     if top_n:
