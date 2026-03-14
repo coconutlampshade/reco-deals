@@ -393,9 +393,9 @@
             <option value="100+">$100+</option>
         </select>
         <select class="filter-select" id="sortSelect">
-            <option value="random">Random</option>
-            <option value="pct-off">Biggest Discount</option>
             <option value="score">Best Deals</option>
+            <option value="pct-off">Biggest Discount</option>
+            <option value="random">Random</option>
             <option value="price-asc">Price: Low → High</option>
             <option value="price-desc">Price: High → Low</option>
             <option value="reviews">Most Reviewed</option>
@@ -436,7 +436,7 @@
     const PAGE_SIZE = 48;
     let searchQuery = '';
     let priceRange = 'all';
-    let sortBy = 'random';
+    let sortBy = 'score';
     let generatedAt = '';
     let livePriceMap = {};
     let pricesFetchedAt = null;
