@@ -15,7 +15,7 @@ import csv
 import json
 import sys
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -24,6 +24,7 @@ load_dotenv()
 
 PROJECT_ROOT = Path(__file__).parent
 DEALS_FILE = PROJECT_ROOT / "catalog" / "deals.json"
+HIDDEN_FILE = PROJECT_ROOT / "catalog" / "hidden_products.json"
 SALES_CSV = PROJECT_ROOT / "amazon-2025.csv"
 
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -43,6 +44,26 @@ def load_deals() -> dict:
         with open(DEALS_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
+
+
+def load_hidden_products() -> dict:
+    """Load hidden products with their expiry dates. Returns {asin: expiry_iso}."""
+    if HIDDEN_FILE.exists():
+        with open(HIDDEN_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Prune expired entries
+        today = datetime.now().strftime("%Y-%m-%d")
+        active = {asin: exp for asin, exp in data.items() if exp > today}
+        if len(active) != len(data):
+            with open(HIDDEN_FILE, "w", encoding="utf-8") as f:
+                json.dump(active, f, indent=2)
+        return active
+    return {}
+
+
+def save_hidden_products(hidden: dict):
+    with open(HIDDEN_FILE, "w", encoding="utf-8") as f:
+        json.dump(hidden, f, indent=2)
 
 
 def load_sales_data() -> dict:
@@ -86,11 +107,14 @@ def merge_catalog_and_deals() -> dict:
     catalog = load_full_catalog()
     deals_data = load_deals()
     deals = deals_data.get("deals", {})
+    hidden = load_hidden_products()
     all_results = deals_data.get("all_results", {})
     sales = load_sales_data()
 
     merged = {}
     for asin, product in catalog.items():
+        if asin in hidden:
+            continue
         deal = deals.get(asin, {})
         result = all_results.get(asin, {})
         merged[asin] = {
@@ -123,8 +147,13 @@ def merge_catalog_and_deals() -> dict:
             "sales_revenue": sales.get(asin, {}).get("revenue", 0),
         }
         # Use cached list_price from deals.json if available
-        if deal.get("list_price"):
-            merged[asin]["list_price"] = deal["list_price"]
+        # Discard absurd list prices (Keepa sometimes returns garbage MSRP)
+        deal_list = deal.get("list_price")
+        deal_current = merged[asin].get("current_price")
+        if deal_list and deal_current and deal_list <= deal_current * 5:
+            merged[asin]["list_price"] = deal_list
+        elif deal_list and not deal_current:
+            merged[asin]["list_price"] = deal_list
 
     # Enrich deal candidates with PA API data (real-time prices, list price, availability)
     deal_asins = [asin for asin, p in merged.items() if p.get("is_deal")]
@@ -184,6 +213,10 @@ def prepare_candidates(products: dict) -> list:
         current_price = d.get("current_price") or 0
         list_price = d.get("list_price") or 0
         pct_below = d.get("percent_below_avg") or 0
+
+        # Discard absurd list prices (Keepa sometimes returns garbage MSRP data)
+        if list_price and current_price and list_price > current_price * 5:
+            list_price = 0
 
         # Prefer list price (MSRP) for discount display, fall back to 90-day avg
         if list_price and current_price and list_price > current_price:
@@ -494,10 +527,15 @@ def build_html(merged_data: dict) -> str:
             gap: 4px;
             margin-top: 4px;
         }}
+        .card-actions-col {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            padding-top: 2px;
+        }}
         .card-checkbox {{
-            position: absolute;
-            top: 12px;
-            right: 12px;
             width: 22px;
             height: 22px;
             cursor: pointer;
@@ -505,10 +543,7 @@ def build_html(merged_data: dict) -> str:
         }}
 
         /* Inline edit panel on review cards */
-        .card-edit-toggle {{
-            position: absolute;
-            top: 12px;
-            right: 40px;
+        .card-edit-toggle, .card-hide-btn {{
             width: 24px;
             height: 24px;
             cursor: pointer;
@@ -521,10 +556,10 @@ def build_html(merged_data: dict) -> str:
             align-items: center;
             justify-content: center;
             transition: all 0.15s;
-            z-index: 2;
         }}
         .card-edit-toggle:hover {{ border-color: #4384F3; color: #4384F3; }}
         .card.has-edits .card-edit-toggle {{ color: #27ae60; border-color: #27ae60; }}
+        .card-hide-btn:hover {{ border-color: #e67e22; color: #e67e22; }}
         .card-edit-panel {{
             display: none;
             padding: 0 16px 14px;
@@ -1041,8 +1076,6 @@ function renderCard(deal) {{
 
     return `
         <div class="card ${{isSelected ? 'selected' : ''}} ${{deal._inCooldown ? 'cooldown' : ''}} ${{hasEdits ? 'has-edits' : ''}}" data-asin="${{deal.asin}}">
-            <button class="card-edit-toggle" onclick="toggleEditPanel('${{deal.asin}}', event)" title="Edit title &amp; benefit">&#9998;</button>
-            <input type="checkbox" class="card-checkbox" ${{isSelected ? 'checked' : ''}} onclick="toggleSelect('${{deal.asin}}', event)">
             <div class="card-top" onclick="toggleSelect('${{deal.asin}}', event)">
                 <div class="card-image">
                     ${{imgUrl ? `<a href="${{buyUrl}}" target="_blank" onclick="event.stopPropagation()"><img src="${{imgUrl}}" alt="" loading="lazy"></a>` : ''}}
@@ -1056,6 +1089,11 @@ function renderCard(deal) {{
                     <div class="card-badges">${{badges}}</div>
                     ${{(ratingHtml || scoreHtml || salesHtml) ? `<div class="card-extra">${{ratingHtml}}${{scoreHtml}}${{salesHtml}}</div>` : ''}}
                     <div class="card-meta">${{meta}}</div>
+                </div>
+                <div class="card-actions-col" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="card-checkbox" ${{isSelected ? 'checked' : ''}} onclick="toggleSelect('${{deal.asin}}', event)">
+                    <button class="card-edit-toggle" onclick="toggleEditPanel('${{deal.asin}}', event)" title="Edit title &amp; benefit">&#9998;</button>
+                    <button class="card-hide-btn" onclick="hideProduct('${{deal.asin}}', event)" title="Hide for 30 days">&#10005;</button>
                 </div>
             </div>
             <div class="card-edit-panel ${{panelOpen ? 'open' : ''}}" onclick="event.stopPropagation()">
@@ -1097,6 +1135,27 @@ function toggleEditPanel(asin, event) {{
         const panel = card.querySelector('.card-edit-panel');
         if (panel) panel.classList.toggle('open');
     }}
+}}
+
+function hideProduct(asin, event) {{
+    event.stopPropagation();
+
+    fetch('/hide', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asin, days: 30 }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+        if (data.success) {{
+            allDeals = allDeals.filter(d => d.asin !== asin);
+            selectedAsins.delete(asin);
+            render();
+        }} else {{
+            alert('Error hiding product: ' + (data.error || 'Unknown'));
+        }}
+    }})
+    .catch(err => alert('Error: ' + err));
 }}
 
 function saveCardEdit(asin, field, value) {{
@@ -1674,7 +1733,11 @@ def build_edit_html(selected_asins: list, products: dict, inline_edits: dict = N
                     <div style="display:flex;gap:16px;margin-bottom:16px;">
                         <img id="adImage" src="" alt="" style="width:100px;height:100px;object-fit:contain;border-radius:6px;background:#f5f5f5;">
                         <div style="flex:1;">
-                            <div id="adPriceDisplay" style="font-size:18px;font-weight:700;color:#16a34a;"></div>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="font-size:18px;font-weight:700;color:#16a34a;">$</span>
+                                <input type="number" step="0.01" id="adPriceInput" class="field-input" style="width:100px;font-size:18px;font-weight:700;color:#16a34a;padding:4px 8px;" placeholder="0.00">
+                            </div>
+                            <div id="adPriceDisplay" style="font-size:13px;color:#888;margin-top:2px;"></div>
                             <div id="adAvailability" style="font-size:12px;margin-top:4px;"></div>
                         </div>
                     </div>
@@ -1760,7 +1823,11 @@ function renderDealsList() {{
                     </div>
                     <div class="deal-info">
                         <div class="deal-asin">${{item.asin}}</div>
-                        <div class="deal-price">${{priceHtml}}${{origHtml}}</div>
+                        <div class="deal-price" style="display:flex;align-items:center;gap:6px;">
+                            <span style="color:#16a34a;font-weight:700;">$</span>
+                            <input type="number" step="0.01" class="field-input price-input" data-asin="${{item.asin}}" value="${{price ? price.toFixed(2) : ''}}" style="width:90px;font-size:16px;font-weight:700;color:#16a34a;padding:2px 6px;" placeholder="0.00">
+                            ${{origHtml}}
+                        </div>
                         ${{savingsHtml ? `<div class="deal-savings">${{savingsHtml}}</div>` : ''}}
                         ${{item.price_source === 'buy_box_prime' ? '<div class="deal-savings" style="background:#dbeafe;color:#1d4ed8"><a href="https://amzn.to/4c7wkNg" target="_blank" style="color:inherit;text-decoration:none">Prime exclusive deal</a></div>' : ''}}
                         ${{sourceLabel ? `<div class="deal-source">${{sourceLabel}}</div>` : ''}}
@@ -1812,19 +1879,24 @@ function saveEditsToItems() {{
         const titleInput = card.querySelector('.title-input');
         const benefitInput = card.querySelector('.benefit-input');
         const affInput = card.querySelector('.affiliate-input');
+        const priceInput = card.querySelector('.price-input');
         if (idx < ITEMS.length) {{
             ITEMS[idx].title = titleInput.value;
             ITEMS[idx].benefit_description = benefitInput.value;
             ITEMS[idx].affiliate_url = affInput.value;
+            if (priceInput && priceInput.value) {{
+                ITEMS[idx].current_price = parseFloat(priceInput.value);
+            }}
         }}
     }});
 }}
 
 function generateBenefit(idx) {{
+    saveEditsToItems();
     const item = ITEMS[idx];
+    const asin = item.asin;
     const btn = document.querySelectorAll('.btn-generate')[idx];
-    const textarea = document.querySelectorAll('.benefit-input')[idx];
-    if (!btn || !textarea) return;
+    if (!btn) return;
 
     btn.disabled = true;
     btn.textContent = 'Generating...';
@@ -1832,30 +1904,44 @@ function generateBenefit(idx) {{
     fetch('/generate-benefit', {{
         method: 'POST',
         headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ asin: item.asin, title: item.title }})
+        body: JSON.stringify({{ asin: asin, title: item.title }})
     }})
     .then(r => r.json())
     .then(data => {{
-        btn.disabled = false;
-        btn.textContent = 'Generate';
+        // Find the item by ASIN, not index — items may have been reordered/removed
+        const currentIdx = ITEMS.findIndex(i => i.asin === asin);
+        const currentItem = currentIdx >= 0 ? ITEMS[currentIdx] : null;
+        const currentBtn = currentIdx >= 0 ? document.querySelectorAll('.btn-generate')[currentIdx] : btn;
+        const currentTextarea = currentIdx >= 0 ? document.querySelectorAll('.benefit-input')[currentIdx] : null;
+
+        if (currentBtn) {{
+            currentBtn.disabled = false;
+            currentBtn.textContent = 'Generate';
+        }}
         if (data.success && data.benefit) {{
-            textarea.value = data.benefit;
-            item.benefit_description = data.benefit;
+            if (currentTextarea) currentTextarea.value = data.benefit;
+            if (currentItem) currentItem.benefit_description = data.benefit;
         }} else {{
             alert('Could not generate: ' + (data.error || 'No source article found'));
         }}
     }})
     .catch(err => {{
-        btn.disabled = false;
-        btn.textContent = 'Generate';
+        const currentIdx = ITEMS.findIndex(i => i.asin === asin);
+        const currentBtn = currentIdx >= 0 ? document.querySelectorAll('.btn-generate')[currentIdx] : btn;
+        if (currentBtn) {{
+            currentBtn.disabled = false;
+            currentBtn.textContent = 'Generate';
+        }}
         alert('Error: ' + err);
     }});
 }}
 
 function useSuggestion(idx) {{
+    saveEditsToItems();
     const item = ITEMS[idx];
-    if (!item.short_title) return;
-    const input = document.querySelectorAll('.title-input')[idx];
+    if (!item || !item.short_title) return;
+    const card = document.querySelectorAll('.deal-card')[idx];
+    const input = card ? card.querySelector('.title-input') : null;
     if (input) {{
         input.value = item.short_title;
         input.focus();
@@ -1979,22 +2065,24 @@ function sendToMailchimp() {{
     const titles = {{}};
     const benefits = {{}};
     const affiliateUrls = {{}};
+    const priceOverrides = {{}};
 
     ITEMS.forEach(item => {{
         asins.push(item.asin);
         titles[item.asin] = item.title;
         if (item.benefit_description.trim()) benefits[item.asin] = item.benefit_description.trim();
         if (item.affiliate_url.trim()) affiliateUrls[item.asin] = item.affiliate_url.trim();
+        if (item.current_price) priceOverrides[item.asin] = item.current_price;
     }});
 
-    const body = {{ asins, titles, benefits, affiliateUrls }};
+    const body = {{ asins, titles, benefits, affiliateUrls, priceOverrides }};
     if (AD_DATA) {{
         body.unclassifiedAd = {{
             asin: AD_DATA.asin,
             title: document.getElementById('adTitle')?.value || AD_DATA.title,
             description: document.getElementById('adDescription')?.value || '',
             image_url: AD_DATA.image_url,
-            current_price: AD_DATA.current_price,
+            current_price: parseFloat(document.getElementById('adPriceInput')?.value) || AD_DATA.current_price,
             list_price: AD_DATA.list_price,
             affiliate_url: document.getElementById('adAffiliateUrl')?.value || AD_DATA.affiliate_url,
         }};
@@ -2084,16 +2172,25 @@ function lookupAsin() {{
         document.getElementById('adTitle').value = data.title || '';
         document.getElementById('adAffiliateUrl').value = data.affiliate_url || '';
 
+        // Set editable price input
+        const priceInput = document.getElementById('adPriceInput');
+        if (data.current_price) {{
+            priceInput.value = data.current_price.toFixed(2);
+        }} else {{
+            priceInput.value = '';
+        }}
+
         let priceHtml = '';
         if (data.current_price) {{
-            priceHtml = `$${{data.current_price.toFixed(2)}}`;
+            priceHtml = `API price: $${{data.current_price.toFixed(2)}}`;
             if (data.list_price && data.list_price > data.current_price) {{
                 const pct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
-                priceHtml += ` <span style="color:#888;font-size:14px;font-weight:400;text-decoration:line-through">$${{data.list_price.toFixed(2)}}</span>`;
-                priceHtml += ` <span style="color:#dc2626;font-size:13px;font-weight:600">${{pct}}% off</span>`;
+                priceHtml += ` <span style="text-decoration:line-through">$${{data.list_price.toFixed(2)}}</span>`;
+                priceHtml += ` (${{pct}}% off)`;
             }}
+            priceHtml += ' — edit above if different on Amazon';
         }} else {{
-            priceHtml = '<span style="color:#888">Price unavailable</span>';
+            priceHtml = 'Price unavailable — enter manually above';
         }}
         document.getElementById('adPriceDisplay').innerHTML = priceHtml;
 
@@ -2215,6 +2312,35 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
             return
 
+        if self.path == "/hide":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            asin = data.get("asin", "")
+            days = data.get("days", 30)
+
+            try:
+                hidden = load_hidden_products()
+                expiry = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
+                hidden[asin] = expiry
+                save_hidden_products(hidden)
+                # Remove from in-memory products
+                if asin in self.products:
+                    del self.products[asin]
+                print(f"Hidden {asin} until {expiry}")
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "expiry": expiry}).encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
+
         if self.path == "/verify-prices":
             content_length = int(self.headers["Content-Length"])
             post_data = self.rfile.read(content_length)
@@ -2318,6 +2444,7 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 product = self.products.get(asin, {})
                 deal = {
                     "live_title": title,
+                    "title": title,
                     "catalog_title": product.get("catalog_title", title),
                     "issues": product.get("issues", []),
                     "product_features": product.get("product_features", []),
@@ -2419,13 +2546,15 @@ class ReviewHandler(BaseHTTPRequestHandler):
             custom_titles = data.get("titles", {})
             custom_benefits = data.get("benefits", {})
             custom_affiliate_urls = data.get("affiliateUrls", {})
+            price_overrides = data.get("priceOverrides", {})
             unclassified_ad = data.get("unclassifiedAd")
 
             try:
                 result = generate_and_send(
                     selected_asins, self.candidates,
                     custom_titles, custom_benefits, custom_affiliate_urls,
-                    unclassified_ad=unclassified_ad
+                    unclassified_ad=unclassified_ad,
+                    custom_prices=price_overrides
                 )
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")

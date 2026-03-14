@@ -38,15 +38,23 @@ USE_CLAUDE_CLI = False
 
 def _call_claude_cli(prompt: str) -> str:
     """Call the claude CLI to generate a response using Claude Max subscription."""
-    import subprocess, os
-    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-    result = subprocess.run(
-        ["claude", "-p", prompt, "--model", "sonnet", "--no-session-persistence"],
-        capture_output=True, text=True, timeout=30, env=env,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"claude CLI failed: {result.stderr.strip()}")
-    return result.stdout.strip()
+    import subprocess, os, tempfile
+    env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE") and k != "ANTHROPIC_API_KEY"}
+    # Write prompt to temp file to avoid shell escaping issues and arg length limits
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(prompt)
+        prompt_file = f.name
+    try:
+        with open(prompt_file, "r") as pf:
+            result = subprocess.run(
+                ["claude", "-p", "--model", "haiku", "--no-session-persistence"],
+                capture_output=True, text=True, timeout=120, env=env, stdin=pf,
+            )
+        if result.returncode != 0:
+            raise RuntimeError(f"claude CLI failed: {result.stderr.strip()[:200]}")
+        return result.stdout.strip()
+    finally:
+        os.unlink(prompt_file)
 
 
 def load_deals() -> dict:
@@ -245,24 +253,54 @@ def generate_benefit_description(asin: str, product: dict, deals: dict = None) -
 
     # Use best available product title (Keepa > catalog, skip article titles)
     product_title = product.get("title", "")
-    if deals and (is_article_title(product_title) or not product_title):
-        keepa_title = deals.get(asin, {}).get("title", "")
-        if keepa_title:
-            product_title = keepa_title
+    keepa_title = deals.get(asin, {}).get("title", "") if deals else ""
+    if keepa_title and (is_article_title(product_title) or not product_title):
+        product_title = keepa_title
 
-    # Fetch article HTML
-    html = fetch_article_html(article_url)
-    if not html:
-        return ""
+    # Check for ASIN reassignment (catalog title doesn't match Amazon title)
+    title_mismatch = False
+    if keepa_title and product_title:
+        from difflib import SequenceMatcher
+        similarity = SequenceMatcher(None, keepa_title.lower(), product.get("title", "").lower()).ratio()
+        if similarity < 0.3:
+            title_mismatch = True
+            product_title = keepa_title  # Use Amazon title
+            print(f"    Title mismatch — using Amazon title: {keepa_title[:50]}")
 
-    # Extract context around product mention
-    context = extract_product_context(html, asin, product_title)
+    # Try source article (skip if title mismatch — article is about wrong product)
+    context = None
+    if not title_mismatch:
+        html = fetch_article_html(article_url)
+        if html:
+            context = extract_product_context(html, asin, product_title)
+            if not context:
+                print(f"    Warning: Could not extract context in article")
+
+    # Fall back to PA API features if no article context
+    features = []
     if not context:
-        print(f"    Warning: Could not extract context for {asin}")
+        try:
+            from pa_api import get_prices_for_asins
+            pa_data = get_prices_for_asins([asin])
+            info = pa_data.get(asin, {})
+            features = info.get("product_features", [])
+            if features:
+                print(f"    Using PA API features ({len(features)} features)")
+        except Exception as e:
+            print(f"    PA API fallback failed: {e}")
+
+    if not context and not features:
+        print(f"    Warning: No article context or product features for {asin}")
         return ""
 
-    # Generate benefit description using Claude
-    prompt = f"""Given this excerpt from a product review page, write ONE sentence describing the key benefit of "{product_title}". The page may review multiple products — ONLY describe "{product_title}", ignore any other products mentioned.
+    # Build prompt — truncate features to keep prompt reasonable
+    features_text = ""
+    if features:
+        truncated = [f[:150] for f in features[:3]]
+        features_text = "\nAmazon product features:\n" + "\n".join(f"- {f}" for f in truncated)
+
+    if context:
+        prompt = f"""Given this excerpt from a product review page, write ONE sentence describing the key benefit of "{product_title}". The page may review multiple products — ONLY describe "{product_title}", ignore any other products mentioned.
 
 Rules:
 - Do NOT mention the product name or brand
@@ -271,7 +309,20 @@ Rules:
 - Be specific and concrete
 
 Product: {product_title}
-Review excerpt: {context}
+Review excerpt: {context}{features_text}
+
+Write only the benefit sentence, no preamble."""
+    else:
+        prompt = f"""Based on the Amazon product listing below, write ONE sentence describing the key benefit of "{product_title}".
+
+Rules:
+- Do NOT mention the product name or brand
+- Do NOT mention the price
+- Start directly with what the product does or why it's useful
+- Be specific and concrete
+
+Product: {product_title}
+{features_text}
 
 Write only the benefit sentence, no preamble."""
 
@@ -280,7 +331,7 @@ Write only the benefit sentence, no preamble."""
             benefit = _call_claude_cli(prompt)
         else:
             response = ANTHROPIC_CLIENT.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=150,
                 messages=[{"role": "user", "content": prompt}]
             )

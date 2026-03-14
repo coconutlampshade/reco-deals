@@ -2,8 +2,8 @@ name: Daily Catalog Update
 
 on:
   schedule:
-    # Run at 6:00 AM PT (14:00 UTC) every day — after daily price check finishes
-    - cron: '0 14 * * *'
+    # Run at 8:00 PM PT (04:00 UTC) every day — before daily price check at 06:00 UTC
+    - cron: '0 4 * * *'
 
   # Allow manual trigger
   workflow_dispatch:

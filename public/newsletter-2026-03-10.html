@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-price-context {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .deal-badges {
+            margin-bottom: 6px;
+        }
+        .deal-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .deal-badge.near-low {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .deal-badge.top-deal {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        .deal-badge.big-savings {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .deal-badge.prime-deal {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .catalog-cta {
+            text-align: center;
+            padding: 25px 20px;
+            margin: 30px 0;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            border-radius: 8px;
+            border: 1px solid #d0ddf5;
+        }
+        .catalog-cta h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #1a1a1a;
+        }
+        .catalog-cta p {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .catalog-cta a.cta-button {
+            display: inline-block;
+            padding: 12px 28px;
+            background-color: #4384F3;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .catalog-cta a.cta-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+        .unclassified-ad {
+            margin-top: 30px;
+            padding: 25px;
+            border: 2px dashed #4384F3;
+            border-radius: 8px;
+            background-color: #f8faff;
+        }
+        .unclassified-ad-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #4384F3;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">March 10, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>10</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B000646VF8">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/7Tg9Ww" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61TJUXpfzRL._SL300_.jpg" alt="Bifocal High Performance Protective Eyeware" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/7Tg9Ww" target="_blank">Bifocal High Performance Protective Eyeware</a>
+                </div>
+                <div class="deal-price">$9.18</div>
+                <div class="deal-price-context">90-day avg: $9.19</div>
+                <div class="deal-indicator">54% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/bifocal-safety/" target="_blank">Cool Tools</a></div>
+                <a href="https://geni.us/7Tg9Ww" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="1611803438">
+            
+        <div class="deal-image">
+            <a href="https://amazon.com/dp/1611803438" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/814x9YyN0LL._SL300_.jpg" alt="When Things Fall Apart: Heart Advice for Difficult Times" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amazon.com/dp/1611803438" target="_blank">When Things Fall Apart: Heart Advice for Difficult Times</a>
+                </div>
+                <div class="deal-price">$9.35</div>
+                <div class="deal-price-context">90-day avg: $9.55</div>
+                <div class="deal-indicator">53% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="http://eepurl.com/jxMdxM" target="_blank">Cool Tools</a></div>
+                <a href="https://amazon.com/dp/1611803438" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07C1SJSC7">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/MqZ3swB" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/513Q6P-hATL._SL300_.jpg" alt="Parker Jotter Fountain Pen" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/MqZ3swB" target="_blank">Parker Jotter Fountain Pen</a>
+                </div>
+                <div class="deal-price">$19.95</div>
+                
+                <div class="deal-indicator">42% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-andrew-liptak/" target="_blank">Cool Tools</a></div>
+                <a href="https://geni.us/MqZ3swB" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00G901GZ8">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2IJpjEH" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61VjYAVKkIL._SL300_.jpg" alt="Box Opener Mini Cutter 5" " loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2IJpjEH" target="_blank">Box Opener Mini Cutter 5" </a>
+                </div>
+                <div class="deal-price">$7.99</div>
+                
+                <div class="deal-indicator">33% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/donald-bell-maker-update/" target="_blank">Cool Tools</a></div>
+                <a href="https://amzn.to/2IJpjEH" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B004VFXVJW">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/4EeV9V" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71DzC1jpEqL._SL300_.jpg" alt="Shave Well Original Anti-Fog Shaving Mirror" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/4EeV9V" target="_blank">Shave Well Original Anti-Fog Shaving Mirror</a>
+                </div>
+                <div class="deal-price">$11.36</div>
+                
+                <div class="deal-indicator">31% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/shave-well-fog-free-shaving-mirror/" target="_blank">Cool Tools</a></div>
+                <a href="https://geni.us/4EeV9V" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B076H13Y6V">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/Dmd61" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71e46zntUPL._SL300_.jpg" alt="Airline Airplane Flight Adapters for Headphones, 4-Pack" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/Dmd61" target="_blank">Airline Airplane Flight Adapters for Headphones, 4-Pack</a>
+                </div>
+                <div class="deal-price">$6.99</div>
+                
+                <div class="deal-indicator">30% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/under-the-influencebook-freakdeath-19-05-05" target="_blank">Recomendo #169</a>: Allow you to use your personal earphones or earbuds with airplane entertainment systems that have dual-prong audio jacks.</div>
+                <a href="https://geni.us/Dmd61" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07GT49F9C">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/R3SYzbe" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/711yiXv29ZL._SL300_.jpg" alt="Wide Beam LED Headlamp" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/R3SYzbe" target="_blank">Wide Beam LED Headlamp</a>
+                </div>
+                <div class="deal-price">$18.39</div>
+                
+                <div class="deal-indicator">26% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/securitychecklistnoah-smithvietnam-19-01-20" target="_blank">Recomendo #154</a></div>
+                <a href="https://geni.us/R3SYzbe" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00O7ENJEE">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2vAr7LD?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61gulQQo4nL._SL300_.jpg" alt="Polarized Clip-on Flip up Sunglasses" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2vAr7LD?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">Polarized Clip-on Flip up Sunglasses</a>
+                </div>
+                <div class="deal-price">$9.59</div>
+                
+                <div class="deal-indicator">26% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-alex-glow/" target="_blank">Cool Tools</a></div>
+                <a href="https://amzn.to/2vAr7LD?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01576DWQU">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/bug-bite-thing" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51LCZrXyxML._SL300_.jpg" alt="Bug Bites and Bee/Wasp Sting Suction Tool" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/bug-bite-thing" target="_blank">Bug Bites and Bee/Wasp Sting Suction Tool</a>
+                </div>
+                <div class="deal-price">$9.97</div>
+                <div class="deal-price-context">90-day avg: $10.01</div>
+                <div class="deal-indicator">23% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/bug-bite-thingfree-covid-testsreadwise" target="_blank">Recomendo #400</a></div>
+                <a href="https://geni.us/bug-bite-thing" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B06ZXW2C48">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/2F4UdN" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71Oh3cOyvrL._SL300_.jpg" alt="Garden Clogs" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/2F4UdN" target="_blank">Garden Clogs</a>
+                </div>
+                <div class="deal-price">$27.99</div>
+                
+                <div class="deal-indicator">22% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/buysidethe-video-archives-podcastthe-22-07-24" target="_blank">Recomendo #337</a></div>
+                <a href="https://geni.us/2F4UdN" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="unclassified-ad">
+            <div class="unclassified-ad-label">A deal too good not to share</div>
+            <div class="deal" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+                
+                <div class="deal-image">
+                    <a href="https://www.amazon.com/dp/B0FXLYZSGB?tag=recomendos-20" target="_blank">
+                        <img src="https://m.media-amazon.com/images/I/41x4f3fulZL._SL160_.jpg" alt="">
+                    </a>
+                </div>
+                <div class="deal-content">
+                    <div class="deal-title">
+                        <a href="https://www.amazon.com/dp/B0FXLYZSGB?tag=recomendos-20" target="_blank">Walking Pad Treadmill for Home - Under Desk Walk Pads with Remote Control Mini Running Portable Electric Machine Adjustable Slim Compact with 0.6-4.0MPH Max up 220 Lbs Modes for Office Small Spaces</a>
+                    </div>
+                    <div class="deal-price">$99.99</div><div class="deal-indicator">95% off list price</div>
+                    
+                    <a href="https://www.amazon.com/dp/B0FXLYZSGB?tag=recomendos-20" class="buy-button" target="_blank">SEE DEAL</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-cta">
+            <h3>Browse All Recomendo Deals</h3>
+            <p>Check live Amazon prices on every product we've ever recommended — updated daily.</p>
+            <a href="https://reco-deals.vercel.app/" class="cta-button">See All Deals</a>
+        </div>
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            <p><strong>Looking for more?</strong> Browse our <a href="https://reco-deals.vercel.app/">full catalog</a> of every product we've recommended since 2020 across Recomendo, Cool Tools, our YouTube channel, podcast, and all our other newsletters.</p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

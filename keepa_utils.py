@@ -47,14 +47,10 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
     if amazon_price is not None:
         return amazon_price, "amazon"
 
-    # Last resort: 3rd party (may not reflect what customer sees)
-    new_3p_price = _extract_stat(current_stats, 1)
-    if new_3p_price is not None:
-        return new_3p_price, "new_3rd_party"
-
-    # Fall back to CSV history — same priority order
+    # Fall back to CSV history — Buy Box and Amazon-direct only
+    # (skip 3rd party prices — they're often phantom sellers not visible on the page)
     csv = product_data.get("csv", [])
-    for csv_idx, source_name in [(18, "buy_box"), (0, "amazon"), (1, "new_3rd_party")]:
+    for csv_idx, source_name in [(18, "buy_box"), (0, "amazon")]:
         if csv and len(csv) > csv_idx and csv[csv_idx]:
             csv_data = csv[csv_idx]
             if csv_data and len(csv_data) >= 2:
@@ -107,7 +103,13 @@ def parse_keepa_stats(stats: dict | None, price_source: str | None) -> dict:
     # List price / MSRP is at stats.current[4]
     list_price = _extract_stat(stats.get("current", []), 4)
     if list_price is not None:
-        result["list_price"] = list_price
+        # Sanity check: discard list prices that are absurdly higher than avg
+        # (Keepa sometimes returns garbage MSRP values)
+        avg = result.get("avg_90_day")
+        if avg and list_price > avg * 5:
+            list_price = None
+        else:
+            result["list_price"] = list_price
 
     return result
 

@@ -221,60 +221,74 @@ def generate_benefit_description(asin: str, deal: dict, catalog: dict) -> str:
 
     Returns empty string if generation fails.
     """
-    # Check cache first
+    # Check cache first — but invalidate if Amazon title doesn't match catalog title
+    # (ASINs get reassigned to different products over time)
     if asin in catalog and catalog[asin].get("benefit_description"):
-        return catalog[asin]["benefit_description"]
+        live_title = deal.get("live_title") or deal.get("title", "")
+        catalog_title = catalog[asin].get("title", "")
+        if live_title and catalog_title:
+            from difflib import SequenceMatcher
+            similarity = SequenceMatcher(None, live_title.lower(), catalog_title.lower()).ratio()
+            if similarity < 0.3:
+                print(f"    ASIN {asin} title mismatch (similarity {similarity:.0%}): catalog='{catalog_title[:40]}' vs amazon='{live_title[:40]}' — regenerating benefit")
+                catalog[asin].pop("benefit_description", None)
+            else:
+                return catalog[asin]["benefit_description"]
+        else:
+            return catalog[asin]["benefit_description"]
 
     if not ANTHROPIC_CLIENT:
         print(f"    Warning: Anthropic client not available for {asin}")
         return ""
 
-    # Get source article URL
-    issues = deal.get("issues", [])
-    if not issues:
-        # Try catalog
-        if asin in catalog:
-            issues = catalog[asin].get("issues", [])
-
-    if not issues:
-        print(f"    Warning: No source article for {asin}")
-        return ""
-
-    # Prefer Recomendo over Cool Tools
-    recomendo_issues = [i for i in issues if i.get("source") != "cooltools"]
-    source_issue = recomendo_issues[0] if recomendo_issues else issues[0]
-    article_url = source_issue.get("url", "")
-
-    if not article_url:
-        return ""
-
     # Get product title
     product_title = deal.get("live_title") or deal.get("catalog_title") or catalog.get(asin, {}).get("title", "")
 
-    print(f"    Fetching article for {asin}: {product_title[:40]}...")
+    # Try source article first
+    context = None
+    issues = deal.get("issues", [])
+    if not issues and asin in catalog:
+        issues = catalog[asin].get("issues", [])
 
-    # Fetch article HTML
-    html = fetch_article_html(article_url)
-    if not html:
-        return ""
+    if issues:
+        recomendo_issues = [i for i in issues if i.get("source") != "cooltools"]
+        source_issue = recomendo_issues[0] if recomendo_issues else issues[0]
+        article_url = source_issue.get("url", "")
 
-    # Extract context around product mention
-    context = extract_product_context(html, asin, product_title)
-    if not context:
-        print(f"    Warning: Could not extract context for {asin}")
-        return ""
+        if article_url:
+            print(f"    Fetching article for {asin}: {product_title[:40]}...")
+            html = fetch_article_html(article_url)
+            if html:
+                context = extract_product_context(html, asin, product_title)
+                if not context:
+                    print(f"    Warning: Could not extract context for {asin} in article")
 
-    # Collect product features if available
+    # Collect product features from deal data or PA API
     features = deal.get("product_features") or []
+    if not features and not context:
+        # Fetch features from PA API as fallback
+        try:
+            from pa_api import get_prices_for_asins
+            print(f"    Fetching PA API features for {asin}...")
+            pa_data = get_prices_for_asins([asin])
+            info = pa_data.get(asin, {})
+            features = info.get("product_features", [])
+        except Exception as e:
+            print(f"    Warning: PA API fallback failed: {e}")
+
+    if not context and not features:
+        print(f"    Warning: No source article or product features for {asin}")
+        return ""
 
     # Generate benefit description using Claude
     try:
         features_text = ""
         if features:
             top_features = features[:5]
-            features_text = "\n\nAmazon product features:\n" + "\n".join(f"- {f}" for f in top_features)
+            features_text = "\nAmazon product features:\n" + "\n".join(f"- {f}" for f in top_features)
 
-        prompt = f"""Given this excerpt from a product review page, write ONE sentence describing the key benefit of "{product_title}". The page may review multiple products — ONLY describe "{product_title}", ignore any other products mentioned.
+        if context:
+            prompt = f"""Given this excerpt from a product review page, write ONE sentence describing the key benefit of "{product_title}". The page may review multiple products — ONLY describe "{product_title}", ignore any other products mentioned.
 
 Rules:
 - Do NOT mention the product name or brand
@@ -284,6 +298,19 @@ Rules:
 
 Product: {product_title}
 Review excerpt: {context}{features_text}
+
+Write only the benefit sentence, no preamble."""
+        else:
+            prompt = f"""Based on the Amazon product listing below, write ONE sentence describing the key benefit of "{product_title}".
+
+Rules:
+- Do NOT mention the product name or brand
+- Do NOT mention the price
+- Start directly with what the product does or why it's useful
+- Be specific and concrete
+
+Product: {product_title}
+{features_text}
 
 Write only the benefit sentence, no preamble."""
 
@@ -1473,7 +1500,7 @@ def update_rss_feed(public_dir):
     print(f"RSS feed updated: {feed_path}")
 
 
-def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None, unclassified_ad: dict = None) -> dict:
+def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None, unclassified_ad: dict = None, custom_prices: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
         generate_html_report, update_featured_history, LOGO_URL,
@@ -1491,6 +1518,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
         custom_benefits = {}
     if custom_affiliate_urls is None:
         custom_affiliate_urls = {}
+    if custom_prices is None:
+        custom_prices = {}
 
     # Filter candidates to selected ASINs
     selected = [(asin, deal) for asin, deal in candidates if asin in asins]
@@ -1530,7 +1559,7 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
                 original_url = f"https://www.amazon.com/dp/{asin}?tag=recomendos-20"
 
         prices[asin] = {
-            "current_price": deal.get("live_price"),
+            "current_price": custom_prices.get(asin) or deal.get("live_price"),
             "list_price": deal.get("live_list_price"),
             "price_source": deal.get("price_source"),
             "title": title,
