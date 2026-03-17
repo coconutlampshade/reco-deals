@@ -682,5 +682,64 @@
       "B000YQEFGU": "https://geni.us/AG9HQS",
       "B071CGGMRG": "https://geni.us/CtsD"
     }
+  },
+  {
+    "campaign_id": "a23229c473",
+    "web_id": 9143880,
+    "date": "2026-03-16",
+    "subject": "Recomendo Deals - March 16, 2026",
+    "deals_count": 6,
+    "asins": [
+      "B07BJL748F",
+      "B000EDUUIA",
+      "0593716620",
+      "B0000CFDD5",
+      "B00017028M",
+      "B01NCU2M3J"
+    ],
+    "titles": {
+      "B07BJL748F": "Amazon Essentials Men's Regular-Fit Crewneck Long-Sleeve T-Shirt",
+      "B000EDUUIA": "AccuPark Vehicle Parking Aid",
+      "0593716620": "The Art of Spending Money: Simple Choices for a Richer Life",
+      "B0000CFDD5": "Victorinox Fibrox 6 Inch Straight Chef's Knife",
+      "B00017028M": "Maldon Sea Salt Flakes",
+      "B01NCU2M3J": "Staedtler Triplus Micro Mechanical Pencils with Twist Eraser, 3-Pack"
+    },
+    "affiliate_urls": {
+      "B07BJL748F": "https://geni.us/0aXiL",
+      "B000EDUUIA": "https://geni.us/393Mhes",
+      "0593716620": "https://geni.us/wvqp9O",
+      "B0000CFDD5": "https://geni.us/evDqt",
+      "B00017028M": "https://amzn.to/2Q6w3kI",
+      "B01NCU2M3J": "https://geni.us/pencil-r"
+    }
+  },
+  {
+    "campaign_id": "ca03cee44c",
+    "web_id": 9143885,
+    "date": "2026-03-17",
+    "subject": "Recomendo Deals - March 17, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B01B1VC13K",
+      "B07FNJB8TT",
+      "0316400025",
+      "B00486ZVC4",
+      "B00E1AQED2"
+    ],
+    "titles": {
+      "B01B1VC13K": "Instant Pot Duo 8-Quart",
+      "B07FNJB8TT": "Logitech MX Vertical Wireless Mouse",
+      "0316400025": "Wherever You Go",
+      "B00486ZVC4": "The Sneaky, Snacky Squirrel Game",
+      "B00E1AQED2": "Little Giant 17 Ft Multi-Position Ladder"
+    },
+    "affiliate_urls": {
+      "B01B1VC13K": "http://amzn.to/2CBoxnq",
+      "B07FNJB8TT": "https://geni.us/FJTBEMj",
+      "0316400025": "https://geni.us/uqoULx",
+      "B00486ZVC4": "https://geni.us/Vi8H",
+      "B00E1AQED2": "https://geni.us/P4tcBk"
+    }
   }
 ]

@@ -5266,17 +5266,7 @@
     "asin": "B00486ZVC4",
     "title": "Sneaky, Snacky Squirrel Game",
     "amazon_url": "https://www.amazon.com/dp/B00486ZVC4?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "Vi8H",
-      "productUrl": "https://www.amazon.com/dp/B00486ZVC4?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "Vi8H"
-    },
+    "affiliate_url": "https://geni.us/Vi8H",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/blade-runner-2049lynda-for-freebear-17-10-08",
@@ -42681,17 +42671,7 @@
     "asin": "B00E1AQED2",
     "title": "Little Giant Ladders with Work Platform",
     "amazon_url": "https://www.amazon.com/dp/B00E1AQED2",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "P4tcBk",
-      "productUrl": "https://www.amazon.com/dp/B00E1AQED2?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "P4tcBk"
-    },
+    "affiliate_url": "https://geni.us/P4tcBk",
     "issues": [
       {
         "url": "https://kk.org/cooltools/little-giant-ladders-with-work-platform/",
@@ -57298,7 +57278,8 @@
       }
     ],
     "first_featured": "2026-02-06",
-    "added_at": "2026-02-21T12:41:36.223430"
+    "added_at": "2026-02-21T12:41:36.223430",
+    "benefit_description": "Lush landscapes celebrate the possibilities that lie beyond the next bend in the road--the same road that will always lead you home again."
   },
   "1899712429": {
     "asin": "1899712429",
