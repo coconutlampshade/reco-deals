@@ -11376,42 +11376,72 @@
   },
   "B008PAIDDS": {
     "first_unavailable": "2026-03-17",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 2
+    "last_checked": "2026-03-19",
+    "consecutive_days": 3
   },
   "B0128MOFY4": {
     "first_unavailable": "2026-03-17",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 2
+    "last_checked": "2026-03-19",
+    "consecutive_days": 3
   },
   "B0000AY69V": {
     "first_unavailable": "2026-03-17",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 2
+    "last_checked": "2026-03-19",
+    "consecutive_days": 3
   },
   "B0000YWF5E": {
     "first_unavailable": "2026-03-17",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 2
+    "last_checked": "2026-03-19",
+    "consecutive_days": 3
   },
   "B002VHS19M": {
     "first_unavailable": "2026-03-17",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 2
+    "last_checked": "2026-03-19",
+    "consecutive_days": 3
   },
   "B00PK4XY90": {
     "first_unavailable": "2026-03-17",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 2
+    "last_checked": "2026-03-19",
+    "consecutive_days": 3
   },
   "B0BDHWDR12": {
     "first_unavailable": "2026-03-18",
-    "last_checked": "2026-03-18",
-    "consecutive_days": 1
+    "last_checked": "2026-03-19",
+    "consecutive_days": 2
   },
   "B001E6CQ9C": {
     "first_unavailable": "2026-03-18",
-    "last_checked": "2026-03-18",
+    "last_checked": "2026-03-19",
+    "consecutive_days": 2
+  },
+  "B007SNM6OK": {
+    "first_unavailable": "2026-03-19",
+    "last_checked": "2026-03-19",
+    "consecutive_days": 1
+  },
+  "B01B8K8A34": {
+    "first_unavailable": "2026-03-19",
+    "last_checked": "2026-03-19",
+    "consecutive_days": 1
+  },
+  "B01NBMZ4QC": {
+    "first_unavailable": "2026-03-19",
+    "last_checked": "2026-03-19",
+    "consecutive_days": 1
+  },
+  "B00006IBNJ": {
+    "first_unavailable": "2026-03-19",
+    "last_checked": "2026-03-19",
+    "consecutive_days": 1
+  },
+  "B01D8DBN1A": {
+    "first_unavailable": "2026-03-19",
+    "last_checked": "2026-03-19",
+    "consecutive_days": 1
+  },
+  "B00017028M": {
+    "first_unavailable": "2026-03-19",
+    "last_checked": "2026-03-19",
     "consecutive_days": 1
   }
 }
