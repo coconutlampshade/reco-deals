@@ -24,6 +24,24 @@ def _extract_stat(current_stats: list, index: int) -> float | None:
     return None
 
 
+def _is_valid_third_party_price(price: float, stats: dict | None) -> bool:
+    """Check if a 3rd-party price passes phantom seller guards."""
+    import config
+
+    if price < config.THIRD_PARTY_MIN_PRICE:
+        return False
+
+    # Reject if price is wildly above the 3rd-party 90-day average
+    if stats:
+        avg_3p = _safe_get_stat(stats.get("avg"), 1)
+        if avg_3p and avg_3p > 0:
+            avg_dollars = avg_3p / 100.0
+            if price > avg_dollars * config.THIRD_PARTY_MAX_VS_AVG:
+                return False
+
+    return True
+
+
 def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[float | None, str | None]:
     """Extract current price from Keepa data.
 
@@ -47,8 +65,12 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
     if amazon_price is not None:
         return amazon_price, "amazon"
 
-    # Fall back to CSV history — Buy Box and Amazon-direct only
-    # (skip 3rd party prices — they're often phantom sellers not visible on the page)
+    # 3rd-party new seller price (with phantom seller guards)
+    third_party_price = _extract_stat(current_stats, 1)
+    if third_party_price is not None and _is_valid_third_party_price(third_party_price, stats):
+        return third_party_price, "new_3rd_party"
+
+    # Fall back to CSV history — Buy Box, Amazon-direct, then 3rd-party
     csv = product_data.get("csv", [])
     for csv_idx, source_name in [(18, "buy_box"), (0, "amazon")]:
         if csv and len(csv) > csv_idx and csv[csv_idx]:
@@ -57,6 +79,16 @@ def parse_keepa_current_price(product_data: dict, stats: dict | None) -> tuple[f
                 last_price = csv_data[-1]
                 if last_price is not None and last_price > 0:
                     return last_price / 100.0, source_name
+
+    # 3rd-party CSV fallback
+    if csv and len(csv) > 1 and csv[1]:
+        csv_data = csv[1]
+        if csv_data and len(csv_data) >= 2:
+            last_price = csv_data[-1]
+            if last_price is not None and last_price > 0:
+                price = last_price / 100.0
+                if _is_valid_third_party_price(price, stats):
+                    return price, "new_3rd_party"
 
     return None, None
 

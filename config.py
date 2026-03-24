@@ -60,6 +60,10 @@ SCORE_WEIGHT_RATING = 10        # Max points from star rating (full at 4.5+)
 SCORE_WEIGHT_DOLLARS = 20       # Max points from dollar savings (full at $25+)
 SCORE_WEIGHT_NEAR_LOW = 20      # Bonus points if within 5% of 90-day low
 
+# 3rd-party seller price guards
+THIRD_PARTY_MAX_VS_AVG = 2.0     # Reject 3rd-party price if > 2x its 90-day avg
+THIRD_PARTY_MIN_PRICE = 1.00     # Reject 3rd-party price below $1
+
 # Unavailable product tracking
 UNAVAILABLE_SKIP_AFTER_DAYS = 3   # Skip products unavailable for this many consecutive days
 UNAVAILABLE_RECHECK_DAYS = 7      # Re-check all products every N days (Sunday full scan)

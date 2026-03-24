@@ -726,6 +726,7 @@ def build_html(merged_data: dict) -> str:
                 <option value="oldest-featured">Longest Since Featured</option>
                 <option value="date-desc">Newest First</option>
                 <option value="bestseller-desc">Bestseller (most sold)</option>
+                <option value="random">Random</option>
             </select>
         </div>
     </div>
@@ -988,6 +989,12 @@ function sortDeals(deals) {{
         case 'bestseller-desc':
             sorted.sort((a, b) => (b.sales_qty || 0) - (a.sales_qty || 0));
             break;
+        case 'random':
+            for (let i = sorted.length - 1; i > 0; i--) {{
+                const j = Math.floor(Math.random() * (i + 1));
+                [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+            }}
+            break;
     }}
     return sorted;
 }}
@@ -1028,6 +1035,7 @@ function renderCard(deal) {{
         badges += `<span class="badge badge-discrepancy">PA: $${{paPrice.toFixed(2)}}</span>`;
     }}
     if (deal.price_source === 'buy_box_prime') badges += '<span class="badge badge-prime"><a href="https://amzn.to/4c7wkNg" target="_blank" style="color:inherit;text-decoration:none">Prime exclusive deal</a></span>';
+    if (deal.price_source === 'new_3rd_party') badges += '<span class="badge" style="background:#fef3c7;color:#d97706">3rd party seller</span>';
     if (deal._inCooldown) badges += `<span class="badge badge-cooldown">Featured ${{deal._daysSince}}d ago</span>`;
 
     // Rating and review count
@@ -1709,6 +1717,7 @@ def build_edit_html(selected_asins: list, products: dict, inline_edits: dict = N
             <h1><span>Edit</span> Selected Deals</h1>
             <div class="header-actions">
                 <button class="btn btn-back" onclick="window.location.href='/'">&#8592; Back</button>
+                <button class="btn btn-suggest" onclick="generateAllTitles()" style="background:#f0fdf4;border:1px solid #22c55e;color:#16a34a;">AI Title All</button>
                 <button class="btn btn-verify" id="verifyBtn" onclick="verifyPrices()">Verify Prices</button>
                 <button class="btn btn-send" id="sendBtn" onclick="sendToMailchimp()">Send to Mailchimp &#8594;</button>
             </div>
@@ -1839,6 +1848,7 @@ function renderDealsList() {{
                     <div class="title-row">
                         <input type="text" class="field-input title-input" data-asin="${{item.asin}}" value="${{escapeHtml(item.title).replace(/"/g, '&quot;')}}" placeholder="${{escapeHtml(item.short_title || '').replace(/"/g, '&quot;')}}">
                         ${{item.short_title && item.short_title !== item.title ? `<button class="btn-suggest" onclick="useSuggestion(${{idx}})" title="${{escapeHtml(item.short_title).replace(/"/g, '&quot;')}}">Shorten</button>` : ''}}
+                        <button class="btn-suggest" onclick="generateTitle(${{idx}})" style="background:#f0fdf4;border-color:#22c55e;color:#16a34a;">AI Title</button>
                     </div>
                 </div>
                 <div class="field-group">
@@ -1946,6 +1956,50 @@ function useSuggestion(idx) {{
         input.value = item.short_title;
         input.focus();
     }}
+}}
+
+function generateTitle(idx) {{
+    saveEditsToItems();
+    const item = ITEMS[idx];
+    const btn = document.querySelectorAll('.deal-card')[idx]?.querySelectorAll('.btn-suggest');
+    const aiBtn = btn ? btn[btn.length - 1] : null;
+    if (aiBtn) {{ aiBtn.disabled = true; aiBtn.textContent = '...'; }}
+
+    fetch('/generate-title', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asin: item.asin, title: item.title }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+        if (data.success && data.title) {{
+            const card = document.querySelectorAll('.deal-card')[idx];
+            const input = card ? card.querySelector('.title-input') : null;
+            if (input) {{
+                input.value = data.title;
+                ITEMS[idx].title = data.title;
+            }}
+        }} else {{
+            alert('Error: ' + (data.error || 'Unknown'));
+        }}
+        if (aiBtn) {{ aiBtn.disabled = false; aiBtn.textContent = 'AI Title'; }}
+    }})
+    .catch(err => {{
+        if (aiBtn) {{ aiBtn.disabled = false; aiBtn.textContent = 'AI Title'; }}
+        alert('Error: ' + err);
+    }});
+}}
+
+function generateAllTitles() {{
+    const cards = document.querySelectorAll('.deal-card');
+    let idx = 0;
+    function next() {{
+        if (idx >= ITEMS.length) return;
+        generateTitle(idx);
+        idx++;
+        setTimeout(next, 1500);
+    }}
+    next();
 }}
 
 function skipDeal(idx) {{
@@ -2455,6 +2509,37 @@ class ReviewHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": True, "benefit": benefit}).encode())
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
+
+        if self.path == "/generate-title":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            full_title = data.get("title", "")
+
+            try:
+                import anthropic
+                client = anthropic.Anthropic()
+                response = client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=50,
+                    messages=[{"role": "user", "content": f"""Shorten this Amazon product title to a clean, readable name (3-7 words). Keep the brand if it's well-known. Drop model numbers, sizes, colors, marketing fluff, and redundant category words. Just output the short title, nothing else.
+
+Title: {full_title}"""}]
+                )
+                short = response.content[0].text.strip().strip('"')
+                print(f"  AI title: {full_title[:40]}... -> {short}")
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "title": short}).encode())
             except Exception as e:
                 import traceback
                 traceback.print_exc()
