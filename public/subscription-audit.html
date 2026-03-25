@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Find and Cancel Forgotten Subscriptions — Recomendo Deals</title>
+    <meta name="description" content="The average American pays for 12 subscriptions but uses 6. Here's every method worth trying to find forgotten recurring charges, cancel what you don't use, and spend the savings better.">
+    <meta property="og:title" content="How to Find Every Subscription You're Paying For (and Cancel the Ones You Don't Use)">
+    <meta property="og:description" content="The average American pays for 12 subscriptions but uses 6. Here's every method for tracking down recurring charges and deciding what to keep.">
+    <meta property="og:image" content="https://kk.org/cooltools/files/2026/01/recomendo-deals.png">
+    <meta property="og:type" content="article">
+    <link rel="canonical" href="https://recomendo-deals.vercel.app/subscription-audit.html">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f0f0;
+            color: #363737;
+            line-height: 1.7;
+        }
+
+        /* Header */
+        .site-header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+        .header-inner {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        .header-brand img {
+            max-width: 200px;
+            height: auto;
+        }
+        .header-brand a { text-decoration: none; }
+        .header-subtitle {
+            font-size: 13px;
+            color: #888;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 9px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-primary {
+            background: #4384F3;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #2b74f1; }
+        .btn-outline {
+            background: transparent;
+            color: #4384F3;
+            border: 1.5px solid #4384F3;
+        }
+        .btn-outline:hover {
+            background: #4384F3;
+            color: #fff;
+        }
+
+        /* Article */
+        .article-container {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .article-body {
+            background: #fff;
+            border-radius: 12px;
+            padding: 48px 44px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .article-body h1 {
+            font-size: 32px;
+            line-height: 1.25;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .article-meta {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 28px;
+        }
+        .article-intro {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.65;
+            margin-bottom: 36px;
+            border-left: 3px solid #4384F3;
+            padding-left: 18px;
+        }
+        .article-body h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-top: 40px;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        .article-body h2 .tip-number {
+            color: #4384F3;
+        }
+        .article-body p {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #444;
+        }
+        .article-body strong {
+            color: #363737;
+        }
+        .tip-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0 24px;
+            font-size: 14px;
+            color: #555;
+        }
+        .tip-box strong {
+            color: #4384F3;
+        }
+
+        /* CTA boxes */
+        .cta-box {
+            background: linear-gradient(135deg, #4384F3 0%, #2563eb 100%);
+            border-radius: 10px;
+            padding: 32px 28px;
+            margin: 40px 0;
+            text-align: center;
+            color: #fff;
+        }
+        .cta-box h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .cta-box p {
+            color: rgba(255,255,255,0.9);
+            font-size: 15px;
+            margin-bottom: 18px;
+        }
+        .cta-box .btn-cta {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #fff;
+            color: #4384F3;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .cta-box .btn-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Inline CTA */
+        .inline-cta {
+            background: #f0f7ff;
+            border: 1.5px solid #4384F3;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin: 24px 0;
+        }
+        .inline-cta p {
+            color: #363737;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .inline-cta a {
+            color: #4384F3;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .inline-cta a:hover { text-decoration: underline; }
+
+        /* Footer */
+        .site-footer {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .footer-links a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .footer-links a:hover { text-decoration: underline; }
+        .footer-disclosure {
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* Content gate */
+        .gated-content {
+            position: relative;
+        }
+        .gated-content.locked::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 30%, #fff 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .gated-content.locked {
+            max-height: 400px;
+            overflow: hidden;
+        }
+        .gate-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .gate-overlay.visible {
+            display: flex;
+        }
+        .gate-modal {
+            background: #fff;
+            border-radius: 14px;
+            padding: 40px 36px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+        .gate-modal h3 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .gate-modal .gate-subtitle {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .gate-modal label {
+            display: block;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .gate-modal label span {
+            color: #e53e3e;
+        }
+        .gate-modal input[type="email"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #d0d5dd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.15s;
+            margin-bottom: 6px;
+        }
+        .gate-modal input[type="email"]:focus {
+            border-color: #4384F3;
+            box-shadow: 0 0 0 3px rgba(67,132,243,0.15);
+        }
+        .gate-modal input[type="email"].error {
+            border-color: #e53e3e;
+        }
+        .gate-modal .error-msg {
+            font-size: 13px;
+            color: #e53e3e;
+            text-align: left;
+            margin-bottom: 12px;
+            min-height: 18px;
+        }
+        .gate-modal .btn-gate {
+            width: 100%;
+            padding: 14px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-top: 4px;
+        }
+        .gate-modal .btn-gate:hover {
+            background: #333;
+        }
+        .gate-modal .btn-gate:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+        .gate-modal .gate-footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+        }
+        .gate-modal .gate-lock-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .gate-modal .success-check {
+            display: none;
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .gate-modal.success .success-check {
+            display: block;
+        }
+        .gate-modal.success .gate-lock-icon,
+        .gate-modal.success form,
+        .gate-modal.success .gate-footer {
+            display: none;
+        }
+        .gate-modal .success-msg {
+            display: none;
+            font-size: 16px;
+            color: #444;
+            margin-top: 8px;
+        }
+        .gate-modal.success .success-msg {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-inner { flex-direction: column; align-items: center; text-align: center; }
+            .header-brand { align-items: center; }
+            .article-body { padding: 32px 24px; }
+            .article-body h1 { font-size: 26px; }
+            .article-body h2 { font-size: 19px; }
+        }
+        @media (max-width: 480px) {
+            .article-body { padding: 24px 18px; }
+            .article-body h1 { font-size: 23px; }
+            .header-actions { flex-wrap: wrap; justify-content: center; }
+            .gate-modal { padding: 32px 24px; }
+            .gate-modal h3 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-brand">
+            <a href="index.html">
+                <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+            </a>
+            <span class="header-subtitle">Live prices on 2,900+ recommended products</span>
+        </div>
+        <div class="header-actions">
+            <a href="https://mailchi.mp/cool-tools/recomendo-deals" class="btn btn-primary">Subscribe Free</a>
+            <a href="index.html" class="btn btn-outline">Browse Deals</a>
+        </div>
+    </div>
+</header>
+
+<main class="article-container">
+<article class="article-body">
+
+<h1>How to Find Every Subscription You're Paying For (and Cancel the Ones You Don't Use)</h1>
+<p class="article-meta">Updated March 2026 &middot; 8 min read</p>
+
+<p class="article-intro">The average American pays for about 12 subscriptions but actively uses around 6. That gap &mdash; the streaming service you signed up for one show, the fitness app from January, the cloud storage upgrade you no longer need &mdash; adds up to $600&ndash;1,800 a year, just sitting there. Here's every method worth trying to track them all down.</p>
+
+<h2><span class="tip-number">1.</span> Start with your bank and credit card statements</h2>
+<p>The most reliable method is also the most boring: pull up three months of statements from every card and bank account you use and scroll through them. You're looking for amounts that repeat on or near the same date &mdash; $4.99 on the 12th, $14.99 on the 3rd, $9.99 on the 18th. Those are almost always subscriptions.</p>
+<p>Most banking apps have a search or filter function, and some will flag recurring charges for you. Don't trust those categories completely &mdash; they miss plenty. Scroll through manually at least once. Three months catches the monthly charges; annual ones are sneakier &mdash; more on those in step 5.</p>
+<div class="tip-box"><strong>Quick method:</strong> Export your transactions to a spreadsheet, sort by amount, and scan for duplicates. Any charge of $4.99, $9.99, $12.99, or $14.99 is almost certainly a subscription.</div>
+
+<h2><span class="tip-number">2.</span> Use a subscription tracker to catch what you missed</h2>
+<p><strong>Rocket Money</strong> (formerly Truebill) connects to your bank accounts and identifies recurring charges automatically &mdash; including ones billed through PayPal or other payment methods that don't look like subscriptions on a bank statement.</p>
+<p>The free tier finds and lists your subscriptions. The paid version ($4&ndash;12/month) negotiates bills and cancels things on your behalf. <strong>Trim</strong> does something similar. If you'd rather not connect your bank &mdash; reasonable &mdash; <strong>TrackMySubs</strong> lets you enter subscriptions manually and sends renewal reminders before each charge hits.</p>
+<p>Even running the free version once is worth the five minutes of setup. Most people discover two to four charges they'd completely forgotten about.</p>
+
+<h2><span class="tip-number">3.</span> Check your phone's app store subscriptions</h2>
+<p>App store subscriptions are the sneakiest recurring charges because they often don't show up clearly on bank statements &mdash; they get bundled under "Apple.com/bill" or "Google *Services," which tells you nothing. Your phone has a list of every one of them, though.</p>
+<p><strong>On iPhone:</strong> Settings &rarr; tap your name at the top &rarr; Subscriptions. Every active and recently expired subscription billed through Apple is right there.</p>
+<p><strong>On Android:</strong> Open Google Play Store &rarr; tap your profile icon &rarr; Payments &amp; subscriptions &rarr; Subscriptions.</p>
+<div class="tip-box"><strong>Common surprises:</strong> Cloud storage upgrades (iCloud, Google One), meditation apps you used for a week, weather apps with "premium" tiers, and free trials that quietly converted months ago.</div>
+
+<h2><span class="tip-number">4.</span> Search your email for receipts and renewal notices</h2>
+<p>Your inbox has a paper trail for every subscription you've ever signed up for. Open your email and search for: <strong>"receipt"</strong>, <strong>"renewal"</strong>, <strong>"subscription"</strong>, <strong>"billing"</strong>, <strong>"your payment"</strong>, and <strong>"auto-renew"</strong>. Sort by date, most recent first.</p>
+<p>This is how you catch the charges billed through PayPal, direct ACH, or other payment methods that slip past the app store audit &mdash; a $6.99/month news service billed through PayPal to a debit card you barely use, that kind of thing.</p>
+<p>While you're at it, search for <strong>"free trial"</strong> &mdash; you might find trials about to convert or ones that already started billing without you noticing.</p>
+
+<div class="gated-content locked" id="gatedContent">
+<h2><span class="tip-number">5.</span> Hunt down the annual subscriptions</h2>
+<p>Annual subscriptions are the worst because they only appear once &mdash; you signed up a year ago, forgot about it, and now you've been auto-renewed for another $79 or $129 without a second thought. A monthly scan won't catch them.</p>
+<p>Search your email for <strong>"annual"</strong>, <strong>"yearly"</strong>, <strong>"12-month"</strong>, and <strong>"year renewal"</strong>. Then check your statements from the same month last year. The usual suspects: domain registrations, software licenses (antivirus, Microsoft 365, Adobe Creative Cloud), professional memberships, and warehouse club fees like Costco's $65 annual.</p>
+<p>For every annual subscription you decide to keep, set a calendar reminder two weeks before the renewal date. That buffer gives you time to cancel or downgrade before the charge hits &mdash; instead of discovering it three weeks later on your statement.</p>
+
+<h2><span class="tip-number">6.</span> Use virtual card numbers to prevent trials from converting</h2>
+<p><strong>Privacy.com</strong> lets you create virtual debit card numbers with spending limits &mdash; so you create a card with a $1 limit, use it for a free trial, and when the service tries to bill the full $12.99 at the end of the trial period, the charge simply fails. The trial expires. You never had to remember to cancel anything.</p>
+<p>Apple Pay and some banks &mdash; Citi is one &mdash; offer virtual card numbers too. It takes about 30 seconds to set up, and it eliminates the entire category of "I forgot to cancel the free trial" charges, which is where most subscription bloat comes from.</p>
+<div class="tip-box"><strong>Bonus:</strong> Virtual cards are also good for one-time purchases from unfamiliar websites. Lock the card after the purchase and nobody can charge it again.</div>
+
+<h2><span class="tip-number">7.</span> Pause before you cancel &mdash; the 30-day test</h2>
+<p>For the ones you're not sure about, pause instead of canceling. Most streaming services, software tools, and membership platforms have a pause option &mdash; your account and data stay intact, but the billing stops.</p>
+<p>Give it 30 days. If you never once think "I wish I still had that" &mdash; cancel for good. If you do miss it, unpause and you're back where you started. The reason this works is that most of what keeps people paying for unused subscriptions is a vague anxiety about losing access to something they might want someday. The 30-day pause calls that bluff.</p>
+
+<h2><span class="tip-number">8.</span> Call and ask for a discount before you cancel</h2>
+<p>Retention offers are one of the better-kept secrets in subscription pricing. When you call or chat to cancel, a surprising number of companies will offer you 20&ndash;50% off to stay. Cable and internet providers, streaming services, SaaS tools, gym memberships &mdash; they'd all rather keep you at a discount than lose you entirely.</p>
+<p>The script is simple: "I'd like to cancel my subscription." Then wait. They'll ask why. Say it's too expensive for how much you use it. In many cases they'll offer a discounted rate or a free month on the spot. <strong>SiriusXM</strong> is famous for this &mdash; almost nobody pays the sticker price.</p>
+<p>Even if you plan to keep a service, it's worth a five-minute call. The worst they say is no.</p>
+
+<h2><span class="tip-number">9.</span> Spend the savings on things you'll actually use</h2>
+<p>If you're like most people, you just freed up somewhere between $50 and $150 a month &mdash; that's $600&ndash;1,800 a year. The interesting question isn't whether to save it or spend it. It's whether to keep spending it the way you were &mdash; mindlessly, on things you forget you're paying for &mdash; or spend it on things that actually show up in your daily life. A good kitchen knife. A tool that saves you an hour a week. A book you'll think about for years.</p>
+<p>A forgotten subscription drains your account while you're not looking. A great purchase improves your life every time you pick it up. That's a pretty useful distinction.</p>
+<p>That's the idea behind <strong>Recomendo Deals</strong>. Every day, we check live prices on over 2,900 products recommended by the <a href="https://recomendo.com" style="color:#4384F3">Recomendo newsletter</a> and <a href="https://kk.org/cooltools/" style="color:#4384F3">Cool Tools</a> &mdash; things people have actually used and can vouch for. When something drops to a genuinely good price, we send one email. No subscription fee, no auto-renewals.</p>
+
+
+
+</div><!-- end gated-content -->
+
+</article>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-links">
+        <a href="https://mailchi.mp/cool-tools/recomendo-deals">Subscribe</a>
+        <a href="index.html">Browse All Deals</a>
+        <a href="archive.html">Past Issues</a>
+        <a href="feed.xml">RSS Feed</a>
+        <a href="https://recomendo.com">Recomendo</a>
+        <a href="https://kk.org/cooltools/">Cool Tools</a>
+    </div>
+    <div class="footer-disclosure">As an Amazon Associate we earn from qualifying purchases.</div>
+    <div>&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</div>
+</footer>
+
+<!-- Signup gate modal -->
+<div class="gate-overlay" id="gateOverlay">
+    <div class="gate-modal" id="gateModal">
+        <div class="gate-lock-icon">&#128274;</div>
+        <div class="success-check">&#9989;</div>
+        <h3>Unlock the Full Guide</h3>
+        <p class="gate-subtitle">Enter your email to keep reading &mdash; plus get our free daily deals newsletter with the best prices on 2,900+ recommended products.</p>
+        <form id="gateForm" action="https://mc.us5.list-manage.com/subscribe/landing-page" method="POST" target="mc-hidden-frame">
+            <input type="hidden" name="u" value="53778f4d4f7441531ee40dbed">
+            <input type="hidden" name="id" value="62ca2b5169">
+            <input type="hidden" name="f_id" value="008293e3f0">
+            <input type="text" name="b_53778f4d4f7441531ee40dbed_580040" tabindex="-1" value="" style="position:absolute;left:-5000px;" aria-hidden="true">
+            <label for="gateEmail"><span>*</span> Email Address</label>
+            <input type="email" id="gateEmail" name="EMAIL" placeholder="Email address" required autocomplete="email">
+            <div class="error-msg" id="gateError"></div>
+            <button type="submit" class="btn-gate" id="gateBtn">Subscribe &mdash; It's Free</button>
+        </form>
+        <iframe name="mc-hidden-frame" style="display:none;" tabindex="-1"></iframe>
+        <p class="gate-footer">Free forever. No spam. Unsubscribe anytime.</p>
+        <p class="success-msg">You're in! Enjoy the full guide.</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    var STORAGE_KEY = 'reco_deals_gate_unlocked';
+    var gated = document.getElementById('gatedContent');
+    var overlay = document.getElementById('gateOverlay');
+    var modal = document.getElementById('gateModal');
+    var form = document.getElementById('gateForm');
+    var emailInput = document.getElementById('gateEmail');
+    var errorMsg = document.getElementById('gateError');
+
+    // Check if already unlocked
+    if (localStorage.getItem(STORAGE_KEY)) {
+        gated.classList.remove('locked');
+        return;
+    }
+
+    // Show gate when user scrolls to gated content
+    var gateTriggered = false;
+    function checkScroll() {
+        if (gateTriggered) return;
+        var rect = gated.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.7) {
+            gateTriggered = true;
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    checkScroll(); // Check on load in case already scrolled
+
+    var btn = document.getElementById('gateBtn');
+
+    function unlockContent() {
+        localStorage.setItem(STORAGE_KEY, '1');
+        modal.classList.add('success');
+        setTimeout(function() {
+            gated.classList.remove('locked');
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }, 2000);
+    }
+
+    // Form submits to Mailchimp via hidden iframe; we validate and unlock on submit
+    form.addEventListener('submit', function(e) {
+        var email = emailInput.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            e.preventDefault();
+            emailInput.classList.add('error');
+            errorMsg.textContent = 'Please enter a valid email address.';
+            return;
+        }
+        emailInput.classList.remove('error');
+        errorMsg.textContent = '';
+        btn.disabled = true;
+        btn.textContent = 'Subscribing...';
+
+        // Let the form submit to the hidden iframe, then unlock
+        setTimeout(unlockContent, 2500);
+    });
+
+    // Prevent closing by clicking backdrop
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            modal.style.animation = 'none';
+            modal.offsetHeight; // trigger reflow
+            modal.style.animation = 'shake 0.4s ease';
+        }
+    });
+})();
+</script>
+<style>
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+}
+</style>
+
+</body>
+</html>
