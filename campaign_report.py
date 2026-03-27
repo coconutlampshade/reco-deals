@@ -401,7 +401,7 @@ def generate_report(last_n=None):
 
     # Load product catalog for affiliate URL lookups
     catalog = None
-    catalog_path = config.CATALOG_DIR / "products.json"
+    catalog_path = config.CATALOG_FILE
     if catalog_path.exists():
         with open(catalog_path) as f:
             catalog = json.load(f)

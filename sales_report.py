@@ -20,7 +20,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from config import CATALOG_DIR, SALES_CSV, SALES_REPORTS_DIR, EARNINGS_CSV, BOUNTY_CSV
+from config import CATALOG_DIR, CATALOG_FILE, SALES_CSV, SALES_REPORTS_DIR, EARNINGS_CSV, BOUNTY_CSV
 from generate_report import shorten_title
 
 # Amazon Associates commission rates by category (approximate)
@@ -271,7 +271,7 @@ def attribute_primary_tag(asin, rows):
 
 def load_products():
     """Load catalog/products.json for title lookups."""
-    path = CATALOG_DIR / "products.json"
+    path = CATALOG_FILE
     if not path.exists():
         return {}
     with open(path) as f:

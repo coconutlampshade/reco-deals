@@ -79,8 +79,7 @@ live_prices = {}
 
 def load_full_catalog() -> dict:
     """Load the full product catalog."""
-    catalog_file = config.CATALOG_DIR / "products.json"
-    with open(catalog_file, "r", encoding="utf-8") as f:
+    with open(config.CATALOG_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 

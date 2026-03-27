@@ -6,7 +6,7 @@
 
 ## Key References
 - @config.py for all constants, thresholds, and score weights
-- catalog/products.json for the full product catalog (~2900 items) — do NOT load into context
+- catalog/products.json for the full product catalog (~2900 items) — do NOT load this file into context
 
 ## Daily Workflow
 Use `/review-deals` to pull latest and launch the review interface, then `/push-newsletter` to commit and push.

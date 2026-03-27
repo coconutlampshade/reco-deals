@@ -115,7 +115,7 @@ def shorten_title(title):
 
 def load_catalog_benefits() -> dict:
     """Load benefit descriptions from products.json catalog."""
-    catalog_file = config.CATALOG_DIR / "products.json"
+    catalog_file = config.CATALOG_FILE
     if not catalog_file.exists():
         return {}
 

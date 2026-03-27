@@ -1,11 +1,23 @@
 """Configuration for Recomendo Deals."""
 
+import os
 from pathlib import Path
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent
 CATALOG_DIR = PROJECT_ROOT / "catalog"
-CATALOG_FILE = CATALOG_DIR / "products.json"
+
+# Use sample catalog in development, full catalog in production.
+# Override with CATALOG_MODE=full or CATALOG_MODE=sample to switch explicitly.
+_catalog_mode = os.environ.get("CATALOG_MODE", "").lower()
+if _catalog_mode == "full":
+    CATALOG_FILE = CATALOG_DIR / "products.json"
+elif _catalog_mode == "sample":
+    CATALOG_FILE = CATALOG_DIR / "products.sample.json"
+elif os.environ.get("NODE_ENV", "").lower() == "production":
+    CATALOG_FILE = CATALOG_DIR / "products.json"
+else:
+    CATALOG_FILE = CATALOG_DIR / "products.sample.json"
 SUBSTACK_EXPORT_DIR = PROJECT_ROOT / "substack_export"
 DASHBOARD_DIR = PROJECT_ROOT / "dashboard"
 HISTORY_DIR = PROJECT_ROOT / "history"
