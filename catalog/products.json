@@ -17710,7 +17710,17 @@
     "asin": "B00004UE75",
     "title": "Egg Timer",
     "amazon_url": "https://www.amazon.com/dp/B00004UE75",
-    "affiliate_url": "https://geni.us/e7aJ9w",
+    "affiliate_url": {
+      "linkCreatorSetting": "Simple",
+      "code": "e7aJ9w",
+      "productUrl": "https://www.amazon.com/dp/B00004UE75?linkCode=ogi&th=1&psc=1&language=en_US",
+      "domain": "geni.us",
+      "username": "cooltools",
+      "groupId": 113260,
+      "fetchMetadata": true,
+      "baseDomain": "geni.us",
+      "baseCode": "e7aJ9w"
+    },
     "issues": [
       {
         "url": "https://kk.org/cooltools/egg-timer/",

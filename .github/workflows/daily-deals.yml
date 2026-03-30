@@ -37,6 +37,7 @@ jobs:
       - name: Check all products (Keepa API)
         env:
           KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
+          CATALOG_MODE: full
         run: |
           # Full scan on Sundays (day 0) or when manually requested
           DAY_OF_WEEK=$(date -u +%w)
@@ -48,6 +49,8 @@ jobs:
           fi
 
       - name: Generate catalog data
+        env:
+          CATALOG_MODE: full
         run: |
           python generate_catalog_data.py
 
