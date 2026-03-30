@@ -290,5 +290,39 @@
       "B00FIX126K": "https://geni.us/KAfzC",
       "B001DIZ1NO": "https://geni.us/jQ47"
     }
+  },
+  {
+    "campaign_id": "2c2698cd64",
+    "web_id": 9143978,
+    "date": "2026-03-30",
+    "subject": "Recomendo Deals - March 30, 2026",
+    "deals_count": 7,
+    "asins": [
+      "B01NBMZ4QC",
+      "B0C6DQS74L",
+      "B07MJW5BXZ",
+      "B0000DI83G",
+      "B009QYH52C",
+      "B07VY3LSLC",
+      "B0F7X47TCD"
+    ],
+    "titles": {
+      "B01NBMZ4QC": "Utopia Home Velvet Hangers",
+      "B0C6DQS74L": "Cobweb Duster with Pole",
+      "B07MJW5BXZ": "Gotega External DVD Drive",
+      "B0000DI83G": "Suncast Wall-Mounted Garden Tool Hanger",
+      "B009QYH52C": "PILOT FriXion Erasable Gel Pens",
+      "B07VY3LSLC": "EZPB Peanut Butter Stirrer",
+      "B0F7X47TCD": "ThruNite Ti Mini Keychain Flashlight"
+    },
+    "affiliate_urls": {
+      "B01NBMZ4QC": "https://geni.us/velvet-hangers-ct",
+      "B0C6DQS74L": "https://geni.us/spider-web-duster",
+      "B07MJW5BXZ": "https://geni.us/cd-dvd-drive",
+      "B0000DI83G": "https://geni.us/c7eEc5",
+      "B009QYH52C": "https://geni.us/frixion-pen",
+      "B07VY3LSLC": "https://amzn.to/2Hmgoae",
+      "B0F7X47TCD": "https://geni.us/Xvtw"
+    }
   }
 ]

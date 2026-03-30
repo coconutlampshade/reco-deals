@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-price-context {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .deal-badges {
+            margin-bottom: 6px;
+        }
+        .deal-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .deal-badge.near-low {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .deal-badge.top-deal {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        .deal-badge.big-savings {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .deal-badge.prime-deal {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .catalog-cta {
+            text-align: center;
+            padding: 25px 20px;
+            margin: 30px 0;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            border-radius: 8px;
+            border: 1px solid #d0ddf5;
+        }
+        .catalog-cta h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #1a1a1a;
+        }
+        .catalog-cta p {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .catalog-cta a.cta-button {
+            display: inline-block;
+            padding: 12px 28px;
+            background-color: #4384F3;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .catalog-cta a.cta-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+        .unclassified-ad {
+            margin-top: 30px;
+            padding: 25px;
+            border: 2px dashed #4384F3;
+            border-radius: 8px;
+            background-color: #f8faff;
+        }
+        .unclassified-ad-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #4384F3;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
+                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">March 30, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>7</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B01NBMZ4QC">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/velvet-hangers-ct" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/81sSyO+3akL._SL300_.jpg" alt="Utopia Home Velvet Hangers" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/velvet-hangers-ct" target="_blank">Utopia Home Velvet Hangers</a>
+                </div>
+                <div class="deal-price">$14.99</div>
+                <div class="deal-price-context">90-day avg: $22.86</div>
+                <div class="deal-indicator">27% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/online-passport-renewalno-slip-hangersexplain" target="_blank">Recomendo #437</a>: These velvet hangers maximize closet space with their ultra-thin profile while preventing clothes from slipping off, creating a more organized and boutique-like appearance.</div>
+                <a href="https://geni.us/velvet-hangers-ct" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0C6DQS74L">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/spider-web-duster" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71g7rcAC65L._SL300_.jpg" alt="Cobweb Duster with Pole" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/spider-web-duster" target="_blank">Cobweb Duster with Pole</a>
+                </div>
+                <div class="deal-price">$8.99</div>
+                <div class="deal-price-context">90-day avg: $11.11</div>
+                <div class="deal-indicator">40% off list price</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/what-you-fearcobweb-dusteraudience" target="_blank">Recomendo #449</a>: The extendable 100-inch pole allows you to easily reach high corners and ceilings where spiders build webs, both indoors and outdoors, without needing a ladder.</div>
+                <a href="https://geni.us/spider-web-duster" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07MJW5BXZ">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/cd-dvd-drive" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71h7eXNIVPL._SL300_.jpg" alt="Gotega External DVD Drive" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/cd-dvd-drive" target="_blank">Gotega External DVD Drive</a>
+                </div>
+                <div class="deal-price">$12.69</div>
+                <div class="deal-price-context">90-day avg: $14.67</div>
+                <div class="deal-indicator">42% off list price</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/soundlycomwhatthefontexternal-dvd-22-10-23" target="_blank">Recomendo #350</a>: 📉 90-day low price! This external drive allows laptops without built-in CD/DVD drives to easily rip CDs to iTunes and play old DVDs by simply plugging it in via USB.</div>
+                <a href="https://geni.us/cd-dvd-drive" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0000DI83G">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/c7eEc5" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51So-nflcbL._SL300_.jpg" alt="Suncast Wall-Mounted Garden Tool Hanger" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/c7eEc5" target="_blank">Suncast Wall-Mounted Garden Tool Hanger</a>
+                </div>
+                <div class="deal-price">$29.07</div>
+                <div class="deal-price-context">90-day avg: $39.27</div>
+                <div class="deal-indicator">26% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/suncast-garden-tool-hanger/" target="_blank">Cool Tools</a>: Keeps broom bristles straight by preventing storage on bristles and organizes multiple cleaning tools off the floor to avoid tripping hazards and damage.</div>
+                <a href="https://geni.us/c7eEc5" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B009QYH52C">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/frixion-pen" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71nX0dUCJdL._SL300_.jpg" alt="PILOT FriXion Erasable Gel Pens" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/frixion-pen" target="_blank">PILOT FriXion Erasable Gel Pens</a>
+                </div>
+                <div class="deal-price">$5.69</div>
+                
+                <div class="deal-indicator">40% off list price</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/half-cut-spaghettiindustry-secretscinetrii-20-09-13" target="_blank">Recomendo #240</a>: These pens use heat-based erasers that make ink completely disappear without damaging the paper, unlike traditional pencil erasers that wear away the surface.</div>
+                <a href="https://geni.us/frixion-pen" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B07VY3LSLC">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2Hmgoae" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/7134fXgPIhL._SL300_.jpg" alt="EZPB Peanut Butter Stirrer" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2Hmgoae" target="_blank">EZPB Peanut Butter Stirrer</a>
+                </div>
+                <div class="deal-price">$7.95</div>
+                <div class="deal-price-context">90-day avg: $9.03</div>
+                <div class="deal-indicator">16% off list price</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/breathwrkunlocking-battery-brandsgoogle-browser-timer/" target="_blank">Cool Tools</a>: Crank-style stirrer mixes separated natural peanut butter right in the jar without the mess — reaches top, middle, bottom, and sides so every scoop has the right consistency.</div>
+                <a href="https://amzn.to/2Hmgoae" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B0F7X47TCD">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/Xvtw" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/61mEw7IaubL._SL300_.jpg" alt="ThruNite Ti Mini Keychain Flashlight" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/Xvtw" target="_blank">ThruNite Ti Mini Keychain Flashlight</a>
+                </div>
+                <div class="deal-price">$13.94</div>
+                <div class="deal-price-context">90-day avg: $15.80</div>
+                <div class="deal-indicator">30% off list price</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://www.recomendo.com/p/single-sheet-calendar-secret-mall" target="_blank">Recomendo #521</a>: Delivering up to 650 lumens with a max beam distance of 105 meters, this mini flashlight is powered by a built-in rechargeable 350mAh battery and features a USB-C port for fast, convenient charging.</div>
+                <a href="https://geni.us/Xvtw" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="unclassified-ad">
+            <div class="unclassified-ad-label">A deal too good not to share</div>
+            <div class="deal" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+                
+                <div class="deal-image">
+                    <a href="https://www.amazon.com/dp/B0C5S46QC1?tag=recomendos-20" target="_blank">
+                        <img src="https://m.media-amazon.com/images/I/31r-yaCv8xL._SL160_.jpg" alt="">
+                    </a>
+                </div>
+                <div class="deal-content">
+                    <div class="deal-title">
+                        <a href="https://www.amazon.com/dp/B0C5S46QC1?tag=recomendos-20" target="_blank">JLab Go Pop+ Wireless Bluetooth Earbuds & Charging Case</a>
+                    </div>
+                    <div class="deal-price">$17.49</div><div class="deal-indicator">50% off list price</div>
+                    
+                    <a href="https://www.amazon.com/dp/B0C5S46QC1?tag=recomendos-20" class="buy-button" target="_blank">SEE DEAL</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-cta">
+            <h3>Browse All Recomendo Deals</h3>
+            <p>Check live Amazon prices on every product we've ever recommended — updated daily.</p>
+            <a href="https://reco-deals.vercel.app/" class="cta-button">See All Deals</a>
+        </div>
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            <p><strong>Looking for more?</strong> Browse our <a href="https://reco-deals.vercel.app/">full catalog</a> of every product we've recommended since 2020 across Recomendo, Cool Tools, our YouTube channel, podcast, and all our other newsletters.</p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
