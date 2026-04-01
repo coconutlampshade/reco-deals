@@ -2559,22 +2559,6 @@
     "added_at": "2026-01-02T13:42:17.896648",
     "benefit_description": "Provides perfectly balanced performance with ergonomic design that stays razor sharp and lasts for generations at a fraction of the cost of premium knives."
   },
-  "B002U21ZZK": {
-    "asin": "B002U21ZZK",
-    "title": "Mova Globe",
-    "amazon_url": "https://www.amazon.com/dp/B002U21ZZK?tag=recomendos-20",
-    "affiliate_url": "https://geni.us/plgFB1V",
-    "issues": [
-      {
-        "url": "https://recomendo.substack.com/p/spinning-planetosearound-zipper-card",
-        "title": "Holiday Gift Ideas",
-        "date": "2024-12-01"
-      }
-    ],
-    "first_featured": "2024-12-01",
-    "added_at": "2026-01-02T13:42:17.896664",
-    "benefit_description": "Based on the limited information in this excerpt, I cannot determine a specific key benefit of the product since the review content appears to be fragmented and doesn't contain clear details about what the globe does or how it functions."
-  },
   "B08ZMJHDR1": {
     "asin": "B08ZMJHDR1",
     "title": "Amazon.jp",
@@ -7290,17 +7274,7 @@
     "asin": "B0093162RM",
     "title": "Philips Wake-Up Light Alarm Clock",
     "amazon_url": "https://www.amazon.com/dp/B0093162RM?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "2zQLA",
-      "productUrl": "https://www.amazon.com/dp/B0093162RM?tag=recomendos-20",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "2zQLA"
-    },
+    "affiliate_url": "https://geni.us/2zQLA",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/seed-starting-kitjordhammondwake-19-07-14",
@@ -18320,17 +18294,7 @@
     "asin": "B00N9UUWLA",
     "title": "Pentel Pocket Brush Pen",
     "amazon_url": "https://www.amazon.com/dp/B00N9UUWLA",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "YNBa0QX",
-      "productUrl": "https://www.amazon.com/dp/B00N9UUWLA?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "YNBa0QX"
-    },
+    "affiliate_url": "https://geni.us/YNBa0QX",
     "issues": [
       {
         "url": "https://kk.org/cooltools/pentel-pocket-b/",

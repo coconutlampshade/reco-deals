@@ -321,5 +321,36 @@
       "B001EJMS6K": "https://amzn.to/2NnQC7u",
       "B0128MOFY4": "https://geni.us/w0fW0"
     }
+  },
+  {
+    "campaign_id": "6f25c9a633",
+    "web_id": 9143983,
+    "date": "2026-04-01",
+    "subject": "Recomendo Deals - April 01, 2026",
+    "deals_count": 6,
+    "asins": [
+      "B0093162RM",
+      "B0002U33S4",
+      "B0D1LHBZGL",
+      "B07J6Q211R",
+      "B00N9UUWLA",
+      "B009OOY3AQ"
+    ],
+    "titles": {
+      "B0093162RM": "Philips SmartSleep Wake-up Light",
+      "B0002U33S4": "Zeroll Ice Cream Scoop",
+      "B0D1LHBZGL": "Elevation Lab AirTag Battery Case",
+      "B07J6Q211R": "SAIJI Adjustable Laptop Bed Tray",
+      "B00N9UUWLA": "Pentel Portable Brush Pen",
+      "B009OOY3AQ": "Viewtainer Storage Container"
+    },
+    "affiliate_urls": {
+      "B0093162RM": "https://geni.us/2zQLA",
+      "B0002U33S4": "https://geni.us/QjfjPc",
+      "B0D1LHBZGL": "https://geni.us/time-capsule",
+      "B07J6Q211R": "https://geni.us/bed-desk",
+      "B00N9UUWLA": "https://geni.us/YNBa0QX",
+      "B009OOY3AQ": "https://geni.us/viewtainer"
+    }
   }
 ]
