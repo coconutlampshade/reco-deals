@@ -352,5 +352,39 @@
       "B00N9UUWLA": "https://geni.us/YNBa0QX",
       "B009OOY3AQ": "https://geni.us/viewtainer"
     }
+  },
+  {
+    "campaign_id": "1d79197712",
+    "web_id": 9143988,
+    "date": "2026-04-02",
+    "subject": "Recomendo Deals - April 02, 2026",
+    "deals_count": 7,
+    "asins": [
+      "B077TWL6T1",
+      "B002XOHZWC",
+      "B001OVG40E",
+      "B0011MIQUM",
+      "B005BP8OKM",
+      "B00006JSUB",
+      "B00CHOUI86"
+    ],
+    "titles": {
+      "B077TWL6T1": "Rumford Baking Powder",
+      "B002XOHZWC": "Chef'n Strawberry Huller",
+      "B001OVG40E": "SAKURA Watercolor Field Sketch Set",
+      "B0011MIQUM": "ADC Medicut Shears",
+      "B005BP8OKM": "OurPets Catnip Cat Toy",
+      "B00006JSUB": "Lodge Cast Iron Skillet",
+      "B00CHOUI86": "Zojirushi Stainless Steel Mug"
+    },
+    "affiliate_urls": {
+      "B077TWL6T1": "https://geni.us/APIZdr",
+      "B002XOHZWC": "https://geni.us/3HpFT",
+      "B001OVG40E": "https://geni.us/y2nc",
+      "B0011MIQUM": "https://geni.us/1dtQoF",
+      "B005BP8OKM": "https://geni.us/bItpb",
+      "B00006JSUB": "https://amzn.to/2YfLFBx",
+      "B00CHOUI86": "https://amzn.to/2NsHxL8?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter"
+    }
   }
 ]

@@ -14026,17 +14026,7 @@
     "asin": "B002XOHZWC",
     "title": "strawberry huller",
     "amazon_url": "https://www.amazon.com/dp/B002XOHZWC?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "3HpFT",
-      "productUrl": "https://www.amazon.com/dp/B002XOHZWC?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "3HpFT"
-    },
+    "affiliate_url": "https://geni.us/3HpFT",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/what3wordsneighborsxhalr-18-06-17",
@@ -40851,7 +40841,7 @@
     ],
     "first_featured": "2016-05-24",
     "added_at": "2026-01-03T08:01:04.402725",
-    "benefit_description": "Provides curated recommendations and detailed insights about useful tools and products through expert interviews and demonstrations."
+    "benefit_description": "Provides precise control over pencil point sharpness with an auto-stop feature that prevents over-sharpening and an adjustable cone system that lets you customize the point angle for detailed drawing and drafting work."
   },
   "B00DDVNNUM": {
     "asin": "B00DDVNNUM",
