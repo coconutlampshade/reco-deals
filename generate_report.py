@@ -771,6 +771,8 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         else:
             buy_link = get_buy_link(deal)
 
+        avg_90 = deal.get("avg_90_day")
+
         price_html = ""
         indicator_html = ""
         if live_price.get("current_price"):
@@ -786,7 +788,6 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         price_context_html = ""
         badges_html = ""
         current = live_price.get("current_price") or deal.get("current_price")
-        avg_90 = deal.get("avg_90_day")
         low_90 = deal.get("low_90_day")
         deal_score = deal.get("deal_score", 0)
         savings_dollars = deal.get("savings_dollars", 0) or 0

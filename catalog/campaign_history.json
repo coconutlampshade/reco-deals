@@ -386,5 +386,42 @@
       "B00006JSUB": "https://amzn.to/2YfLFBx",
       "B00CHOUI86": "https://amzn.to/2NsHxL8?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter"
     }
+  },
+  {
+    "campaign_id": "9806cfc7a5",
+    "web_id": 9143992,
+    "date": "2026-04-03",
+    "subject": "Recomendo Deals - April 03, 2026",
+    "deals_count": 8,
+    "asins": [
+      "B0000CFO3W",
+      "B06WWLJ7KY",
+      "0316400025",
+      "B01LY6BVXP",
+      "B000HFBR1O",
+      "B01MR00RI3",
+      "B000EDUUIA",
+      "B00CAKQCHS"
+    ],
+    "titles": {
+      "B0000CFO3W": "Kolder Mini Measuring Shot Glass",
+      "B06WWLJ7KY": "Fujifilm Instax Mini Instant Camera",
+      "0316400025": "Wherever You Go",
+      "B01LY6BVXP": "Dotop Credit Card Magnifying Lenses",
+      "B000HFBR1O": "MagLite Mini LED Flashlight",
+      "B01MR00RI3": "Sakura Pigma Manga Set",
+      "B000EDUUIA": "Camco AccuPark Vehicle Parking Aid",
+      "B00CAKQCHS": "Korg Volca Bass Synthesizer"
+    },
+    "affiliate_urls": {
+      "B0000CFO3W": "https://geni.us/YxaAqe",
+      "B06WWLJ7KY": "https://geni.us/7CHd",
+      "0316400025": "https://geni.us/uqoULx",
+      "B01LY6BVXP": "https://geni.us/2RrFDR1",
+      "B000HFBR1O": "https://amzn.to/2Jtyfwy?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter",
+      "B01MR00RI3": "https://geni.us/9vetH",
+      "B000EDUUIA": "https://geni.us/393Mhes",
+      "B00CAKQCHS": "http://amzn.to/2au5eA8"
+    }
   }
 ]

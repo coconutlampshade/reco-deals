@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendo Deals</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #363737;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-width: 320px;
+            height: auto;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .deal {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .deal:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .deal-image {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+        }
+        .deal-image img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .deal-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .deal-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #363737;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .deal-title a {
+            color: #363737;
+            text-decoration: none;
+        }
+        .deal-title a:hover {
+            color: #4384F3;
+        }
+        .deal-indicator {
+            font-size: 16px;
+            font-weight: 600;
+            color: #27ae60;
+            margin-bottom: 6px;
+        }
+        .deal-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .deal-price-context {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .deal-badges {
+            margin-bottom: 6px;
+        }
+        .deal-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        .deal-badge.near-low {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .deal-badge.top-deal {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        .deal-badge.big-savings {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .deal-badge.prime-deal {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        .deal-tag {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .deal-tag.highlight {
+            background-color: #27ae60;
+        }
+        .deal-meta {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+        .deal-meta a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .deal-meta a:hover {
+            text-decoration: underline;
+        }
+        .buy-button {
+            display: inline-block;
+            background-color: #4384F3;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .buy-button:hover {
+            background-color: #2b74f1;
+        }
+        .catalog-cta {
+            text-align: center;
+            padding: 25px 20px;
+            margin: 30px 0;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            border-radius: 8px;
+            border: 1px solid #d0ddf5;
+        }
+        .catalog-cta h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #1a1a1a;
+        }
+        .catalog-cta p {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .catalog-cta a.cta-button {
+            display: inline-block;
+            padding: 12px 28px;
+            background-color: #4384F3;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .catalog-cta a.cta-button:hover {
+            background-color: #2b74f1;
+        }
+        .footer {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .intro {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .intro a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .intro a:hover {
+            text-decoration: underline;
+        }
+        .disclosure {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        @media (max-width: 480px) {
+            .deal {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .deal-image {
+                width: 150px;
+                height: 150px;
+                margin-bottom: 15px;
+            }
+            .deal-image img {
+                width: 150px;
+                height: 150px;
+            }
+            .deal-content {
+                width: 100%;
+            }
+        }
+        /* Hide Mailchimp's extra line breaks before footer */
+        center > br { display: none; }
+        .view-online {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .view-online a {
+            color: #4384F3;
+            text-decoration: none;
+        }
+        .view-online a:hover {
+            text-decoration: underline;
+        }
+        .price-loading {
+            color: #999;
+            font-style: italic;
+        }
+        .unclassified-ad {
+            margin-top: 30px;
+            padding: 25px;
+            border: 2px dashed #4384F3;
+            border-radius: 8px;
+            background-color: #f8faff;
+        }
+        .unclassified-ad-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #4384F3;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+        }
+    </style>
+
+    <script>
+        async function fetchPrices() {
+            const deals = document.querySelectorAll('.deal[data-asin]');
+            const asins = Array.from(deals).map(d => d.dataset.asin).filter(Boolean);
+
+            if (asins.length === 0) return;
+
+            // Batch into groups of 10 (API limit)
+            for (let i = 0; i < asins.length; i += 10) {
+                const batch = asins.slice(i, i + 10);
+                try {
+                    const response = await fetch(`/api/prices?asins=${batch.join(',')}`);
+                    if (!response.ok) throw new Error('API error');
+                    const prices = await response.json();
+
+                    for (const [asin, data] of Object.entries(prices)) {
+                        const deal = document.querySelector(`.deal[data-asin="${asin}"]`);
+                        if (!deal) continue;
+
+                        const priceEl = deal.querySelector('.deal-price');
+                        const indicatorEl = deal.querySelector('.deal-indicator');
+
+                        if (data.current_price && priceEl) {
+                            priceEl.textContent = `$${data.current_price.toFixed(2)}`;
+                            priceEl.classList.remove('price-loading');
+                        }
+
+                        const avg90 = deal.dataset.avg ? parseFloat(deal.dataset.avg) : null;
+                        if (data.current_price && avg90 && avg90 > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((avg90 - data.current_price) / avg90) * 100);
+                            indicatorEl.textContent = `${savingsPct}% below 90-day avg`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error fetching prices:', e);
+                }
+            }
+
+            // Update timestamp
+            const disclosureEl = document.querySelector('.disclosure');
+            if (disclosureEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                disclosureEl.innerHTML = disclosureEl.innerHTML.replace(/at \d+:\d+ [A-Z]+/, `at ${timeStr}`);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="logo">
+            <img src="https://kk.org/cooltools/files/2026/01/recomendo-deals.png" alt="Recomendo Deals">
+        </div>
+        <div class="subtitle">April 03, 2026</div>
+
+        <div class="intro">
+            Today, we've found <strong>8</strong> great deals on things we've previously featured in our <a href="https://recomendo.com">Recomendo newsletter</a> and in <a href="https://cool-tools.org">Cool Tools</a>.
+        </div>
+
+        <div class="disclosure">
+            As an Amazon Associate we earn from qualifying purchases.
+        </div>
+
+        <div class="deal" data-asin="B0000CFO3W" data-avg="10.74">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/YxaAqe" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71aD9Zzm+gL._SL300_.jpg" alt="Kolder Mini Measuring Shot Glass" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/YxaAqe" target="_blank">Kolder Mini Measuring Shot Glass</a>
+                </div>
+                <div class="deal-price">$5.00</div>
+                <div class="deal-price-context">90-day avg: $10.74</div>
+                <div class="deal-indicator">53% below 90-day avg</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/mini-measure-sh/" target="_blank">Cool Tools</a>: Provides precise measurement of small liquid ingredients like vanilla extract and soy sauce without the difficulty of filling measuring spoons to the rim.</div>
+                <a href="https://geni.us/YxaAqe" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B06WWLJ7KY" data-avg="96.90">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/7CHd" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71Pt62Oc1JL._SL300_.jpg" alt="Fujifilm Instax Mini Instant Camera" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/7CHd" target="_blank">Fujifilm Instax Mini Instant Camera</a>
+                </div>
+                <div class="deal-price">$58.00</div>
+                <div class="deal-price-context">90-day avg: $96.90</div>
+                <div class="deal-indicator">40% below 90-day avg</div>
+                <div class="deal-badges"><span class="deal-badge big-savings">Save $38.90</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/talk-to-booksplastic-razor-bladesfuji-19-01-27" target="_blank">Recomendo #155</a>: Portraits taken with these and handed out instantly are wonderful icebreakers. Popular at parties as a mini photo-booth, too.</div>
+                <a href="https://geni.us/7CHd" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="0316400025" data-avg="9.14">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/uqoULx" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/71Ndx4JHhdL._SL300_.jpg" alt="Wherever You Go" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/uqoULx" target="_blank">Wherever You Go</a>
+                </div>
+                <div class="deal-price">$5.85</div>
+                <div class="deal-price-context">90-day avg: $9.14</div>
+                <div class="deal-indicator">36% below 90-day avg</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="http://eepurl.com/jyTCKE" target="_blank">Cool Tools</a></div>
+                <a href="https://geni.us/uqoULx" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01LY6BVXP" data-avg="8.95">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/2RrFDR1" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51KbBpecCHL._SL300_.jpg" alt="Dotop Credit Card Magnifying Lenses" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/2RrFDR1" target="_blank">Dotop Credit Card Magnifying Lenses</a>
+                </div>
+                <div class="deal-price">$6.99</div>
+                <div class="deal-price-context">90-day avg: $8.95</div>
+                <div class="deal-indicator">22% below 90-day avg</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/wallet-magnifie/" target="_blank">Cool Tools</a>: Provides clear magnification for reading tiny serial numbers, resistor color codes, and other small text that's difficult to see with the naked eye, especially in dark or dirty work environments.</div>
+                <a href="https://geni.us/2RrFDR1" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000HFBR1O" data-avg="30.13">
+            
+        <div class="deal-image">
+            <a href="https://amzn.to/2Jtyfwy?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51Ptb7jkGiL._SL300_.jpg" alt="MagLite Mini LED Flashlight" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://amzn.to/2Jtyfwy?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" target="_blank">MagLite Mini LED Flashlight</a>
+                </div>
+                <div class="deal-price">$19.99</div>
+                <div class="deal-price-context">90-day avg: $30.13</div>
+                <div class="deal-indicator">34% below 90-day avg</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-gareth-branwyn/" target="_blank">Cool Tools</a>: Provides a powerful, adjustable beam that lasts for decades on a single AAA battery, making it an ultra-reliable light source for everyday carry.</div>
+                <a href="https://amzn.to/2Jtyfwy?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B01MR00RI3" data-avg="9.42">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/9vetH" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/716EN5fzzJL._SL300_.jpg" alt="Sakura Pigma Manga Set" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/9vetH" target="_blank">Sakura Pigma Manga Set</a>
+                </div>
+                <div class="deal-price">$9.39</div>
+                <div class="deal-price-context">90-day avg: $9.42</div>
+                <div class="deal-indicator">0% below 90-day avg</div>
+                <div class="deal-badges"><span class="deal-badge near-low">90-Day Low</span></div>
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/foldable-dog-water-bottle52-things-19-12-29" target="_blank">Recomendo #203</a>: Provides waterproof, very dark ink in multiple pen sizes including fine-tip options and a brush pen for detailed drawing work.</div>
+                <a href="https://geni.us/9vetH" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B000EDUUIA" data-avg="18.00">
+            
+        <div class="deal-image">
+            <a href="https://geni.us/393Mhes" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/51XKSmxQa0L._SL300_.jpg" alt="Camco AccuPark Vehicle Parking Aid" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="https://geni.us/393Mhes" target="_blank">Camco AccuPark Vehicle Parking Aid</a>
+                </div>
+                <div class="deal-price">$15.50</div>
+                <div class="deal-price-context">90-day avg: $18.00</div>
+                <div class="deal-indicator">14% below 90-day avg</div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://recomendo.substack.com/p/text-only-cnncheap-mobile-homeyoutube-17-09-17" target="_blank">Recomendo #84</a>: Helps drivers position their car at the exact right spot in the garage for optimal charger port access.</div>
+                <a href="https://geni.us/393Mhes" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="deal" data-asin="B00CAKQCHS" data-avg="147.06">
+            
+        <div class="deal-image">
+            <a href="http://amzn.to/2au5eA8" target="_blank">
+                <img src="https://m.media-amazon.com/images/I/715tDgOiMnL._SL300_.jpg" alt="Korg Volca Bass Synthesizer" loading="lazy">
+            </a>
+        </div>
+            <div class="deal-content">
+                <div class="deal-title">
+                    <a href="http://amzn.to/2au5eA8" target="_blank">Korg Volca Bass Synthesizer</a>
+                </div>
+                <div class="deal-price">$149.88</div>
+                
+                <div class="deal-indicator"></div>
+                
+                <div class="deal-meta">Reviewed in <a href="https://kk.org/cooltools/whats-in-my-bag-tee-cardaci/" target="_blank">Cool Tools</a>: Delivers powerful analog bass sounds with three oscillators and an intuitive sequencer for creating groovy bass lines that cut through any mix.</div>
+                <a href="http://amzn.to/2au5eA8" class="buy-button" target="_blank">SEE DEAL</a>
+            </div>
+        </div>
+
+        <div class="unclassified-ad">
+            <div class="unclassified-ad-label">A deal too good not to share</div>
+            <div class="deal" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+                
+                <div class="deal-image">
+                    <a href="https://www.amazon.com/dp/B0CH1N7X5W?tag=recomendos-20" target="_blank">
+                        <img src="https://m.media-amazon.com/images/I/51Vge4nMFHL._SL160_.jpg" alt="">
+                    </a>
+                </div>
+                <div class="deal-content">
+                    <div class="deal-title">
+                        <a href="https://www.amazon.com/dp/B0CH1N7X5W?tag=recomendos-20" target="_blank">Energizer 2032 Batteries (10 Pack)</a>
+                    </div>
+                    <div class="deal-price">$6.94</div>
+                    <div class="deal-meta">3V Lithium Coin Batteries with 3-in-1 Child Shield</div>
+                    <a href="https://www.amazon.com/dp/B0CH1N7X5W?tag=recomendos-20" class="buy-button" target="_blank">SEE DEAL</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-cta">
+            <h3>Browse All Recomendo Deals</h3>
+            <p>Check live Amazon prices on every product we've ever recommended — updated daily.</p>
+            <a href="https://reco-deals.vercel.app/" class="cta-button">See All Deals</a>
+        </div>
+        <div class="footer">
+            <p><em>Recomendo Deals is published by Cool Tools Lab, LLC, a small company of three people. We also run <a href="https://recomendo.com">Recomendo</a>, the <a href="https://kk.org/cooltools/">Cool Tools website</a>, a <a href="https://www.youtube.com/cooltools">YouTube channel</a> and <a href="https://open.spotify.com/show/5Bx52UzoVrjSp8bsZyNJcI">podcast</a>, and other newsletters, including <a href="https://garstips.substack.com/">Gar's Tips &amp; Tools</a>, <a href="https://nomadico.substack.com/">Nomadico</a>, <a href="https://whatsinmynow.substack.com/">What's in my NOW?</a>, <a href="https://toolsforpossibilities.substack.com/">Tools for Possibilities</a>, <a href="https://booksthatbelongonpaper.substack.com/">Books That Belong On Paper</a>, and <a href="https://bookfreak.substack.com/">Book Freak</a>.</em></p>
+            <p><strong>Looking for more?</strong> Browse our <a href="https://reco-deals.vercel.app/">full catalog</a> of every product we've recommended since 2020 across Recomendo, Cool Tools, our YouTube channel, podcast, and all our other newsletters.</p>
+            
+            <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p>Curious how we decide what counts as a deal? <a href="https://reco-deals.vercel.app/how-we-find-deals.html">Here's how we find these deals</a>.</p>
+            <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
