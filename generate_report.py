@@ -697,9 +697,10 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
                             priceEl.classList.remove('price-loading');
                         }
 
-                        if (data.current_price && data.list_price && data.list_price > data.current_price && indicatorEl) {
-                            const savingsPct = Math.round(((data.list_price - data.current_price) / data.list_price) * 100);
-                            indicatorEl.textContent = `${savingsPct}% off list price`;
+                        const avg90 = deal.dataset.avg ? parseFloat(deal.dataset.avg) : null;
+                        if (data.current_price && avg90 && avg90 > data.current_price && indicatorEl) {
+                            const savingsPct = Math.round(((avg90 - data.current_price) / avg90) * 100);
+                            indicatorEl.textContent = `${savingsPct}% below 90-day avg`;
                         }
                     }
                 } catch (e) {
@@ -776,10 +777,10 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             current = live_price["current_price"]
             price_html = f'<div class="deal-price">{format_price(current)}</div>'
 
-            # Only show savings if PA API provides list_price (Amazon's own data)
-            if live_price.get("list_price") and live_price["list_price"] > current:
-                savings_pct = ((live_price["list_price"] - current) / live_price["list_price"]) * 100
-                indicator_html = f'<div class="deal-indicator">{savings_pct:.0f}% off list price</div>'
+            # Show savings vs 90-day average (more meaningful than list price)
+            if avg_90 and avg_90 > current:
+                savings_pct = ((avg_90 - current) / avg_90) * 100
+                indicator_html = f'<div class="deal-indicator">{savings_pct:.0f}% below 90-day avg</div>'
 
         # Price context: show 90-day average and badges
         price_context_html = ""
@@ -864,8 +865,9 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             if not indicator_html:
                 indicator_html = '<div class="deal-indicator"></div>'
 
+        avg_90_attr = f' data-avg="{avg_90:.2f}"' if avg_90 else ''
         html += f"""
-        <div class="deal" data-asin="{asin}">
+        <div class="deal" data-asin="{asin}"{avg_90_attr}>
             {image_html}
             <div class="deal-content">
                 <div class="deal-title">
@@ -895,9 +897,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
         ad_price_html = ""
         if ad_price:
             ad_price_html = f'<div class="deal-price">${ad_price:.2f}</div>'
-            if ad_list_price and ad_list_price > ad_price:
-                savings_pct = ((ad_list_price - ad_price) / ad_list_price) * 100
-                ad_price_html += f'<div class="deal-indicator">{savings_pct:.0f}% off list price</div>'
+            # No 90-day avg available for featured ads, so no % indicator
 
         ad_image_html = ""
         if ad_image:
@@ -930,6 +930,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
     # URLs for footer links
     catalog_url = "https://reco-deals.vercel.app/"
     archive_url = "https://reco-deals.vercel.app/archive.html"
+    how_we_find_deals_url = "https://reco-deals.vercel.app/how-we-find-deals.html"
 
     html += f"""
         <div class="catalog-cta">
@@ -942,6 +943,7 @@ def generate_html_report(deals: list, title: str = "Recomendo Deals", live_price
             <p><strong>Looking for more?</strong> Browse our <a href="{catalog_url}">full catalog</a> of every product we've recommended since 2020 across Recomendo, Cool Tools, our YouTube channel, podcast, and all our other newsletters.</p>
             {'<p>Looking for past deals? <a href="' + archive_url + '">Browse our archive</a> for previous issues with up-to-date prices.</p>' if not web_mode else ''}
             <p>If a friend sent this issue of Recomendo Deals to you and you'd like to subscribe, <a href="https://mailchi.mp/cool-tools/recomendo-deals">sign up here</a>. It's free.</p>
+            <p>Curious how we decide what counts as a deal? <a href="{how_we_find_deals_url}">Here's how we find these deals</a>.</p>
             <p class="copyright">&copy; 2026 Cool Tools Lab, LLC. All rights reserved.</p>
         </div>
     </div>
