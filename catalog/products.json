@@ -14258,17 +14258,7 @@
     "asin": "B0000CFDD5",
     "title": "6-inch Victorinox",
     "amazon_url": "https://www.amazon.com/dp/B0000CFDD5?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "evDqt",
-      "productUrl": "https://www.amazon.com/dp/B0000CFDD5?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "evDqt"
-    },
+    "affiliate_url": "https://geni.us/evDqt",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/logobookbest-kitchen-knifebeauty-17-05-07",
@@ -19503,17 +19493,7 @@
     "asin": "B001PMGBY6",
     "title": "Removable Magic Tape",
     "amazon_url": "https://www.amazon.com/dp/B001PMGBY6",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "F0NsDQw",
-      "productUrl": "https://www.amazon.com/dp/B001PMGBY6?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "F0NsDQw"
-    },
+    "affiliate_url": "https://geni.us/F0NsDQw",
     "issues": [
       {
         "url": "https://kk.org/cooltools/removable-magic/",
@@ -19611,17 +19591,7 @@
     "asin": "B00004THYY",
     "title": "IRWIN Unibit Drill Bit",
     "amazon_url": "https://www.amazon.com/dp/B00004THYY",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "Rr2ca",
-      "productUrl": "https://www.amazon.com/dp/B00004THYY?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "Rr2ca"
-    },
+    "affiliate_url": "https://geni.us/Rr2ca",
     "issues": [
       {
         "url": "https://kk.org/cooltools/irwin-unibit-dr/",
@@ -37614,17 +37584,7 @@
     "asin": "B00FIX12AG",
     "title": "Nite Ize KeyRack Locker Steel S-Biner - Heavy-Duty Carabiner Clip for Keys - S-Biner MicroLocks for Key Holders - Stainless Steel Keychain Accessories & Organizers",
     "amazon_url": "https://www.amazon.com/dp/B00FIX12AG",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "427791",
-      "productUrl": "https://www.amazon.com/dp/B00FIX12AG?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "427791"
-    },
+    "affiliate_url": "https://geni.us/427791",
     "issues": [
       {
         "url": "https://kk.org/cooltools/its-amazon-prime-day-find-out-if-our-top-cool-tools-are-on-sale/",
@@ -37641,17 +37601,7 @@
     "asin": "B00210MRGC",
     "title": "Kikkerland UL03-A Universal Travel Adapter, Black",
     "amazon_url": "https://www.amazon.com/dp/B00210MRGC",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "ZZ6JNRa",
-      "productUrl": "https://www.amazon.com/dp/B00210MRGC?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "ZZ6JNRa"
-    },
+    "affiliate_url": "https://geni.us/ZZ6JNRa",
     "issues": [
       {
         "url": "https://kk.org/cooltools/its-amazon-prime-day-find-out-if-our-top-cool-tools-are-on-sale/",
@@ -73469,7 +73419,8 @@
       }
     ],
     "first_featured": "2026-03-20",
-    "added_at": "2026-03-28T05:18:06.873356"
+    "added_at": "2026-03-28T05:18:06.873356",
+    "benefit_description": "Prevents wireless earbuds from falling out and getting lost by connecting them with a secure strap around your neck."
   },
   "059372318X": {
     "asin": "059372318X",
@@ -73581,7 +73532,8 @@
       }
     ],
     "first_featured": "2026-04-03",
-    "added_at": "2026-04-04T05:18:00.863206"
+    "added_at": "2026-04-04T05:18:00.863206",
+    "benefit_description": "Challenges players to master the art of bluffing and deception through strategic gameplay that combines simple mechanics with deep psychological strategy."
   },
   "0486229866": {
     "asin": "0486229866",
