@@ -6780,17 +6780,7 @@
     "asin": "B00OEDMZ52",
     "title": "fusible interface",
     "amazon_url": "https://www.amazon.com/dp/B00OEDMZ52?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "DRxHj",
-      "productUrl": "https://www.amazon.com/dp/B00OEDMZ52?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "DRxHj"
-    },
+    "affiliate_url": "https://geni.us/DRxHj",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/chrome-tipsfavorite-coffee-makerrepair-18-05-13",
@@ -37618,17 +37608,7 @@
     "asin": "B00121UVU0",
     "title": "O'Keeffe's Working Hands Hand Cream for Extreme Dryness - 3.4 oz Jar (1 Pack) - Repairing Skincare for Cracked, Dry Hands",
     "amazon_url": "https://www.amazon.com/dp/B00121UVU0",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "uHzCLWM",
-      "productUrl": "https://www.amazon.com/dp/B00121UVU0?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "uHzCLWM"
-    },
+    "affiliate_url": "https://geni.us/uHzCLWM",
     "issues": [
       {
         "url": "https://kk.org/cooltools/its-amazon-prime-day-find-out-if-our-top-cool-tools-are-on-sale/",
@@ -56459,17 +56439,7 @@
     "asin": "B06XNX32K1",
     "title": "Ragmask/Advanced internet security/Personal-size heater",
     "amazon_url": "https://www.amazon.com/dp/B06XNX32K1",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "UrrfKbg",
-      "productUrl": "https://www.amazon.com/dp/B06XNX32K1?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "UrrfKbg"
-    },
+    "affiliate_url": "https://geni.us/UrrfKbg",
     "issues": [
       {
         "url": "https://kk.org/cooltools/ragmaskadvanced-internet-securitypersonal-size-heater/",
@@ -56480,7 +56450,7 @@
     ],
     "first_featured": "2020-04-12",
     "added_at": "2026-01-03T08:01:04.453052",
-    "benefit_description": "This DIY mask design provides a more comfortable alternative to wrapping a bandana around your face while still offering face coverage protection."
+    "benefit_description": "Features a plastic screen that allows you to clean litter without needing a scoop."
   },
   "B00B3N6PES": {
     "asin": "B00B3N6PES",
@@ -61244,17 +61214,7 @@
     "asin": "B06W58XB4Y",
     "title": "What's in my survival kit? — Dug North",
     "amazon_url": "https://www.amazon.com/dp/B06W58XB4Y",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "OB28n",
-      "productUrl": "https://www.amazon.com/dp/B06W58XB4Y?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "OB28n"
-    },
+    "affiliate_url": "https://geni.us/OB28n",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-survival-kit-dug-north/",
@@ -61265,7 +61225,7 @@
     ],
     "first_featured": "2021-12-01",
     "added_at": "2026-01-03T08:01:04.481543",
-    "benefit_description": "This survival kit enables wilderness enthusiasts to learn and practice essential bushcraft skills while providing reliable backup equipment for outdoor emergencies."
+    "benefit_description": "Creates a reliable backup fire-starting method using a ferrocerium rod that can generate thousands of fires and works in adverse weather conditions."
   },
   "B08T4JY3ZJ": {
     "asin": "B08T4JY3ZJ",
@@ -64241,7 +64201,7 @@
     ],
     "first_featured": "2018-02-02",
     "added_at": "2026-01-03T08:33:33.181800",
-    "benefit_description": "It provides instant access to code documentation and API references offline, allowing developers to quickly look up programming information without needing an internet connection."
+    "benefit_description": "Fills in scratches, chips, and blemishes on painted surfaces with precision application for seamless touch-up repairs."
   },
   "B01J66NF46": {
     "asin": "B01J66NF46",
@@ -65553,7 +65513,7 @@
     ],
     "first_featured": "2018-08-17",
     "added_at": "2026-01-03T08:35:42.876587",
-    "benefit_description": "This individual provides in-depth technical perspectives and thoughtful analysis that goes beyond typical consumer viewpoints, offering valuable insights through detailed questions and expert opinions."
+    "benefit_description": "Allows you to remotely control outdoor electrical outlets without having to physically access them in weather conditions."
   },
   "B01C2TT2H8": {
     "asin": "B01C2TT2H8",
