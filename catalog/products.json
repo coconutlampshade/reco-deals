@@ -1311,17 +1311,7 @@
     "asin": "B07KRH27KL",
     "title": "pStyle",
     "amazon_url": "https://www.amazon.com/dp/B07KRH27KL?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "ZPxy",
-      "productUrl": "https://www.amazon.com/dp/B07KRH27KL?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "ZPxy"
-    },
+    "affiliate_url": "https://geni.us/ZPxy",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/ublacklistdelta-vpatagonia-nine-trails-19-06-09",
@@ -1337,7 +1327,7 @@
     ],
     "first_featured": "2019-06-09",
     "added_at": "2026-01-02T13:42:17.896176",
-    "benefit_description": "Based on the excerpt provided, there is insufficient information to determine what the pStyle product does or its key benefit, as it is only mentioned as an item stored in one of the backpack's compartments alongside other gear."
+    "benefit_description": "Makes standing to pee easy"
   },
   "B004M2393C": {
     "asin": "B004M2393C",
@@ -7819,17 +7809,7 @@
     "asin": "B01MU3PMFK",
     "title": "$7 gardening gloves",
     "amazon_url": "https://www.amazon.com/dp/B01MU3PMFK?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "02BmL",
-      "productUrl": "https://www.amazon.com/dp/B01MU3PMFK?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "02BmL"
-    },
+    "affiliate_url": "https://geni.us/02BmL",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/mother-american-nightcloudmounterdonorschoose-18-06-10",
@@ -23545,17 +23525,7 @@
     "asin": "B002L6HJAA",
     "title": "Screw Pliers",
     "amazon_url": "https://www.amazon.com/dp/B002L6HJAA",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "SjThC2",
-      "productUrl": "https://www.amazon.com/dp/B002L6HJAA?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "SjThC2"
-    },
+    "affiliate_url": "https://geni.us/SjThC2",
     "issues": [
       {
         "url": "https://kk.org/cooltools/screw-pliers/",
@@ -29288,17 +29258,7 @@
     "asin": "B002ZK45IQ",
     "title": "Gerber Artifact",
     "amazon_url": "https://www.amazon.com/dp/B002ZK45IQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "mBCjWE",
-      "productUrl": "https://www.amazon.com/dp/B002ZK45IQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "mBCjWE"
-    },
+    "affiliate_url": "https://geni.us/mBCjWE",
     "issues": [
       {
         "url": "https://kk.org/cooltools/gerber-artifact/",
@@ -37729,17 +37689,7 @@
     "asin": "B003788U9U",
     "title": "Spyderco Bug Non-Locking Knife with 1.27\" 3CR Steel Blade and Durable Stainless Steel Handle - PlainEdge - C133P",
     "amazon_url": "https://www.amazon.com/dp/B003788U9U",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "0Nc9wCB",
-      "productUrl": "https://www.amazon.com/dp/B003788U9U?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "0Nc9wCB"
-    },
+    "affiliate_url": "https://geni.us/0Nc9wCB",
     "issues": [
       {
         "url": "https://kk.org/cooltools/its-amazon-prime-day-find-out-if-our-top-cool-tools-are-on-sale/",
@@ -72755,7 +72705,8 @@
       }
     ],
     "first_featured": "2026-02-06",
-    "added_at": "2026-02-21T12:41:38.305066"
+    "added_at": "2026-02-21T12:41:38.305066",
+    "benefit_description": "Provides entertainment and social interaction through a collection of engaging activities perfect for gatherings once the meal is finished."
   },
   "B0963TZRPT": {
     "asin": "B0963TZRPT",
