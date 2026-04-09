@@ -534,5 +534,36 @@
       "B01MU3PMFK": "https://geni.us/02BmL",
       "B002ZK45IQ": "https://geni.us/mBCjWE"
     }
+  },
+  {
+    "campaign_id": "6fb0770100",
+    "web_id": 9144009,
+    "date": "2026-04-09",
+    "subject": "Recomendo Deals - April 09, 2026",
+    "deals_count": 6,
+    "asins": [
+      "B005ITTMI4",
+      "B0BFHTPLNP",
+      "B0BZP93WPY",
+      "B088GNZ4T8",
+      "B000646VF8",
+      "B00009RAX4"
+    ],
+    "titles": {
+      "B005ITTMI4": "Megapro Four-in-One Pocket Driver",
+      "B0BFHTPLNP": "Amazon Basics Portable Turntable",
+      "B0BZP93WPY": "iPhone Webcam Mount for Monitor",
+      "B088GNZ4T8": "TuTuShop Under Table Drawer",
+      "B000646VF8": "DEWALT Reinforcer Rx-Bifocal Safety Glasses",
+      "B00009RAX4": "Sharpie Metallic Fine Point Markers"
+    },
+    "affiliate_urls": {
+      "B005ITTMI4": "https://geni.us/VI9IoMQ",
+      "B0BFHTPLNP": "https://geni.us/turntable-r",
+      "B0BZP93WPY": "https://geni.us/iphone-mount-r",
+      "B088GNZ4T8": "https://geni.us/p6RWP",
+      "B000646VF8": "https://geni.us/7Tg9Ww",
+      "B00009RAX4": "https://geni.us/3MW1BB2"
+    }
   }
 ]
