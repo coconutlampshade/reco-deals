@@ -565,5 +565,30 @@
       "B000646VF8": "https://geni.us/7Tg9Ww",
       "B00009RAX4": "https://geni.us/3MW1BB2"
     }
+  },
+  {
+    "campaign_id": "336ed682d3",
+    "web_id": 9144013,
+    "date": "2026-04-10",
+    "subject": "Recomendo Deals - April 10, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B006PTLPC2",
+      "B009FUF6DM",
+      "B06XR712K7",
+      "B000BX1HGC"
+    ],
+    "titles": {
+      "B006PTLPC2": "AccuSharp Knife Sharpener",
+      "B009FUF6DM": "Amazon Basics Microfiber Cleaning Cloths",
+      "B06XR712K7": "Peakeep Travel Alarm Clock",
+      "B000BX1HGC": "Bonide Bontone Rooting Powder"
+    },
+    "affiliate_urls": {
+      "B006PTLPC2": "https://geni.us/8t7FTn",
+      "B009FUF6DM": "https://geni.us/Sif7",
+      "B06XR712K7": "https://geni.us/gNuU5u",
+      "B000BX1HGC": "https://geni.us/dZfs"
+    }
   }
 ]

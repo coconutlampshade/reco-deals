@@ -8475,17 +8475,7 @@
     "asin": "B06XR712K7",
     "title": "this small $10 clock",
     "amazon_url": "https://www.amazon.com/dp/B06XR712K7?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "gNuU5u",
-      "productUrl": "https://www.amazon.com/dp/B06XR712K7?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "gNuU5u"
-    },
+    "affiliate_url": "https://geni.us/gNuU5u",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/the-friendly-orange-glowwoodworking-17-12-10",
@@ -8501,7 +8491,7 @@
     ],
     "first_featured": "2017-12-10",
     "added_at": "2026-01-02T13:42:17.899424",
-    "benefit_description": ""
+    "benefit_description": "This ultra-compact alarm clock fits easily in your pocket or suitcase while providing silent operation that won't disturb light sleepers and a backlit display for easy nighttime viewing."
   },
   "B01N90CJHB": {
     "asin": "B01N90CJHB",
@@ -38057,17 +38047,7 @@
     "asin": "B009FUF6DM",
     "title": "Ziya Tong, Host of Daily Planet",
     "amazon_url": "https://www.amazon.com/dp/B009FUF6DM",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "Sif7",
-      "productUrl": "https://www.amazon.com/dp/B009FUF6DM?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "Sif7"
-    },
+    "affiliate_url": "https://geni.us/Sif7",
     "issues": [
       {
         "url": "https://kk.org/cooltools/ziya-tong-host-of-daily-planet/",
@@ -38078,7 +38058,7 @@
     ],
     "first_featured": "2015-08-09",
     "added_at": "2026-01-03T08:01:04.395822",
-    "benefit_description": "Provides expert commentary and demonstrations on how high-tech cleaning tools like microfiber cloths can effectively capture bacteria and reduce waste from disposable paper products."
+    "benefit_description": "Microfiber cloths can reduce waste from disposable paper products."
   },
   "B010R93EXI": {
     "asin": "B010R93EXI",
@@ -54129,17 +54109,7 @@
     "asin": "B006PTLPC2",
     "title": "AccuSharp Knife Sharpener, Ergonomic Comfortable Handle, Compact & Easy to Use, Restore and Hone Straight & Serrated Knives, Blaze Orange",
     "amazon_url": "https://www.amazon.com/dp/B006PTLPC2",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "8t7FTn",
-      "productUrl": "https://www.amazon.com/dp/B006PTLPC2?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "8t7FTn"
-    },
+    "affiliate_url": "https://geni.us/8t7FTn",
     "issues": [
       {
         "url": "https://kk.org/cooltools/10-bucks-or-less/",
@@ -54150,7 +54120,7 @@
     ],
     "first_featured": "2019-12-09",
     "added_at": "2026-01-03T08:01:04.446458",
-    "benefit_description": "Helps people who use soft pencils and write with heavy pressure by providing frequent, precise resharpening that maintains a long, sharp point."
+    "benefit_description": "After a few swipes with the Accusharp, I could cut tomatoes into perfect slices, and it took a measly 15 minutes to clean up the edge on almost every knife I own."
   },
   "B013X0NQT0": {
     "asin": "B013X0NQT0",
