@@ -73417,5 +73417,53 @@
     ],
     "first_featured": "2026-04-03",
     "added_at": "2026-04-04T05:18:01.850980"
+  },
+  "1465419659": {
+    "asin": "1465419659",
+    "title": "Buy on Amazon",
+    "amazon_url": "https://www.amazon.com/dp/1465419659",
+    "affiliate_url": "https://geni.us/0rhemVg",
+    "issues": [
+      {
+        "url": "http://eepurl.com/jDH-2E",
+        "title": "Posts from Cool Tools for 04/10/2026",
+        "date": "2026-04-10",
+        "source": "cooltools"
+      }
+    ],
+    "first_featured": "2026-04-10",
+    "added_at": "2026-04-11T05:21:33.080404"
+  },
+  "1449334318": {
+    "asin": "1449334318",
+    "title": "Buy on Amazon",
+    "amazon_url": "https://www.amazon.com/dp/1449334318",
+    "affiliate_url": "https://geni.us/rny9",
+    "issues": [
+      {
+        "url": "http://eepurl.com/jDH-2E",
+        "title": "Posts from Cool Tools for 04/10/2026",
+        "date": "2026-04-10",
+        "source": "cooltools"
+      }
+    ],
+    "first_featured": "2026-04-10",
+    "added_at": "2026-04-11T05:21:34.132394"
+  },
+  "0071422676": {
+    "asin": "0071422676",
+    "title": "Atomic Zombie’s Bicycle Builder’s Bonanza",
+    "amazon_url": "https://www.amazon.com/dp/0071422676",
+    "affiliate_url": "https://geni.us/aRbsoZ",
+    "issues": [
+      {
+        "url": "http://eepurl.com/jDH-2E",
+        "title": "Posts from Cool Tools for 04/10/2026",
+        "date": "2026-04-10",
+        "source": "cooltools"
+      }
+    ],
+    "first_featured": "2026-04-10",
+    "added_at": "2026-04-11T05:21:35.087740"
   }
 }
