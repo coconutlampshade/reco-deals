@@ -7396,47 +7396,62 @@
   },
   "B003U8YD3Y": {
     "first_unavailable": "2026-04-09",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 2
+    "last_checked": "2026-04-11",
+    "consecutive_days": 3
   },
   "B00Q30VGTA": {
     "first_unavailable": "2026-04-09",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 2
+    "last_checked": "2026-04-11",
+    "consecutive_days": 3
   },
   "B001E6CQ9C": {
     "first_unavailable": "2026-04-09",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 2
+    "last_checked": "2026-04-11",
+    "consecutive_days": 3
   },
   "1899712429": {
     "first_unavailable": "2026-04-09",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 2
+    "last_checked": "2026-04-11",
+    "consecutive_days": 3
   },
   "B003D0ID8U": {
     "first_unavailable": "2026-04-10",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 1
+    "last_checked": "2026-04-11",
+    "consecutive_days": 2
   },
   "B009GA6CM0": {
     "first_unavailable": "2026-04-10",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 1
+    "last_checked": "2026-04-11",
+    "consecutive_days": 2
   },
   "B07KY9W2YR": {
     "first_unavailable": "2026-04-10",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 1
+    "last_checked": "2026-04-11",
+    "consecutive_days": 2
   },
   "B01KURGSEE": {
     "first_unavailable": "2026-04-10",
-    "last_checked": "2026-04-10",
-    "consecutive_days": 1
+    "last_checked": "2026-04-11",
+    "consecutive_days": 2
   },
   "B073H552FJ": {
     "first_unavailable": "2026-04-10",
-    "last_checked": "2026-04-10",
+    "last_checked": "2026-04-11",
+    "consecutive_days": 2
+  },
+  "B00LB7REBE": {
+    "first_unavailable": "2026-04-11",
+    "last_checked": "2026-04-11",
+    "consecutive_days": 1
+  },
+  "B000FCEP18": {
+    "first_unavailable": "2026-04-11",
+    "last_checked": "2026-04-11",
+    "consecutive_days": 1
+  },
+  "B0856QY78W": {
+    "first_unavailable": "2026-04-11",
+    "last_checked": "2026-04-11",
     "consecutive_days": 1
   }
 }
