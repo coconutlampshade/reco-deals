@@ -128,6 +128,7 @@ def merge_catalog_and_deals() -> dict:
             "first_featured": product.get("first_featured", ""),
             "catalog_title": product.get("title", ""),
             "benefit_description": product.get("benefit_description", ""),
+            "short_title": product.get("short_title", ""),
             # Deal fields (from deals.json, if checked)
             "current_price": deal.get("current_price"),
             "avg_90_day": deal.get("avg_90_day"),
@@ -1328,13 +1329,16 @@ def build_edit_html(selected_asins: list, products: dict, inline_edits: dict = N
         p = products.get(asin, {})
         full_title = p.get("title", asin)
         edits = inline_edits.get(asin, {})
-        # Apply inline edits from the review page if present
-        item_title = edits.get("title") or full_title
+        # Use catalog short_title if available, otherwise rule-based shortening
+        catalog_short = p.get("short_title", "")
+        short = catalog_short if (catalog_short and catalog_short != full_title) else shorten_title(full_title)
+        # Apply inline edits; if no edits, default to short title for display
+        item_title = edits.get("title") or (short if short != full_title else full_title)
         item_benefit = edits.get("benefit") or p.get("benefit_description", "")
         items.append({
             "asin": asin,
             "title": item_title,
-            "short_title": shorten_title(full_title),
+            "short_title": short,
             "image_url": p.get("image_url", ""),
             "current_price": p.get("current_price"),
             "avg_90_day": p.get("avg_90_day"),

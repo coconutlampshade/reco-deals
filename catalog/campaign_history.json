@@ -590,5 +590,30 @@
       "B06XR712K7": "https://geni.us/gNuU5u",
       "B000BX1HGC": "https://geni.us/dZfs"
     }
+  },
+  {
+    "campaign_id": "b325c1aeb2",
+    "web_id": 9144023,
+    "date": "2026-04-13",
+    "subject": "Recomendo Deals - April 13, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B07475442G",
+      "B007SNM6OK",
+      "B004G621ZG",
+      "B01MS6MO77"
+    ],
+    "titles": {
+      "B07475442G": "Dried Nettle Leaves",
+      "B007SNM6OK": "Thinksport SPF 50+",
+      "B004G621ZG": "E-Cloth Window Cleaning Cloth",
+      "B01MS6MO77": "Zelda: Breath of the Wild"
+    },
+    "affiliate_urls": {
+      "B07475442G": "https://geni.us/qbDa6A",
+      "B007SNM6OK": "https://geni.us/1Dtp2o",
+      "B004G621ZG": "https://geni.us/U5Epss",
+      "B01MS6MO77": "https://geni.us/JfbmGOH"
+    }
   }
 ]
