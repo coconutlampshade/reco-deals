@@ -615,5 +615,33 @@
       "B004G621ZG": "https://geni.us/U5Epss",
       "B01MS6MO77": "https://geni.us/JfbmGOH"
     }
+  },
+  {
+    "campaign_id": "d90ecda731",
+    "web_id": 9144025,
+    "date": "2026-04-14",
+    "subject": "Recomendo Deals - April 14, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B002LSXK6U",
+      "B00IXDS4EU",
+      "B001SEQH1I",
+      "B000NSZ3WY",
+      "B001NCDE8E"
+    ],
+    "titles": {
+      "B002LSXK6U": "4D Vision Human Head",
+      "B00IXDS4EU": "DUDE Wipe packet",
+      "B001SEQH1I": "Dead On 18-Inch Annihilator",
+      "B000NSZ3WY": "Mosquito Head Net Mesh Face Cover",
+      "B001NCDE8E": "Nalgene Tritan Wide Mouth Bottle"
+    },
+    "affiliate_urls": {
+      "B002LSXK6U": "https://geni.us/E7WckU",
+      "B00IXDS4EU": "https://geni.us/yd12OD5",
+      "B001SEQH1I": "http://geni.us/THVwPZ",
+      "B000NSZ3WY": "https://geni.us/in4VAdB",
+      "B001NCDE8E": "https://geni.us/DB20Ih"
+    }
   }
 ]

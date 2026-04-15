@@ -71,6 +71,8 @@ def load_deals() -> dict:
 ARTICLE_TITLE_KEYWORDS = [
     'gift guide', 'holiday', 'picks', 'cool tools', 'untried',
     'videocast', 'podcast', 'show and tell', 'complete 20',
+    "what's in my bag", "what's in my survival kit",
+    "what’s in my bag", "what’s in my survival kit",
 ]
 
 
