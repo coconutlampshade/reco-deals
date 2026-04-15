@@ -643,5 +643,33 @@
       "B000NSZ3WY": "https://geni.us/in4VAdB",
       "B001NCDE8E": "https://geni.us/DB20Ih"
     }
+  },
+  {
+    "campaign_id": "8a8dddca24",
+    "web_id": 9144044,
+    "date": "2026-04-15",
+    "subject": "Recomendo Deals - April 15, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B00B6LUAPW",
+      "B00T24HE5O",
+      "B000MIWRTM",
+      "B000CCT0YI",
+      "B06ZXW2C48"
+    ],
+    "titles": {
+      "B00B6LUAPW": "Stainless Steel igger",
+      "B00T24HE5O": "Bullseye Bubble Level",
+      "B000MIWRTM": "Cerama Bryte Cooktop Cleaner",
+      "B000CCT0YI": "Akro-Mils Small Parts Storage",
+      "B06ZXW2C48": "Amoji Garden Clogs"
+    },
+    "affiliate_urls": {
+      "B00B6LUAPW": "https://geni.us/rSJAtG3",
+      "B00T24HE5O": "https://geni.us/J4FBre",
+      "B000MIWRTM": "https://geni.us/LGqY",
+      "B000CCT0YI": "https://geni.us/uTea7zq",
+      "B06ZXW2C48": "https://geni.us/2F4UdN"
+    }
   }
 ]

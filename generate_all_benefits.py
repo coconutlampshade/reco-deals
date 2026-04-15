@@ -98,14 +98,20 @@ def fix_catalog_titles(catalog: dict, deals: dict) -> int:
 
 
 def load_catalog() -> dict:
-    """Load the full product catalog."""
-    with open(config.CATALOG_FILE, "r", encoding="utf-8") as f:
+    """Load the full product catalog.
+
+    Always uses the full catalog (products.json), never the dev sample,
+    since benefit generation must cover the real 2900-item catalog.
+    """
+    full_path = config.CATALOG_DIR / "products.json"
+    with open(full_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_catalog(catalog: dict):
-    """Save the product catalog."""
-    with open(config.CATALOG_FILE, "w", encoding="utf-8") as f:
+    """Save back to products.json (full catalog), not the dev sample."""
+    full_path = config.CATALOG_DIR / "products.json"
+    with open(full_path, "w", encoding="utf-8") as f:
         json.dump(catalog, f, indent=2)
 
 
