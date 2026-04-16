@@ -78,9 +78,13 @@ live_prices = {}
 
 
 def load_full_catalog() -> dict:
-    """Load the full product catalog."""
+    """Load the full product catalog (ASIN-keyed dict)."""
     with open(config.CATALOG_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    if isinstance(data, list):
+        # Legacy list format — convert to ASIN-keyed dict
+        return {item["asin"]: item for item in data if "asin" in item}
+    return data
 
 
 def save_catalog(catalog: dict):
@@ -217,6 +221,11 @@ _REFUSAL_PHRASES = [
     "based on the limited excerpt", "cannot identify",
     "not enough information", "no specific", "unable to determine",
     "i don't have enough", "the excerpt does not",
+    # Generic AI filler that doesn't describe the actual product
+    "specialized tools that enhance", "enhance food preparation",
+    "improve cooking quality", "providing specialized tools",
+    "enhances your overall", "improve your overall",
+    "helps improve", "by providing specialized",
 ]
 
 

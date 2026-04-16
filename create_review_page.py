@@ -1329,9 +1329,27 @@ def build_edit_html(selected_asins: list, products: dict, inline_edits: dict = N
         p = products.get(asin, {})
         full_title = p.get("title", asin)
         edits = inline_edits.get(asin, {})
-        # Use catalog short_title if available, otherwise rule-based shortening
+        # Use catalog short_title if it's a real product-specific shortening.
+        # Skip it if it equals the original catalog/article title with no word
+        # overlap to the Amazon title — that means it's an article title like
+        # "Gifts for the Cook", not an actual product description.
         catalog_short = p.get("short_title", "")
-        short = catalog_short if (catalog_short and catalog_short != full_title) else shorten_title(full_title)
+        catalog_title_orig = p.get("catalog_title", "")
+        if catalog_short and catalog_short != full_title:
+            if catalog_short != catalog_title_orig:
+                short = catalog_short  # Was explicitly customized — keep it
+            else:
+                # catalog_short equals the article title; only keep it if it
+                # shares at least one meaningful word with the Amazon title
+                skip_words = {'the', 'a', 'an', 'and', 'or', 'for', 'of', 'in',
+                              'on', 'to', 'with', 'by', 'at', 'is', 'its', 'be'}
+                words_cs = {w.lower().strip('.,!?-') for w in catalog_short.split()
+                            if len(w) > 2} - skip_words
+                words_ft = {w.lower().strip('.,!?-') for w in full_title.split()
+                            if len(w) > 2} - skip_words
+                short = catalog_short if (words_cs & words_ft) else shorten_title(full_title)
+        else:
+            short = shorten_title(full_title)
         # Apply inline edits; if no edits, default to short title for display
         item_title = edits.get("title") or (short if short != full_title else full_title)
         item_benefit = edits.get("benefit") or p.get("benefit_description", "")
