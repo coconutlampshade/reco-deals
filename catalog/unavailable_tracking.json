@@ -7321,47 +7321,52 @@
   },
   "B0001NE2AK": {
     "first_unavailable": "2026-04-15",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 2
-  },
-  "B000FCEP18": {
-    "first_unavailable": "2026-04-15",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 2
+    "last_checked": "2026-04-17",
+    "consecutive_days": 3
   },
   "B01LYF1GDV": {
     "first_unavailable": "2026-04-15",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 2
-  },
-  "B00ERPWAK2": {
-    "first_unavailable": "2026-04-16",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 1
+    "last_checked": "2026-04-17",
+    "consecutive_days": 3
   },
   "B0034KDEMO": {
     "first_unavailable": "2026-04-16",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 1
-  },
-  "B00J0I6VGU": {
-    "first_unavailable": "2026-04-16",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 1
-  },
-  "B008AV4EF8": {
-    "first_unavailable": "2026-04-16",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 1
+    "last_checked": "2026-04-17",
+    "consecutive_days": 2
   },
   "B06X6H1LY6": {
     "first_unavailable": "2026-04-16",
-    "last_checked": "2026-04-16",
-    "consecutive_days": 1
+    "last_checked": "2026-04-17",
+    "consecutive_days": 2
   },
   "B073H552FJ": {
     "first_unavailable": "2026-04-16",
-    "last_checked": "2026-04-16",
+    "last_checked": "2026-04-17",
+    "consecutive_days": 2
+  },
+  "B07VWD3YP3": {
+    "first_unavailable": "2026-04-17",
+    "last_checked": "2026-04-17",
+    "consecutive_days": 1
+  },
+  "B0091QO3RK": {
+    "first_unavailable": "2026-04-17",
+    "last_checked": "2026-04-17",
+    "consecutive_days": 1
+  },
+  "B000OFRE78": {
+    "first_unavailable": "2026-04-17",
+    "last_checked": "2026-04-17",
+    "consecutive_days": 1
+  },
+  "B003D0ID8U": {
+    "first_unavailable": "2026-04-17",
+    "last_checked": "2026-04-17",
+    "consecutive_days": 1
+  },
+  "0714870471": {
+    "first_unavailable": "2026-04-17",
+    "last_checked": "2026-04-17",
     "consecutive_days": 1
   }
 }
