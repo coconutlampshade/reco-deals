@@ -671,5 +671,77 @@
       "B000CCT0YI": "https://geni.us/uTea7zq",
       "B06ZXW2C48": "https://geni.us/2F4UdN"
     }
+  },
+  {
+    "campaign_id": "122addff26",
+    "web_id": 9144045,
+    "date": "2026-04-16",
+    "subject": "Recomendo Deals - April 16, 2026",
+    "deals_count": 3,
+    "asins": [
+      "B00395FHRO",
+      "B0152B57Z4",
+      "B0010AWH2I"
+    ],
+    "titles": {
+      "B00395FHRO": "Large Ice Cube Tray",
+      "B0152B57Z4": "Minimalism Art notebooks",
+      "B0010AWH2I": "Hermetus Bottle Opener and Sealer"
+    },
+    "affiliate_urls": {
+      "B00395FHRO": "https://geni.us/p2B5G",
+      "B0152B57Z4": "https://geni.us/OZ7op",
+      "B0010AWH2I": "https://geni.us/uf8Zf19"
+    }
+  },
+  {
+    "campaign_id": "c82fcab859",
+    "web_id": 9144050,
+    "date": "2026-04-17",
+    "subject": "Recomendo Deals - April 17, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B0BF8FPH5L",
+      "B076H13Y6V",
+      "B000FNLXWG",
+      "B0089PBTV2",
+      "B000HJDB9Q"
+    ],
+    "titles": {
+      "B0BF8FPH5L": "Civivi Folding Pocket Knife",
+      "B076H13Y6V": "Airline Headphone Adapters",
+      "B000FNLXWG": "Pie Iron",
+      "B0089PBTV2": "Sharpie Permanent Markers Fine, 12-pack",
+      "B000HJDB9Q": "Yellow-Jacket 5 Outlet Adapter"
+    },
+    "affiliate_urls": {
+      "B0BF8FPH5L": "https://geni.us/yD3rUU",
+      "B076H13Y6V": "https://geni.us/Dmd61",
+      "B000FNLXWG": "https://geni.us/ST0F",
+      "B0089PBTV2": "https://geni.us/sharpie-wimn",
+      "B000HJDB9Q": "https://geni.us/AQVeB"
+    }
+  },
+  {
+    "campaign_id": "ce7102cfec",
+    "web_id": 9144053,
+    "date": "2026-04-18",
+    "subject": "Recomendo Deals - April 18, 2026",
+    "deals_count": 3,
+    "asins": [
+      "B004MDXS0U",
+      "B0093ISEPI",
+      "B000TQVDI8"
+    ],
+    "titles": {
+      "B004MDXS0U": "300W Power Inverter",
+      "B0093ISEPI": "Klean Kanteen Wide Mouth Bottle",
+      "B000TQVDI8": "4D-Vision Human Anatomy Model"
+    },
+    "affiliate_urls": {
+      "B004MDXS0U": "https://geni.us/9BjVkQ",
+      "B0093ISEPI": "https://geni.us/YcFjv",
+      "B000TQVDI8": "https://geni.us/GVB9b"
+    }
   }
 ]
