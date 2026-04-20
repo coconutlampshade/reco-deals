@@ -82,3 +82,41 @@ def setup_logging(level=logging.INFO):
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
         datefmt="%H:%M:%S",
     )
+
+
+def call_claude(prompt: str, model: str = "haiku", max_tokens: int = 150) -> str:
+    """Call Claude via CLI (Max plan) or SDK, controlled by USE_CLAUDE_CLI env var."""
+    if os.environ.get("USE_CLAUDE_CLI", "").lower() in ("1", "true", "yes"):
+        return _call_claude_cli(prompt, model)
+    import anthropic
+    model_ids = {
+        "haiku": "claude-haiku-4-5-20251001",
+        "sonnet": "claude-sonnet-4-20250514",
+    }
+    client = anthropic.Anthropic()
+    resp = client.messages.create(
+        model=model_ids.get(model, model),
+        max_tokens=max_tokens,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return resp.content[0].text.strip()
+
+
+def _call_claude_cli(prompt: str, model: str = "haiku") -> str:
+    import subprocess
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith("CLAUDE") and k != "ANTHROPIC_API_KEY"}
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write(prompt)
+        prompt_file = f.name
+    try:
+        with open(prompt_file) as pf:
+            result = subprocess.run(
+                ["claude", "-p", "--model", model, "--no-session-persistence"],
+                capture_output=True, text=True, timeout=120, env=env, stdin=pf,
+            )
+        if result.returncode != 0:
+            raise RuntimeError(f"claude CLI failed: {result.stderr.strip()[:200]}")
+        return result.stdout.strip()
+    finally:
+        os.unlink(prompt_file)

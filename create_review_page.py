@@ -34,6 +34,7 @@ from review_deals import (
     generate_benefit_description,
 )
 from generate_report import load_featured_history, COOLDOWN_DAYS, get_media_category
+from utils import call_claude
 
 # Server state
 server_should_stop = False
@@ -2547,16 +2548,13 @@ class ReviewHandler(BaseHTTPRequestHandler):
             full_title = data.get("title", "")
 
             try:
-                import anthropic
-                client = anthropic.Anthropic()
-                response = client.messages.create(
-                    model="claude-sonnet-4-20250514",
-                    max_tokens=50,
-                    messages=[{"role": "user", "content": f"""Shorten this Amazon product title to a clean, readable name (3-7 words). Keep the brand if it's well-known. Drop model numbers, sizes, colors, marketing fluff, and redundant category words. Just output the short title, nothing else.
+                short = call_claude(
+                    f"""Shorten this Amazon product title to a clean, readable name (3-7 words). Keep the brand if it's well-known. Drop model numbers, sizes, colors, marketing fluff, and redundant category words. Just output the short title, nothing else.
 
-Title: {full_title}"""}]
-                )
-                short = response.content[0].text.strip().strip('"')
+Title: {full_title}""",
+                    model="sonnet",
+                    max_tokens=50,
+                ).strip('"')
                 print(f"  AI title: {full_title[:40]}... -> {short}")
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")

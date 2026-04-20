@@ -16,6 +16,7 @@ Usage:
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 from dotenv import load_dotenv
@@ -23,38 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import config
-
-# Anthropic client for benefit generation
-try:
-    import anthropic
-    ANTHROPIC_CLIENT = anthropic.Anthropic()
-except Exception as e:
-    print(f"Warning: Could not initialize Anthropic client: {e}")
-    ANTHROPIC_CLIENT = None
-
-# Set by --claude-cli flag
-USE_CLAUDE_CLI = False
-
-
-def _call_claude_cli(prompt: str) -> str:
-    """Call the claude CLI to generate a response using Claude Max subscription."""
-    import subprocess, os, tempfile
-    env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE") and k != "ANTHROPIC_API_KEY"}
-    # Write prompt to temp file to avoid shell escaping issues and arg length limits
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-        f.write(prompt)
-        prompt_file = f.name
-    try:
-        with open(prompt_file, "r") as pf:
-            result = subprocess.run(
-                ["claude", "-p", "--model", "haiku", "--no-session-persistence"],
-                capture_output=True, text=True, timeout=120, env=env, stdin=pf,
-            )
-        if result.returncode != 0:
-            raise RuntimeError(f"claude CLI failed: {result.stderr.strip()[:200]}")
-        return result.stdout.strip()
-    finally:
-        os.unlink(prompt_file)
+from utils import call_claude
 
 
 def load_deals() -> dict:
@@ -242,10 +212,6 @@ def generate_benefit_description(asin: str, product: dict, deals: dict = None) -
 
     Returns empty string if generation fails.
     """
-    if not ANTHROPIC_CLIENT:
-        print(f"    Warning: Anthropic client not available for {asin}")
-        return ""
-
     # Get source article URL - prefer Recomendo over Cool Tools
     issues = product.get("issues", [])
     if not issues:
@@ -335,15 +301,7 @@ Product: {product_title}
 Write only the benefit sentence, no preamble."""
 
     try:
-        if USE_CLAUDE_CLI:
-            benefit = _call_claude_cli(prompt)
-        else:
-            response = ANTHROPIC_CLIENT.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=150,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            benefit = response.content[0].text.strip()
+        benefit = call_claude(prompt, model="haiku")
 
         # Reject non-descriptions (Claude couldn't match the product)
         if benefit.lower().startswith("i cannot") or benefit.lower().startswith("i'm unable"):
@@ -368,9 +326,8 @@ def main():
     parser.add_argument("--claude-cli", action="store_true", help="Use claude CLI (Max subscription) instead of Anthropic API")
     args = parser.parse_args()
 
-    global USE_CLAUDE_CLI
     if args.claude_cli:
-        USE_CLAUDE_CLI = True
+        os.environ["USE_CLAUDE_CLI"] = "1"
         print("Using claude CLI (Max subscription)")
 
     print("Loading catalog...")
@@ -428,9 +385,6 @@ def main():
             print(f"  ... and {len(to_process) - 10} more")
         return
 
-    if not USE_CLAUDE_CLI and not ANTHROPIC_CLIENT:
-        print("Error: Anthropic client not available. Set ANTHROPIC_API_KEY or use --claude-cli.")
-        return
 
     # Limit if requested
     if args.limit:

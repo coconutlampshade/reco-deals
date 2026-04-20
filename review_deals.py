@@ -32,6 +32,7 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent))
 import config
 from pa_api import get_prices_for_asins
+from utils import call_claude
 from generate_report import (
     load_deals, filter_and_sort_deals, load_featured_history,
     COOLDOWN_DAYS, get_media_category, calculate_issue_number,
@@ -64,12 +65,6 @@ def get_affiliate_group(deal: dict) -> str:
 
     return "Recomendo"
 
-# Anthropic client for benefit generation
-try:
-    import anthropic
-    ANTHROPIC_CLIENT = anthropic.Anthropic()
-except Exception:
-    ANTHROPIC_CLIENT = None
 
 # Server state
 selected_asins = []
@@ -276,12 +271,7 @@ Amazon product features:
 Write only the benefit sentence, no preamble."""
 
     try:
-        response = ANTHROPIC_CLIENT.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=150,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        benefit = response.content[0].text.strip()
+        benefit = call_claude(prompt, model="sonnet")
         rejection = _validate_benefit(benefit)
         if rejection:
             print(f"    Retry also failed validation ({rejection})")
@@ -316,10 +306,6 @@ def generate_benefit_description(asin: str, deal: dict, catalog: dict) -> str:
                 return catalog[asin]["benefit_description"]
         else:
             return catalog[asin]["benefit_description"]
-
-    if not ANTHROPIC_CLIENT:
-        print(f"    Warning: Anthropic client not available for {asin}")
-        return ""
 
     # Get product title
     product_title = deal.get("live_title") or deal.get("catalog_title") or catalog.get(asin, {}).get("title", "")
@@ -394,13 +380,7 @@ Product: {product_title}
 
 Write only the benefit sentence, no preamble."""
 
-        response = ANTHROPIC_CLIENT.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=150,
-            messages=[{"role": "user", "content": prompt}]
-        )
-
-        benefit = response.content[0].text.strip()
+        benefit = call_claude(prompt, model="sonnet")
 
         rejection = _validate_benefit(benefit)
         if rejection:
