@@ -55318,17 +55318,7 @@
     "asin": "B073Z3ZQRQ",
     "title": "YourFacePillow",
     "amazon_url": "https://www.amazon.com/dp/B073Z3ZQRQ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "kNhUpl",
-      "productUrl": "https://www.amazon.com/dp/B073Z3ZQRQ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "kNhUpl"
-    },
+    "affiliate_url": "https://geni.us/kNhUpl",
     "issues": [
       {
         "url": "https://kk.org/cooltools/yourfacepillow/",
@@ -72728,7 +72718,7 @@
     ],
     "first_featured": "2019-12-16",
     "added_at": "2026-01-03T08:42:03.358041",
-    "benefit_description": "This kit eliminates the time-consuming preparation work of quilting by providing pre-cut fabrics and a complete pattern in one package, allowing you to start creating immediately.",
+    "benefit_description": "Fast 3-4 second readout.",
     "short_title": "Lavatools Javelin Meat Thermometer"
   },
   "B073WJX9ZV": {
@@ -75650,7 +75640,8 @@
       }
     ],
     "first_featured": "2026-04-17",
-    "added_at": "2026-04-18T05:29:20.867138"
+    "added_at": "2026-04-18T05:29:20.867138",
+    "benefit_description": "No batteries ever needed. It’s 10 times brighter than a phone and easier to handle."
   },
   "147213995X": {
     "asin": "147213995X",

@@ -743,5 +743,27 @@
       "B0093ISEPI": "https://geni.us/YcFjv",
       "B000TQVDI8": "https://geni.us/GVB9b"
     }
+  },
+  {
+    "campaign_id": "9c098f70ec",
+    "web_id": 9144055,
+    "date": "2026-04-20",
+    "subject": "Recomendo Deals - April 20, 2026",
+    "deals_count": 3,
+    "asins": [
+      "B0CZ7DQGC8",
+      "B073Z3ZQRQ",
+      "B00GRFHXVQ"
+    ],
+    "titles": {
+      "B0CZ7DQGC8": "OLIGHT IMINI EDC Rechargeable Flashlight",
+      "B073Z3ZQRQ": "YourFacePillow",
+      "B00GRFHXVQ": "Lavatools Javelin Meat Thermometer"
+    },
+    "affiliate_urls": {
+      "B0CZ7DQGC8": "https://geni.us/FNRZ4",
+      "B073Z3ZQRQ": "https://geni.us/kNhUpl",
+      "B00GRFHXVQ": "https://amzn.to/2RoGz6j"
+    }
   }
 ]
