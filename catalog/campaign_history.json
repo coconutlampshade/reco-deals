@@ -765,5 +765,39 @@
       "B073Z3ZQRQ": "https://geni.us/kNhUpl",
       "B00GRFHXVQ": "https://amzn.to/2RoGz6j"
     }
+  },
+  {
+    "campaign_id": "19382e5d32",
+    "web_id": 9144061,
+    "date": "2026-04-21",
+    "subject": "Recomendo Deals - April 21, 2026",
+    "deals_count": 7,
+    "asins": [
+      "B0BFVVK3P6",
+      "B0716JV1SG",
+      "B07LB6YM44",
+      "B07RNNMZW3",
+      "B000BPRDCW",
+      "B00FZPUA28",
+      "B003YJPC2A"
+    ],
+    "titles": {
+      "B0BFVVK3P6": "Titanium Quick-Release Keychain",
+      "B0716JV1SG": "Solar Camping Lantern",
+      "B07LB6YM44": "Sterile Disposable Scalpel Knives. 10-Pack ",
+      "B07RNNMZW3": "LuxoGear Emergency Whistle, 2-Pack",
+      "B000BPRDCW": "Pumie Toilet Bowl Ring Remover",
+      "B00FZPUA28": "Hakko FX-901 cordless soldering iron",
+      "B003YJPC2A": "Fold-in-Half Adjustable Folding Table"
+    },
+    "affiliate_urls": {
+      "B0BFVVK3P6": "https://geni.us/titanium-keyring",
+      "B0716JV1SG": "https://geni.us/AwBgXc",
+      "B07LB6YM44": "https://amzn.to/2PzMepg",
+      "B07RNNMZW3": "https://geni.us/FtG6",
+      "B000BPRDCW": "https://geni.us/VPWAn",
+      "B00FZPUA28": "https://geni.us/PUvMe9",
+      "B003YJPC2A": "https://amzn.to/2v3GBYs"
+    }
   }
 ]
