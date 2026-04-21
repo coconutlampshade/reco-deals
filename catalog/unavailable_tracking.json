@@ -7291,57 +7291,52 @@
   },
   "B0013IDHTO": {
     "first_unavailable": "2026-04-19",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 2
+    "last_checked": "2026-04-21",
+    "consecutive_days": 3
   },
   "B00E8CIGCA": {
     "first_unavailable": "2026-04-19",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 2
-  },
-  "B00ERPWAK2": {
-    "first_unavailable": "2026-04-19",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 2
+    "last_checked": "2026-04-21",
+    "consecutive_days": 3
   },
   "B006CQWILK": {
     "first_unavailable": "2026-04-19",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 2
+    "last_checked": "2026-04-21",
+    "consecutive_days": 3
   },
   "B000HBNV76": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   },
   "B001GNBJNW": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   },
   "B004H6MUDS": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   },
   "B00J0I6VGU": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   },
   "B00WV7GMA2": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   },
   "B074PQD1RL": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   },
   "B01ITRLJIW": {
     "first_unavailable": "2026-04-20",
-    "last_checked": "2026-04-20",
-    "consecutive_days": 1
+    "last_checked": "2026-04-21",
+    "consecutive_days": 2
   }
 }
