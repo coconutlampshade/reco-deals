@@ -7,17 +7,13 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent
 CATALOG_DIR = PROJECT_ROOT / "catalog"
 
-# Use sample catalog in development, full catalog in production.
-# Override with CATALOG_MODE=full or CATALOG_MODE=sample to switch explicitly.
+# Default to the full catalog. Set CATALOG_MODE=sample to use the tiny
+# products.sample.json fixture for fast local UI iteration.
 _catalog_mode = os.environ.get("CATALOG_MODE", "").lower()
-if _catalog_mode == "full":
-    CATALOG_FILE = CATALOG_DIR / "products.json"
-elif _catalog_mode == "sample":
+if _catalog_mode == "sample":
     CATALOG_FILE = CATALOG_DIR / "products.sample.json"
-elif os.environ.get("NODE_ENV", "").lower() == "production":
-    CATALOG_FILE = CATALOG_DIR / "products.json"
 else:
-    CATALOG_FILE = CATALOG_DIR / "products.sample.json"
+    CATALOG_FILE = CATALOG_DIR / "products.json"
 SUBSTACK_EXPORT_DIR = PROJECT_ROOT / "substack_export"
 DASHBOARD_DIR = PROJECT_ROOT / "dashboard"
 HISTORY_DIR = PROJECT_ROOT / "history"
