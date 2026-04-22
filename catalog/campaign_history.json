@@ -799,5 +799,24 @@
       "B00FZPUA28": "https://geni.us/PUvMe9",
       "B003YJPC2A": "https://amzn.to/2v3GBYs"
     }
+  },
+  {
+    "campaign_id": "a5a2eb5312",
+    "web_id": 9144064,
+    "date": "2026-04-22",
+    "subject": "Recomendo Deals - April 22, 2026",
+    "deals_count": 2,
+    "asins": [
+      "B00005A1K1",
+      "B001GN7QWA"
+    ],
+    "titles": {
+      "B00005A1K1": "Wonder Winder Cord Winder",
+      "B001GN7QWA": "Cramer Kik-Step Stool"
+    },
+    "affiliate_urls": {
+      "B00005A1K1": "https://geni.us/S7sLR",
+      "B001GN7QWA": "https://geni.us/DwFY8q"
+    }
   }
 ]
