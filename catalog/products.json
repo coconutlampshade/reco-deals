@@ -11129,17 +11129,7 @@
     "asin": "B07BJL748F",
     "title": "Amazon Essentials long-sleeved t-shirt",
     "amazon_url": "https://www.amazon.com/dp/B07BJL748F?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "0aXiL",
-      "productUrl": "https://www.amazon.com/dp/B07BJL748F?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "0aXiL"
-    },
+    "affiliate_url": "https://geni.us/0aXiL",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/tiledust-to-digitalhappiness-trick-19-10-13",
@@ -49688,17 +49678,7 @@
     "asin": "B01M69K91R",
     "title": "Maker Update: felted electronics, new 3D printers, wire bending, an angry woodpecker",
     "amazon_url": "https://www.amazon.com/dp/B01M69K91R",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "198eP8",
-      "productUrl": "https://www.amazon.com/dp/B01M69K91R?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "198eP8"
-    },
+    "affiliate_url": "https://geni.us/198eP8",
     "issues": [
       {
         "url": "https://kk.org/cooltools/maker-update-felted-electronics-new-3d-printers-wire-bending-an-angry-woodpecker/",
@@ -49709,8 +49689,8 @@
     ],
     "first_featured": "2018-05-08",
     "added_at": "2026-01-03T08:01:04.426386",
-    "benefit_description": "Keeps makers informed about the latest innovative projects and cutting-edge tools across electronics, 3D printing, metalworking, and crafting through weekly curated updates.",
-    "short_title": "Maker Update: Felted Electronics & 3D Printers"
+    "short_title": "Maker Update: Felted Electronics & 3D Printers",
+    "benefit_description": "Cuts through wood, metal, pipe, and other materials in tight or awkward spaces where a traditional saw can't reach, powered by a rechargeable battery for cord-free use anywhere on a job site."
   },
   "B00UW4DJF2": {
     "asin": "B00UW4DJF2",
@@ -50014,17 +49994,7 @@
     "asin": "B00SDIC7ZC",
     "title": "Spiff Cloth",
     "amazon_url": "https://www.amazon.com/dp/B00SDIC7ZC",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "qy2AdQN",
-      "productUrl": "https://www.amazon.com/dp/B00SDIC7ZC?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "qy2AdQN"
-    },
+    "affiliate_url": "https://geni.us/qy2AdQN",
     "issues": [
       {
         "url": "https://kk.org/cooltools/spiff-cloth/",
@@ -56823,17 +56793,7 @@
     "asin": "B0045DYL8U",
     "title": "Zote Laundry Soap Bar - Pink 7oz",
     "amazon_url": "https://www.amazon.com/dp/B0045DYL8U",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "b1YdCKC",
-      "productUrl": "https://www.amazon.com/dp/B0045DYL8U?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "b1YdCKC"
-    },
+    "affiliate_url": "https://geni.us/b1YdCKC",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-zora-oneill/",
@@ -56843,7 +56803,8 @@
       }
     ],
     "first_featured": "2020-03-25",
-    "added_at": "2026-01-03T08:01:04.451894"
+    "added_at": "2026-01-03T08:01:04.451894",
+    "benefit_description": "Solid soap that dissolves easily for hand-washing clothes in a sink while traveling, eliminating the need to pack liquid detergent."
   },
   "B007712D4Q": {
     "asin": "B007712D4Q",
@@ -59140,17 +59101,7 @@
     "asin": "B00TES82HW",
     "title": "Ariel Waldman, NASA Advisor",
     "amazon_url": "https://www.amazon.com/dp/B00TES82HW",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "1TRohY",
-      "productUrl": "https://www.amazon.com/dp/B00TES82HW?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "1TRohY"
-    },
+    "affiliate_url": "https://geni.us/1TRohY",
     "issues": [
       {
         "url": "https://kk.org/cooltools/ariel-waldman-nasa-advisor/",
@@ -74360,8 +74311,8 @@
     ],
     "first_featured": "2025-11-21",
     "added_at": "2026-01-03T09:14:51.568603",
-    "benefit_description": "Provides specific DIY techniques and tool recommendations for tackling challenging tasks like sanding in extremely tight spaces and maintaining yards with manual equipment.",
-    "short_title": "Gar's Tips & Tools - Issue #206"
+    "short_title": "Gar's Tips & Tools - Issue #206",
+    "benefit_description": "Sets in 6 minutes and cures rock-hard in hours, bonding metal, plastic, wood, concrete, and more with 3,127 PSI strength that's waterproof and chemical-resistant."
   },
   "B001Z3C3AG": {
     "asin": "B001Z3C3AG",

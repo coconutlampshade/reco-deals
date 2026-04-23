@@ -818,5 +818,39 @@
       "B00005A1K1": "https://geni.us/S7sLR",
       "B001GN7QWA": "https://geni.us/DwFY8q"
     }
+  },
+  {
+    "campaign_id": "c2e613824f",
+    "web_id": 9144077,
+    "date": "2026-04-23",
+    "subject": "Recomendo Deals - April 23, 2026",
+    "deals_count": 7,
+    "asins": [
+      "B0045DYL8U",
+      "B0006O1ICY",
+      "B00TES82HW",
+      "B07BJL748F",
+      "B00SDIC7ZC",
+      "B01NAD9HD9",
+      "B01M69K91R"
+    ],
+    "titles": {
+      "B0045DYL8U": "Zote Laundry Soap Bar",
+      "B0006O1ICY": "KwikWeld Quick Setting Steel Reinforced Epoxy",
+      "B00TES82HW": "Maruman Mnemosyne Grid Notebook",
+      "B07BJL748F": "Amazon Essentials Long-Sleeved T-shirt",
+      "B00SDIC7ZC": "Spiff Cloth",
+      "B01NAD9HD9": "Picasso Bristle Tiles",
+      "B01M69K91R": "Dewalt Cordless Reciprocating Saw"
+    },
+    "affiliate_urls": {
+      "B0045DYL8U": "https://geni.us/b1YdCKC",
+      "B0006O1ICY": "https://geni.us/6vNX5SA",
+      "B00TES82HW": "https://geni.us/1TRohY",
+      "B07BJL748F": "https://geni.us/0aXiL",
+      "B00SDIC7ZC": "https://geni.us/qy2AdQN",
+      "B01NAD9HD9": "https://geni.us/RPk1",
+      "B01M69K91R": "https://geni.us/198eP8"
+    }
   }
 ]
