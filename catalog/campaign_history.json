@@ -852,5 +852,24 @@
       "B01NAD9HD9": "https://geni.us/RPk1",
       "B01M69K91R": "https://geni.us/198eP8"
     }
+  },
+  {
+    "campaign_id": "c96217205a",
+    "web_id": 9144081,
+    "date": "2026-04-24",
+    "subject": "Recomendo Deals - April 24, 2026",
+    "deals_count": 2,
+    "asins": [
+      "B01MG2CNDL",
+      "B017IWP6MY"
+    ],
+    "titles": {
+      "B01MG2CNDL": "Webe iGrill Thermometer",
+      "B017IWP6MY": "Papasan Pool Chair"
+    },
+    "affiliate_urls": {
+      "B01MG2CNDL": "https://amzn.to/2zmyQMw",
+      "B017IWP6MY": "https://geni.us/xCQI7s"
+    }
   }
 ]

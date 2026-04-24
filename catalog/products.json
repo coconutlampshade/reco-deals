@@ -9772,17 +9772,7 @@
     "asin": "B017IWP6MY",
     "title": "papasan float",
     "amazon_url": "https://www.amazon.com/dp/B017IWP6MY?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "xCQI7s",
-      "productUrl": "https://www.amazon.com/dp/B017IWP6MY?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "xCQI7s"
-    },
+    "affiliate_url": "https://geni.us/xCQI7s",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/five-crime-novelssong-exploderfree-17-07-09",
@@ -9798,7 +9788,7 @@
     ],
     "first_featured": "2017-07-09",
     "added_at": "2026-01-02T13:42:17.899805",
-    "benefit_description": "Allows you to stay cool by keeping half your body in the water while basking in the sun for extended periods of relaxation.",
+    "benefit_description": "Mesh seat suspends your body just below the surface of the water while the inflation ring keeps you floating upright",
     "short_title": "papasan float"
   },
   "B0025189VE": {
@@ -67474,7 +67464,7 @@
     ],
     "first_featured": "2018-09-21",
     "added_at": "2026-01-03T08:36:11.834136",
-    "benefit_description": "This ceramic grill uses convection cooking principles that allow you to precisely control internal temperatures, giving you better heat management than traditional metal grills that only cook directly over coals.",
+    "benefit_description": "App-connected thermometer that allows you to monitor the doneness of up to four cuts of meat",
     "short_title": "Steven Levy, Editor at Large at WIRED"
   },
   "B00F9S85CS": {
