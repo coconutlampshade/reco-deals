@@ -822,17 +822,7 @@
     "asin": "B00CH9QWOU",
     "title": "Breville Barista Express",
     "amazon_url": "https://www.amazon.com/dp/B00CH9QWOU?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "xw4oWh",
-      "productUrl": "https://www.amazon.com/dp/B00CH9QWOU?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "xw4oWh"
-    },
+    "affiliate_url": "https://geni.us/xw4oWh",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/finance-advicefind-the-best-productsounds-19-06-16",
@@ -3069,17 +3059,7 @@
     "asin": "B000CFJB08",
     "title": "3.5m/12ft",
     "amazon_url": "https://www.amazon.com/dp/B000CFJB08?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "SRHKk",
-      "productUrl": "https://www.amazon.com/dp/B000CFJB08?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "SRHKk"
-    },
+    "affiliate_url": "https://geni.us/SRHKk",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/dual-scale-tape-measuresgmail-tipspapier-19-01-06",
@@ -23205,17 +23185,7 @@
     "asin": "B07G5X7DMC",
     "title": "Cable Tie Gun",
     "amazon_url": "https://www.amazon.com/dp/B07G5X7DMC",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "4Ilt",
-      "productUrl": "https://www.amazon.com/dp/B07G5X7DMC?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "4Ilt"
-    },
+    "affiliate_url": "https://geni.us/4Ilt",
     "issues": [
       {
         "url": "https://kk.org/cooltools/cable-tie-gun/",
@@ -33701,17 +33671,7 @@
     "asin": "B00HN2BXUY",
     "title": "Entrepreneur and Inventor, Dan Shapiro",
     "amazon_url": "https://www.amazon.com/dp/B00HN2BXUY",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "ATX9q",
-      "productUrl": "https://www.amazon.com/dp/B00HN2BXUY?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "ATX9q"
-    },
+    "affiliate_url": "https://geni.us/ATX9q",
     "issues": [
       {
         "url": "https://kk.org/cooltools/entrepreneur-and-inventor-dan-shapiro/",
@@ -33728,8 +33688,8 @@
     ],
     "first_featured": "2014-09-24",
     "added_at": "2026-01-03T08:01:04.388005",
-    "benefit_description": "Recommends inventions and innovations that offer surprisingly valuable experiences at budget-friendly prices for those seeking high-value tools without breaking the bank.",
-    "short_title": "Entrepreneur and Inventor, Dan Shapiro"
+    "short_title": "Entrepreneur and Inventor, Dan Shapiro",
+    "benefit_description": "Teaches kids as young as 4 the core logic of programming through hands-on card play, with no screen required."
   },
   "B00KYJET7M": {
     "asin": "B00KYJET7M",
@@ -35328,17 +35288,7 @@
     "asin": "B00005UP2K",
     "title": "KitchenAid Artisan Series 5 Quart Tilt Head Stand Mixer with Pouring Shield KSM150PS, White",
     "amazon_url": "https://www.amazon.com/dp/B00005UP2K",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "zz7AM",
-      "productUrl": "https://www.amazon.com/dp/B00005UP2K?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "zz7AM"
-    },
+    "affiliate_url": "https://geni.us/zz7AM",
     "issues": [
       {
         "url": "https://kk.org/cooltools/ryan-block-cofounder-of-engadget-cool-tools-show-17/",

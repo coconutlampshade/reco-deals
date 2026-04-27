@@ -871,5 +871,33 @@
       "B01MG2CNDL": "https://amzn.to/2zmyQMw",
       "B017IWP6MY": "https://geni.us/xCQI7s"
     }
+  },
+  {
+    "campaign_id": "9dcc6b134b",
+    "web_id": 9144089,
+    "date": "2026-04-27",
+    "subject": "Recomendo Deals - April 27, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B07G5X7DMC",
+      "B00CH9QWOU",
+      "B00HN2BXUY",
+      "B00005UP2K",
+      "B000CFJB08"
+    ],
+    "titles": {
+      "B07G5X7DMC": "Cable Tie Gun",
+      "B00CH9QWOU": "Breville Barista Express",
+      "B00HN2BXUY": "ThinkFun Robot Turtles Game",
+      "B00005UP2K": "KitchenAid Artisan Stand Mixer",
+      "B000CFJB08": "Komelon 4912IM 12 Foot Scale"
+    },
+    "affiliate_urls": {
+      "B07G5X7DMC": "https://geni.us/4Ilt",
+      "B00CH9QWOU": "https://geni.us/xw4oWh",
+      "B00HN2BXUY": "https://geni.us/ATX9q",
+      "B00005UP2K": "https://geni.us/zz7AM",
+      "B000CFJB08": "https://geni.us/SRHKk"
+    }
   }
 ]
