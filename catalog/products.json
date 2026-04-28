@@ -7871,17 +7871,7 @@
     "asin": "B00006IEBI",
     "title": "Pilot Precise V5 Roller Ball Stick Pen",
     "amazon_url": "https://www.amazon.com/dp/B00006IEBI?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "8Ok74",
-      "productUrl": "https://www.amazon.com/dp/B00006IEBI?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "8Ok74"
-    },
+    "affiliate_url": "https://geni.us/8Ok74",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/1500-sandwichfuturismwebkay-17-11-12",
@@ -13290,17 +13280,7 @@
     "asin": "B001DCAAP4",
     "title": "DuraScoop Jumbo Cat Litter Scoop",
     "amazon_url": "https://www.amazon.com/dp/B001DCAAP4?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "kC0L",
-      "productUrl": "https://www.amazon.com/dp/B001DCAAP4?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "kC0L"
-    },
+    "affiliate_url": "https://geni.us/kC0L",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/less-more-and-nonebest-tape-measurerthe-18-07-01",
@@ -15209,17 +15189,7 @@
     "asin": "B0154MS9Q0",
     "title": "50-piece set of velcro cable ties",
     "amazon_url": "https://www.amazon.com/dp/B0154MS9Q0?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "VzdN6w3",
-      "productUrl": "https://www.amazon.com/dp/B0154MS9Q0?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "VzdN6w3"
-    },
+    "affiliate_url": "https://geni.us/VzdN6w3",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/erasable-highlightersdeath-of-stalinsmallpdf-18-07-29",
@@ -75552,7 +75522,8 @@
       }
     ],
     "first_featured": "2026-04-24",
-    "added_at": "2026-04-25T05:43:49.744537"
+    "added_at": "2026-04-25T05:43:49.744537",
+    "benefit_description": "Now in its fourth revision, this remains the best guide for learning how to draw."
   },
   "B001DI8FSM": {
     "asin": "B001DI8FSM",

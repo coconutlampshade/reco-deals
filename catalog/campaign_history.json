@@ -899,5 +899,33 @@
       "B00005UP2K": "https://geni.us/zz7AM",
       "B000CFJB08": "https://geni.us/SRHKk"
     }
+  },
+  {
+    "campaign_id": "59679fd37d",
+    "web_id": 9144103,
+    "date": "2026-04-28",
+    "subject": "Recomendo Deals - April 28, 2026",
+    "deals_count": 5,
+    "asins": [
+      "1585429201",
+      "B017SKRWL4",
+      "B0154MS9Q0",
+      "B00006IEBI",
+      "B001DCAAP4"
+    ],
+    "titles": {
+      "1585429201": "Drawing on the Right Side of Brain",
+      "B017SKRWL4": "Large Electronics Travel Organizer",
+      "B0154MS9Q0": "50-piece Set of Velcro Cable Yies",
+      "B00006IEBI": "Pilot Precise V5 Roller Ball Stick Pen",
+      "B001DCAAP4": "DuraScoop Jumbo Cat Litter Scoop"
+    },
+    "affiliate_urls": {
+      "1585429201": "https://geni.us/jhUaS",
+      "B017SKRWL4": "https://amzn.to/2YqILdu?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter",
+      "B0154MS9Q0": "https://geni.us/VzdN6w3",
+      "B00006IEBI": "https://geni.us/8Ok74",
+      "B001DCAAP4": "https://geni.us/kC0L"
+    }
   }
 ]
