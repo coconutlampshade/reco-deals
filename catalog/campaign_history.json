@@ -927,5 +927,30 @@
       "B00006IEBI": "https://geni.us/8Ok74",
       "B001DCAAP4": "https://geni.us/kC0L"
     }
+  },
+  {
+    "campaign_id": "888615f5d8",
+    "web_id": 9144114,
+    "date": "2026-04-29",
+    "subject": "Recomendo Deals - April 29, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B0B56BVWBM",
+      "B004TLH7C0",
+      "B000BNLLHW",
+      "B00FFLY64U"
+    ],
+    "titles": {
+      "B0B56BVWBM": "Smart Bird Feeder with AI Camera",
+      "B004TLH7C0": "Targus CleanVu Cleaning Pads",
+      "B000BNLLHW": "OLFA Rotary Cutter",
+      "B00FFLY64U": "Takeya Cold Brew Coffee Maker"
+    },
+    "affiliate_urls": {
+      "B0B56BVWBM": "https://geni.us/iLjG8w",
+      "B004TLH7C0": "https://geni.us/NsIh",
+      "B000BNLLHW": "https://geni.us/afgSpPB",
+      "B00FFLY64U": "https://geni.us/CVAFuNn"
+    }
   }
 ]

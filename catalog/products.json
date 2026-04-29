@@ -39542,17 +39542,7 @@
     "asin": "B000BNLLHW",
     "title": "OLFA 45mm Ergonomic Rotary Cutter (RTY-2/DX) - Rotary Fabric Cutter w/Blade Cover & Squeeze Trigger for Quilting, Sewing, Crafts, Replacement Blade: OLFA RB45-1H",
     "amazon_url": "https://www.amazon.com/dp/B000BNLLHW",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "afgSpPB",
-      "productUrl": "https://www.amazon.com/dp/B000BNLLHW",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "afgSpPB"
-    },
+    "affiliate_url": "https://geni.us/afgSpPB",
     "issues": [
       {
         "url": "https://kk.org/cooltools/cool-tools-2015-holiday-gift-guide-kevins-picks/",
@@ -41418,17 +41408,7 @@
     "asin": "B004TLH7C0",
     "title": "Targus CleanVu Cleaning Pads for Apple iPad, iPad 2, iPhone, Motorola Xoom, Samsung Galaxy, BlackBerry Playbook TXA00212US",
     "amazon_url": "https://www.amazon.com/dp/B004TLH7C0",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "NsIh",
-      "productUrl": "https://www.amazon.com/dp/B004TLH7C0?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "NsIh"
-    },
+    "affiliate_url": "https://geni.us/NsIh",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-david-murray/",
@@ -43541,17 +43521,7 @@
     "asin": "B00FFLY64U",
     "title": "Alan Henry, Editor in Chief of Lifehacker",
     "amazon_url": "https://www.amazon.com/dp/B00FFLY64U",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "CVAFuNn",
-      "productUrl": "https://www.amazon.com/dp/B00FFLY64U?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "CVAFuNn"
-    },
+    "affiliate_url": "https://geni.us/CVAFuNn",
     "issues": [
       {
         "url": "https://kk.org/cooltools/alan-henry-editor-in-chief-of-lifehacker/",
@@ -43562,7 +43532,7 @@
     ],
     "first_featured": "2016-12-13",
     "added_at": "2026-01-03T08:01:04.408449",
-    "benefit_description": "Provides expert recommendations on technology and lifestyle products based on extensive personal testing and experience across multiple categories like headphones, coffee makers, and keyboards.",
+    "benefit_description": "Produces 4 servings of smooth cold brew with any type of coffee grounds and is less acidic than traditional coffee brewing.",
     "short_title": "Alan Henry, Editor in Chief of Lifehacker"
   },
   "B00JG01QTY": {
@@ -70344,24 +70314,6 @@
     "benefit_description": "Vintage cast iron skillets from the 1950s provide superior nonstick cooking performance because they were ground smooth during manufacturing, unlike modern cast iron that has a rough, grating surface straight from the casting process.",
     "short_title": "Dan Shapiro, Founder of Glowforge"
   },
-  "0786965592": {
-    "asin": "0786965592",
-    "title": "Dan Shapiro, Founder of Glowforge",
-    "amazon_url": "https://www.amazon.com/dp/0786965592",
-    "affiliate_url": "https://amzn.to/2SD0pcL",
-    "issues": [
-      {
-        "url": "https://kk.org/cooltools/dan-shapiro-founder-of-glowforge/",
-        "title": "Dan Shapiro, Founder of Glowforge",
-        "date": "2019-07-26",
-        "source": "cooltools"
-      }
-    ],
-    "first_featured": "2019-07-26",
-    "added_at": "2026-01-03T08:39:48.279666",
-    "benefit_description": "This vintage cooking surface delivers superior nonstick performance because it was ground smooth during manufacturing, unlike modern versions that have rough, grating surfaces straight from the cast.",
-    "short_title": "Dan Shapiro, Founder of Glowforge"
-  },
   "B000239E6Q": {
     "asin": "B000239E6Q",
     "title": "Michelle Hlubinka, Former Education Director at Maker Media",
@@ -75571,7 +75523,8 @@
       }
     ],
     "first_featured": "2026-04-24",
-    "added_at": "2026-04-25T05:43:52.451449"
+    "added_at": "2026-04-25T05:43:52.451449",
+    "benefit_description": "Automatically photographs and identifies birds visiting your backyard feeder with 1080p clarity, sending real-time alerts to your phone so you never miss a visitor — even at night."
   },
   "B07N4KTW38": {
     "asin": "B07N4KTW38",
