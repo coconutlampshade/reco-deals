@@ -7361,52 +7361,57 @@
   },
   "B016212UZ8": {
     "first_unavailable": "2026-04-28",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 2
+    "last_checked": "2026-04-30",
+    "consecutive_days": 3
   },
   "B000AZ57M6": {
     "first_unavailable": "2026-04-28",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 2
+    "last_checked": "2026-04-30",
+    "consecutive_days": 3
   },
   "B00ANZRT4M": {
     "first_unavailable": "2026-04-28",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 2
+    "last_checked": "2026-04-30",
+    "consecutive_days": 3
   },
   "B007FGYZFI": {
     "first_unavailable": "2026-04-28",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 2
+    "last_checked": "2026-04-30",
+    "consecutive_days": 3
   },
   "B0BYRLPQL3": {
     "first_unavailable": "2026-04-29",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 1
+    "last_checked": "2026-04-30",
+    "consecutive_days": 2
   },
   "B002XIJNXW": {
     "first_unavailable": "2026-04-29",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 1
+    "last_checked": "2026-04-30",
+    "consecutive_days": 2
   },
   "B000SKXROI": {
     "first_unavailable": "2026-04-29",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 1
+    "last_checked": "2026-04-30",
+    "consecutive_days": 2
   },
   "B000FNFXQS": {
     "first_unavailable": "2026-04-29",
-    "last_checked": "2026-04-29",
-    "consecutive_days": 1
+    "last_checked": "2026-04-30",
+    "consecutive_days": 2
   },
   "B079NPMJQ1": {
     "first_unavailable": "2026-04-29",
-    "last_checked": "2026-04-29",
+    "last_checked": "2026-04-30",
+    "consecutive_days": 2
+  },
+  "B000UU6SR4": {
+    "first_unavailable": "2026-04-30",
+    "last_checked": "2026-04-30",
     "consecutive_days": 1
   },
-  "B0BF8FPH5L": {
-    "first_unavailable": "2026-04-29",
-    "last_checked": "2026-04-29",
+  "B01NCAH9YV": {
+    "first_unavailable": "2026-04-30",
+    "last_checked": "2026-04-30",
     "consecutive_days": 1
   }
 }
