@@ -75541,5 +75541,37 @@
     ],
     "first_featured": "2026-04-24",
     "added_at": "2026-04-25T05:43:53.272885"
+  },
+  "1401946593": {
+    "asin": "1401946593",
+    "title": "Chuang Tzu: Inner Chapters",
+    "amazon_url": "https://www.amazon.com/dp/1401946593",
+    "affiliate_url": null,
+    "issues": [
+      {
+        "url": "http://eepurl.com/9oLTSnDi2U",
+        "title": "Posts from Cool Tools for 05/01/2026",
+        "date": "2026-05-01",
+        "source": "cooltools"
+      }
+    ],
+    "first_featured": "2026-05-01",
+    "added_at": "2026-05-02T06:01:35.503488"
+  },
+  "B09XQ9DMXN": {
+    "asin": "B09XQ9DMXN",
+    "title": "Tactical 5.11 Pants",
+    "amazon_url": "https://www.amazon.com/dp/B09XQ9DMXN",
+    "affiliate_url": "https://geni.us/JR3Y3",
+    "issues": [
+      {
+        "url": "http://eepurl.com/9oLTSnDi2U",
+        "title": "Posts from Cool Tools for 05/01/2026",
+        "date": "2026-05-01",
+        "source": "cooltools"
+      }
+    ],
+    "first_featured": "2026-05-01",
+    "added_at": "2026-05-02T06:01:36.711153"
   }
 }
