@@ -12395,17 +12395,7 @@
     "asin": "B0756BD1B7",
     "title": "24-footed Strandbeest",
     "amazon_url": "https://www.amazon.com/dp/B0756BD1B7?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "H7GqKZ",
-      "productUrl": "https://www.amazon.com/dp/B0756BD1B7?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "H7GqKZ"
-    },
+    "affiliate_url": "https://geni.us/H7GqKZ",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/nerdy-kit-giftseustachidark-reader-18-12-16",
@@ -21359,17 +21349,7 @@
     "asin": "B000EI0VXO",
     "title": "Buck 305 Lancer",
     "amazon_url": "https://www.amazon.com/dp/B000EI0VXO",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "3AB6pzD",
-      "productUrl": "https://www.amazon.com/dp/B000EI0VXO?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "3AB6pzD"
-    },
+    "affiliate_url": "https://geni.us/3AB6pzD",
     "issues": [
       {
         "url": "https://kk.org/cooltools/buck-305-lancer/",
@@ -32862,17 +32842,7 @@
     "asin": "B004UNFE18",
     "title": "Tim Jenison, Inventor and Founder of NewTek",
     "amazon_url": "https://www.amazon.com/dp/B004UNFE18",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "N5kC6j",
-      "productUrl": "https://www.amazon.com/dp/B004UNFE18?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "N5kC6j"
-    },
+    "affiliate_url": "https://geni.us/N5kC6j",
     "issues": [
       {
         "url": "https://kk.org/cooltools/tim-jenison-founder-of-newtek-cool-tools-show-005/",
@@ -32883,8 +32853,8 @@
     ],
     "first_featured": "2014-07-03",
     "added_at": "2026-01-03T08:01:04.386557",
-    "benefit_description": "Provides a mirror-based system that allows artists to accurately compare and match colors, tones, and details when creating realistic paintings or drawings.",
-    "short_title": "Tim Jenison, Inventor and Founder of NewTek"
+    "short_title": "Tim Jenison, Inventor and Founder of NewTek",
+    "benefit_description": "A compact flat-blade precision screwdriver ideal for making fine adjustments on electronics and tech equipment, with a pocket clip for everyday carry."
   },
   "B00HODDJFY": {
     "asin": "B00HODDJFY",
@@ -40256,17 +40226,7 @@
     "asin": "B000A0WM2E",
     "title": "Vise-Grip GrooveLock V-Jaw Pliers",
     "amazon_url": "https://www.amazon.com/dp/B000A0WM2E",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "BZxz2O0",
-      "productUrl": "https://www.amazon.com/dp/B000A0WM2E?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "BZxz2O0"
-    },
+    "affiliate_url": "https://geni.us/BZxz2O0",
     "issues": [
       {
         "url": "https://kk.org/cooltools/vise-grip-groovelock-v-jaw-pliers/",
@@ -59595,17 +59555,7 @@
     "asin": "B00251I5P4",
     "title": "Improving a Cheap Airbrush",
     "amazon_url": "https://www.amazon.com/dp/B00251I5P4",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "D6vi",
-      "productUrl": "https://www.amazon.com/dp/B00251I5P4?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "D6vi"
-    },
+    "affiliate_url": "https://geni.us/D6vi",
     "issues": [
       {
         "url": "https://kk.org/cooltools/improving-a-cheap-airbrush/",
@@ -59616,7 +59566,7 @@
     ],
     "first_featured": "2020-06-18",
     "added_at": "2026-01-03T08:01:04.457107",
-    "benefit_description": "This tool helps improve the performance and functionality of inexpensive airbrushes through specific modification techniques and tips.",
+    "benefit_description": "This durable, self-healing, reversible cutting mat is 3 millimeters thick.",
     "short_title": "Improving a Cheap Airbrush"
   },
   "B00MHLIFO8": {
