@@ -983,5 +983,36 @@
       "B0756BD1B7": "https://geni.us/H7GqKZ",
       "B000EI0VXO": "https://geni.us/3AB6pzD"
     }
+  },
+  {
+    "campaign_id": "73bc4aeb50",
+    "web_id": 9144133,
+    "date": "2026-05-04",
+    "subject": "Recomendo Deals - May 04, 2026",
+    "deals_count": 6,
+    "asins": [
+      "B004DBHR2Q",
+      "B000OEJARG",
+      "B000JNNWQ2",
+      "B001ARBSTO",
+      "B07GT49F9C",
+      "B01LR0XLFW"
+    ],
+    "titles": {
+      "B004DBHR2Q": "BIC Cristal Pen",
+      "B000OEJARG": "Command Hangers",
+      "B000JNNWQ2": "Automatic Wire Stripper",
+      "B001ARBSTO": "Natrapel Insect Repellent Wipes",
+      "B07GT49F9C": "Battery-Powered Headlamp",
+      "B01LR0XLFW": "13-inch Balance Disc"
+    },
+    "affiliate_urls": {
+      "B004DBHR2Q": "https://geni.us/w2BUws",
+      "B000OEJARG": "https://geni.us/6hW61",
+      "B000JNNWQ2": "https://amzn.to/2GtzcFg",
+      "B001ARBSTO": "https://geni.us/AIGUN",
+      "B07GT49F9C": "https://geni.us/R3SYzbe",
+      "B01LR0XLFW": "https://geni.us/Ca8em7b"
+    }
   }
 ]
