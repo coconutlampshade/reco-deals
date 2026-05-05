@@ -21049,17 +21049,7 @@
     "asin": "B00006IBNJ",
     "title": "Goo Gone",
     "amazon_url": "https://www.amazon.com/dp/B00006IBNJ",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "L4JKmEP",
-      "productUrl": "https://www.amazon.com/dp/B00006IBNJ?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "L4JKmEP"
-    },
+    "affiliate_url": "https://geni.us/L4JKmEP",
     "issues": [
       {
         "url": "https://kk.org/cooltools/googone/",
@@ -33085,17 +33075,7 @@
     "asin": "8883701127",
     "title": "Moleskine Classic Notebook, Large, Ruled, Black, Hard Cover (5 x 8.25)",
     "amazon_url": "https://www.amazon.com/dp/8883701127",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "5qKmUH",
-      "productUrl": "https://www.amazon.com/dp/8883701127?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "5qKmUH"
-    },
+    "affiliate_url": "https://geni.us/5qKmUH",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-ryan-holiday/",
@@ -43606,17 +43586,7 @@
     "asin": "B0040MH642",
     "title": "ECOlunchbox Three-in-One Stainless Steel Bento Box (31oz) – 3 Piece Nesting Lunch Container with Snack Pod – Plastic Free, Non Toxic, Dishwasher Safe, Not Leak-Proof",
     "amazon_url": "https://www.amazon.com/dp/B0040MH642",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "lTxA",
-      "productUrl": "https://www.amazon.com/dp/B0040MH642?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "lTxA"
-    },
+    "affiliate_url": "https://geni.us/lTxA",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-tyler/",
@@ -58616,17 +58586,7 @@
     "asin": "B000BB79Q6",
     "title": "Rob Beschizza, Editor at Boing Boing",
     "amazon_url": "https://www.amazon.com/dp/B000BB79Q6",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "nI4tH6",
-      "productUrl": "https://www.amazon.com/dp/B000BB79Q6?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "nI4tH6"
-    },
+    "affiliate_url": "https://geni.us/nI4tH6",
     "issues": [
       {
         "url": "https://kk.org/cooltools/rob-beschizza-editor-at-boing-boing/",
@@ -58637,8 +58597,8 @@
     ],
     "first_featured": "2020-05-08",
     "added_at": "2026-01-03T08:01:04.454989",
-    "benefit_description": "This compact appliance generates extremely high heat that allows you to cook food inside while simultaneously toasting bread on its surface, providing versatile cooking capabilities in a small footprint.",
-    "short_title": "Rob Beschizza, Editor at Boing Boing"
+    "short_title": "Rob Beschizza, Editor at Boing Boing",
+    "benefit_description": "Delivers rotary hammer power with three drilling modes, tool-free SDS-plus bit changes, and vibration control that lets you drill through tough concrete and masonry all day without fatigue."
   },
   "B000E6TVNW": {
     "asin": "B000E6TVNW",
@@ -64412,24 +64372,6 @@
     "added_at": "2026-01-03T08:31:52.309547",
     "benefit_description": "Cuts a wide variety of materials including paper and fabric into any custom pattern or shape you design.",
     "short_title": "Cricut Air and Cricut Maker"
-  },
-  "B00KUXSOXC": {
-    "asin": "B00KUXSOXC",
-    "title": "Adam Rubin, NYT best-selling children’s book author",
-    "amazon_url": "https://www.amazon.com/dp/B00KUXSOXC",
-    "affiliate_url": "http://amzn.to/2fsOvCs",
-    "issues": [
-      {
-        "url": "https://kk.org/cooltools/adam-rubin-nyt-best-selling-childrens-book-author/",
-        "title": "Adam Rubin, NYT best-selling children’s book author",
-        "date": "2017-08-09",
-        "source": "cooltools"
-      }
-    ],
-    "first_featured": "2017-08-09",
-    "added_at": "2026-01-03T08:31:56.784653",
-    "benefit_description": "This pen allows you to make writing completely disappear by applying heat through rubbing with the built-in eraser, a flame, or even a microwave, making it perfect for magic tricks and illusions.",
-    "short_title": "Adam Rubin, NYT best-selling children’s book author"
   },
   "B0033ZMY1W": {
     "asin": "B0033ZMY1W",
@@ -75472,6 +75414,7 @@
       }
     ],
     "first_featured": "2026-05-01",
-    "added_at": "2026-05-02T06:01:36.711153"
+    "added_at": "2026-05-02T06:01:36.711153",
+    "benefit_description": "Durable ripstop fabric with water and stain resistance, an elastic waistband for ease of movement, and multiple tactical pockets make these a versatile choice for outdoor, travel, or active use."
   }
 }

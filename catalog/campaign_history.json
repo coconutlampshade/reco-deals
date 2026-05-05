@@ -1014,5 +1014,39 @@
       "B07GT49F9C": "https://geni.us/R3SYzbe",
       "B01LR0XLFW": "https://geni.us/Ca8em7b"
     }
+  },
+  {
+    "campaign_id": "b2f1800ad8",
+    "web_id": 9144134,
+    "date": "2026-05-05",
+    "subject": "Recomendo Deals - May 05, 2026",
+    "deals_count": 7,
+    "asins": [
+      "8883701127",
+      "B000BB79Q6",
+      "B0CTMFXX8B",
+      "B09XQ9DMXN",
+      "B0083GRJDE",
+      "B00006IBNJ",
+      "B0040MH642"
+    ],
+    "titles": {
+      "8883701127": "Moleskine Classic Notebook",
+      "B000BB79Q6": "Bosch Bulldog Xtreme Hammer",
+      "B0CTMFXX8B": "Small Duffel",
+      "B09XQ9DMXN": "CQR Men's Tactical Pants",
+      "B0083GRJDE": "Think Tank Airport Essentials",
+      "B00006IBNJ": "Goo Gone",
+      "B0040MH642": "Stainless Steel Bento"
+    },
+    "affiliate_urls": {
+      "8883701127": "https://geni.us/5qKmUH",
+      "B000BB79Q6": "https://geni.us/nI4tH6",
+      "B0CTMFXX8B": "https://geni.us/united-bag",
+      "B09XQ9DMXN": "https://geni.us/JR3Y3",
+      "B0083GRJDE": "https://amzn.to/3ajH9Jt?utm_campaign=What%27s%20in%20my%20bag%3F&amp;utm_medium=email&amp;utm_source=Revue%20newsletter",
+      "B00006IBNJ": "https://geni.us/L4JKmEP",
+      "B0040MH642": "https://geni.us/lTxA"
+    }
   }
 ]
