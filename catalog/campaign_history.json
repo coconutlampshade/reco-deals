@@ -1048,5 +1048,42 @@
       "B00006IBNJ": "https://geni.us/L4JKmEP",
       "B0040MH642": "https://geni.us/lTxA"
     }
+  },
+  {
+    "campaign_id": "431d3d2771",
+    "web_id": 9144141,
+    "date": "2026-05-06",
+    "subject": "Recomendo Deals - May 06, 2026",
+    "deals_count": 8,
+    "asins": [
+      "B0F2M1KYR7",
+      "B0018D69TE",
+      "B005PNAOPS",
+      "B0000CFO3W",
+      "B008AGWNII",
+      "B007PE7ANY",
+      "B0002YTVJA",
+      "B009QYH52C"
+    ],
+    "titles": {
+      "B0F2M1KYR7": "CMF Wireless Earbuds",
+      "B0018D69TE": "Winmau Diamond Plus Tournament Bristle Dartboard",
+      "B005PNAOPS": "Burt's Bees Lip Balm",
+      "B0000CFO3W": "Mini Measure Shot Glass",
+      "B008AGWNII": "Komelon SM5425 Speed Mark Tape",
+      "B007PE7ANY": "KIND Dark Chocolate Sea Salt Bars",
+      "B0002YTVJA": "Gardening Knee Cushion",
+      "B009QYH52C": "Frixion pens"
+    },
+    "affiliate_urls": {
+      "B0F2M1KYR7": "https://geni.us/llOuWto",
+      "B0018D69TE": "https://geni.us/winmau",
+      "B005PNAOPS": "https://geni.us/aRDzMUr",
+      "B0000CFO3W": "https://geni.us/YxaAqe",
+      "B008AGWNII": "https://geni.us/W4sW",
+      "B007PE7ANY": "https://geni.us/2WXL3",
+      "B0002YTVJA": "https://geni.us/hmk8",
+      "B009QYH52C": "https://geni.us/frixion-pen"
+    }
   }
 ]
