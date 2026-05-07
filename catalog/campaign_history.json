@@ -1085,5 +1085,33 @@
       "B0002YTVJA": "https://geni.us/hmk8",
       "B009QYH52C": "https://geni.us/frixion-pen"
     }
+  },
+  {
+    "campaign_id": "25ed6f197c",
+    "web_id": 9144153,
+    "date": "2026-05-07",
+    "subject": "Recomendo Deals - May 07, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B06WWLJ7KY",
+      "B0CCW59NG3",
+      "B0011MIQUM",
+      "B001QVPHBO",
+      "B0029SGNHK"
+    ],
+    "titles": {
+      "B06WWLJ7KY": "Fuji Instax Mini",
+      "B0CCW59NG3": "Spin Master Games Tag Game",
+      "B0011MIQUM": "Trauma Shears",
+      "B001QVPHBO": "Teeny Turner Screwdriver",
+      "B0029SGNHK": "Tilley Sun Hat"
+    },
+    "affiliate_urls": {
+      "B06WWLJ7KY": "https://geni.us/7CHd",
+      "B0CCW59NG3": "https://geni.us/O2Kvjhh",
+      "B0011MIQUM": "https://geni.us/1dtQoF",
+      "B001QVPHBO": "https://geni.us/teenyturner",
+      "B0029SGNHK": "https://geni.us/UhWUIK"
+    }
   }
 ]
