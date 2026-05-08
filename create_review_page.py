@@ -13,10 +13,12 @@ Usage:
 import argparse
 import csv
 import json
+import os
 import sys
+import threading
 import webbrowser
 from datetime import datetime, timedelta
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -26,6 +28,85 @@ PROJECT_ROOT = Path(__file__).parent
 DEALS_FILE = PROJECT_ROOT / "catalog" / "deals.json"
 HIDDEN_FILE = PROJECT_ROOT / "catalog" / "hidden_products.json"
 SALES_CSV = PROJECT_ROOT / "amazon-2025.csv"
+SALES_CSV_2026 = PROJECT_ROOT / "amazon-2026.csv"
+PRODUCTS_FILE = PROJECT_ROOT / "catalog" / "products.json"
+
+REQUIRED_ENV_VARS = [
+    "MAILCHIMP_API_KEY", "MAILCHIMP_LIST_ID", "MAILCHIMP_REPLY_TO",
+    "KEEPA_API_KEY", "PA_API_ACCESS_KEY", "PA_API_SECRET_KEY",
+]
+
+
+def preflight_check() -> bool:
+    """Fast validation before the slow catalog load. Returns True if no fatal issues.
+
+    FAIL: missing env vars, missing products.json, missing deals.json.
+    WARN: stale deals.json, dataless/empty sales CSVs.
+    """
+    print("Pre-flight check:")
+    has_fatal = False
+
+    missing_env = [v for v in REQUIRED_ENV_VARS if not os.getenv(v)]
+    if missing_env:
+        print(f"  FAIL  env vars missing: {', '.join(missing_env)}")
+        has_fatal = True
+    else:
+        print(f"  OK    env vars ({len(REQUIRED_ENV_VARS)}/{len(REQUIRED_ENV_VARS)})")
+
+    if not PRODUCTS_FILE.exists():
+        print(f"  FAIL  {PRODUCTS_FILE.name} missing")
+        has_fatal = True
+    else:
+        try:
+            with open(PRODUCTS_FILE, "r", encoding="utf-8") as f:
+                catalog = json.load(f)
+            n = len(catalog) if isinstance(catalog, dict) else len(catalog)
+            print(f"  OK    products.json ({n} products)")
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"  FAIL  products.json unreadable: {e}")
+            has_fatal = True
+
+    if not DEALS_FILE.exists():
+        print(f"  FAIL  {DEALS_FILE.name} missing — run check_deals.py via GitHub Actions first")
+        has_fatal = True
+    else:
+        try:
+            with open(DEALS_FILE, "r", encoding="utf-8") as f:
+                deals_data = json.load(f)
+            generated_at = deals_data.get("generated_at", "")
+            if generated_at:
+                try:
+                    gen_dt = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+                    age_hours = (datetime.now(gen_dt.tzinfo) - gen_dt).total_seconds() / 3600
+                    label = "OK   " if age_hours < 26 else "WARN "
+                    if age_hours >= 26:
+                        print(f"  WARN  deals.json is {age_hours:.1f}h old — GitHub Actions cron may have failed")
+                    else:
+                        print(f"  OK    deals.json ({age_hours:.1f}h old, {len(deals_data.get('deals', {}))} deals)")
+                except (ValueError, TypeError):
+                    print(f"  OK    deals.json ({len(deals_data.get('deals', {}))} deals, age unknown)")
+            else:
+                print(f"  OK    deals.json ({len(deals_data.get('deals', {}))} deals, no timestamp)")
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"  FAIL  deals.json unreadable: {e}")
+            has_fatal = True
+
+    for csv_path in (SALES_CSV, SALES_CSV_2026):
+        if not csv_path.exists():
+            continue
+        try:
+            with open(csv_path, "rb") as f:
+                head = f.read(64)
+            if not head and csv_path.stat().st_size > 0:
+                print(f"  WARN  {csv_path.name} is dataless ({csv_path.stat().st_size} stat bytes, 0 readable) — sales display will be blank")
+            elif not head:
+                print(f"  WARN  {csv_path.name} is empty — sales display will be blank")
+        except OSError as e:
+            print(f"  WARN  {csv_path.name}: {e}")
+
+    print()
+    return not has_fatal
+
 
 sys.path.insert(0, str(PROJECT_ROOT))
 from review_deals import (
@@ -38,6 +119,61 @@ from utils import call_claude
 
 # Server state
 server_should_stop = False
+
+# Send progress state — populated by stdout tee during /confirm, polled by frontend via /progress
+_progress_lock = threading.Lock()
+_progress = {"phase": "idle", "label": "", "updated_at": None}
+
+# Map substrings of stdout lines to user-facing progress labels.
+# First match wins; ordered by typical pipeline sequence.
+_PROGRESS_PHASES = [
+    ("Verifying prices", "verify", "Verifying prices..."),
+    ("Generating newsletter", "html", "Generating newsletter..."),
+    ("Web version saved", "archive", "Saving to archive..."),
+    ("Archive index updated", "archive", "Updating archive index..."),
+    ("RSS feed updated", "rss", "Updating RSS feed..."),
+    ("Email report saved", "email", "Generating email version..."),
+    ("Updated featured history", "history", "Recording featured history..."),
+    ("Preview text:", "preview", "Building preview text..."),
+    ("Creating Mailchimp campaign", "mc_create", "Creating Mailchimp campaign..."),
+    ("Setting campaign content", "mc_content", "Setting campaign content..."),
+    ("Content set successfully", "mc_done", "Mailchimp draft ready..."),
+    ("Campaign history saved", "saved", "Saving campaign history..."),
+]
+
+
+def _set_progress(phase: str, label: str):
+    with _progress_lock:
+        _progress["phase"] = phase
+        _progress["label"] = label
+        _progress["updated_at"] = datetime.now().isoformat()
+
+
+def _get_progress() -> dict:
+    with _progress_lock:
+        return dict(_progress)
+
+
+class _ProgressTee:
+    """Stdout wrapper that tees writes to original stdout AND parses lines for progress phases."""
+
+    def __init__(self, stream, phase_map):
+        self.stream = stream
+        self.phase_map = phase_map
+        self.buffer = ""
+
+    def write(self, s):
+        self.stream.write(s)
+        self.buffer += s
+        while "\n" in self.buffer:
+            line, self.buffer = self.buffer.split("\n", 1)
+            for substring, phase, label in self.phase_map:
+                if substring in line:
+                    _set_progress(phase, label)
+                    break
+
+    def flush(self):
+        self.stream.flush()
 
 
 def load_deals() -> dict:
@@ -2172,6 +2308,19 @@ function sendToMailchimp() {{
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
+    let lastLabel = '';
+    const progressTimer = setInterval(() => {{
+        fetch('/progress')
+            .then(r => r.json())
+            .then(p => {{
+                if (p && p.label && p.label !== lastLabel) {{
+                    lastLabel = p.label;
+                    btn.textContent = p.label;
+                }}
+            }})
+            .catch(() => {{}});
+    }}, 500);
+
     fetch('/confirm', {{
         method: 'POST',
         headers: {{ 'Content-Type': 'application/json' }},
@@ -2179,6 +2328,7 @@ function sendToMailchimp() {{
     }})
     .then(r => r.json())
     .then(data => {{
+        clearInterval(progressTimer);
         if (data.success) {{
             showSuccessModal(data.campaign_url);
         }} else {{
@@ -2188,6 +2338,7 @@ function sendToMailchimp() {{
         }}
     }})
     .catch(err => {{
+        clearInterval(progressTimer);
         alert('Error: ' + err);
         btn.disabled = false;
         btn.textContent = 'Send to Mailchimp \\u2192';
@@ -2322,6 +2473,15 @@ class ReviewHandler(BaseHTTPRequestHandler):
         pass  # Suppress HTTP logs
 
     def do_GET(self):
+        if self.path == "/progress":
+            payload = json.dumps(_get_progress()).encode()
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
@@ -2657,6 +2817,9 @@ Title: {full_title}""",
             price_overrides = data.get("priceOverrides", {})
             unclassified_ad = data.get("unclassifiedAd")
 
+            _set_progress("starting", "Starting send...")
+            original_stdout = sys.stdout
+            sys.stdout = _ProgressTee(original_stdout, _PROGRESS_PHASES)
             try:
                 result = generate_and_send(
                     selected_asins, self.candidates,
@@ -2664,12 +2827,16 @@ Title: {full_title}""",
                     unclassified_ad=unclassified_ad,
                     custom_prices=price_overrides
                 )
+                sys.stdout = original_stdout
+                _set_progress("complete", "Done")
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps(result).encode())
                 server_should_stop = True
             except Exception as e:
+                sys.stdout = original_stdout
+                _set_progress("error", f"Error: {e}")
                 import traceback
                 traceback.print_exc()
                 self.send_response(500)
@@ -2693,8 +2860,9 @@ def run_server(html: str, candidates: list, products: dict, port: int = 8765):
     ReviewHandler.candidates = candidates
     ReviewHandler.products = products
 
-    HTTPServer.allow_reuse_address = True
-    server = HTTPServer(("localhost", port), ReviewHandler)
+    ThreadingHTTPServer.allow_reuse_address = True
+    ThreadingHTTPServer.daemon_threads = True
+    server = ThreadingHTTPServer(("localhost", port), ReviewHandler)
     server.timeout = 1
 
     print(f"\nReview interface ready at http://localhost:{port}")
@@ -2719,7 +2887,13 @@ def run_server(html: str, candidates: list, products: dict, port: int = 8765):
 def main():
     parser = argparse.ArgumentParser(description="Review deals and create Mailchimp newsletter")
     parser.add_argument("--port", type=int, default=8765, help="Local server port (default: 8765)")
+    parser.add_argument("--skip-preflight", action="store_true", help="Skip pre-flight validation")
     args = parser.parse_args()
+
+    if not args.skip_preflight:
+        if not preflight_check():
+            print("Pre-flight failed. Fix the issues above or re-run with --skip-preflight to bypass.")
+            sys.exit(1)
 
     print("Loading catalog and deals...")
     data = merge_catalog_and_deals()
