@@ -70,10 +70,13 @@ def save_hidden_products(hidden: dict):
 def load_sales_data() -> dict:
     """Parse sales CSV and return {asin: {qty, revenue}} for DI sales only."""
     sales = {}
-    if not SALES_CSV.exists():
+    if not SALES_CSV.exists() or SALES_CSV.stat().st_size == 0:
         return sales
     with open(SALES_CSV, "r", encoding="utf-8") as f:
-        next(f)  # skip metadata line 1
+        try:
+            next(f)  # skip metadata line 1
+        except StopIteration:
+            return sales
         reader = csv.DictReader(f)
         for row in reader:
             asin = row.get("ASIN", "").strip()

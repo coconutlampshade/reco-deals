@@ -1113,5 +1113,33 @@
       "B001QVPHBO": "https://geni.us/teenyturner",
       "B0029SGNHK": "https://geni.us/UhWUIK"
     }
+  },
+  {
+    "campaign_id": "2f06e1fa4f",
+    "web_id": 9144160,
+    "date": "2026-05-08",
+    "subject": "Recomendo Deals - May 08, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B01K3ADZ76",
+      "B06XHWQJKN",
+      "B07PPD975X",
+      "B00BAGTNAQ",
+      "B00JS56OPI"
+    ],
+    "titles": {
+      "B01K3ADZ76": "1-to4 Power Splitter, 2-Pack",
+      "B06XHWQJKN": "Nespresso Aeroccino Milk Frother",
+      "B07PPD975X": "Stove-Top Popcorn Popper and Coffee Roaster",
+      "B00BAGTNAQ": "Roller Pet Hair Remover",
+      "B00JS56OPI": "Cobra Tactical Crossbow"
+    },
+    "affiliate_urls": {
+      "B01K3ADZ76": "https://geni.us/9VZq",
+      "B06XHWQJKN": "https://geni.us/m4SUiI",
+      "B07PPD975X": "https://geni.us/E846YI",
+      "B00BAGTNAQ": "https://geni.us/FqoPwL",
+      "B00JS56OPI": "https://geni.us/ymPOUi"
+    }
   }
 ]
