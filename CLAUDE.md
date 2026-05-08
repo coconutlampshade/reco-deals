@@ -1,5 +1,7 @@
 # Recomendo Deals Newsletter
 
+> **Status:** see [`dashboard/projects/reco-deals.md`](../dashboard/projects/reco-deals.md) for current focus, open threads, and recent activity.
+
 ## Rules
 - Don't run `check_deals.py` locally — it takes 2+ hours and runs automatically via GitHub Actions at 3:30am PT
 - Always pull latest before generating reports (automated via SessionStart hook)
