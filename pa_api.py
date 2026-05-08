@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,6 +21,76 @@ import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+INVALID_ASINS_FILE = Path(__file__).parent / "catalog" / "invalid_asins.json"
+_INVALID_ASIN_RE = re.compile(r"\bItemIds?\s+([A-Z0-9]{10})\b")
+
+PA_API_CACHE_FILE = Path(__file__).parent / "catalog" / "pa_api_cache.json"
+PA_API_CACHE_TTL_SECS = int(os.getenv("PA_API_CACHE_TTL_SECS", "14400"))  # 4h default
+
+
+def _load_pa_cache() -> dict:
+    if not PA_API_CACHE_FILE.exists():
+        return {}
+    try:
+        return json.loads(PA_API_CACHE_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_pa_cache(cache: dict):
+    try:
+        PA_API_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PA_API_CACHE_FILE.write_text(json.dumps(cache, indent=2))
+    except OSError:
+        pass
+
+
+def _is_cache_fresh(entry: dict, max_age_secs: int) -> bool:
+    fetched_at = entry.get("fetched_at")
+    if not fetched_at:
+        return False
+    try:
+        ts = datetime.fromisoformat(fetched_at)
+    except (ValueError, TypeError):
+        return False
+    age = (datetime.now() - ts).total_seconds()
+    return age < max_age_secs
+
+
+def _record_invalid_asins(error_messages):
+    """Append/update entries in catalog/invalid_asins.json for any ASIN named in PA API errors.
+
+    error_messages: iterable of (code, message) tuples from PA API "Errors" array.
+    """
+    if not error_messages:
+        return
+    flagged = {}
+    for code, message in error_messages:
+        for asin in _INVALID_ASIN_RE.findall(message or ""):
+            flagged[asin] = (code or "", message or "")
+    if not flagged:
+        return
+
+    try:
+        existing = json.loads(INVALID_ASINS_FILE.read_text()) if INVALID_ASINS_FILE.exists() else {}
+    except (json.JSONDecodeError, OSError):
+        existing = {}
+
+    now = datetime.now().isoformat(timespec="seconds")
+    for asin, (code, message) in flagged.items():
+        entry = existing.get(asin, {"first_seen": now, "count": 0})
+        entry["last_seen"] = now
+        entry["last_code"] = code
+        entry["last_message"] = message
+        entry["count"] = entry.get("count", 0) + 1
+        existing[asin] = entry
+
+    try:
+        INVALID_ASINS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        INVALID_ASINS_FILE.write_text(json.dumps(existing, indent=2))
+    except OSError:
+        pass
 
 # PA API Configuration
 PA_API_ACCESS_KEY = os.getenv("PA_API_ACCESS_KEY")
@@ -347,20 +418,40 @@ def extract_price_info(item: dict) -> dict:
     return result
 
 
-def get_prices_for_asins(asins: list[str]) -> dict[str, dict]:
+def get_prices_for_asins(asins: list[str], use_cache: bool = True) -> dict[str, dict]:
     """
     Get current prices for a list of ASINs.
 
     Handles batching (max 10 per request) automatically.
+    Cached results (under PA_API_CACHE_TTL_SECS) skip the API entirely.
+    Pass use_cache=False to force a fresh fetch.
 
     Returns dict of ASIN -> price_info
     """
     import time
     results = {}
 
+    cache = _load_pa_cache() if use_cache else {}
+    cache_hits = 0
+    if use_cache:
+        remaining = []
+        for asin in asins:
+            entry = cache.get(asin)
+            if entry and _is_cache_fresh(entry, PA_API_CACHE_TTL_SECS):
+                results[asin] = entry["data"]
+                cache_hits += 1
+            else:
+                remaining.append(asin)
+        asins_to_fetch = remaining
+    else:
+        asins_to_fetch = list(asins)
+
+    if cache_hits:
+        print(f"  PA API cache: {cache_hits}/{len(asins)} hits, fetching {len(asins_to_fetch)} fresh")
+
     # Process in batches of 10
-    for i in range(0, len(asins), 10):
-        batch = asins[i:i+10]
+    for i in range(0, len(asins_to_fetch), 10):
+        batch = asins_to_fetch[i:i+10]
 
         # Brief delay between batches to avoid 429 throttling
         if i > 0:
@@ -371,21 +462,33 @@ def get_prices_for_asins(asins: list[str]) -> dict[str, dict]:
 
             # Process successful items
             if "ItemsResult" in response and "Items" in response["ItemsResult"]:
+                now = datetime.now().isoformat(timespec="seconds")
                 for item in response["ItemsResult"]["Items"]:
                     asin = item.get("ASIN")
                     if asin:
-                        results[asin] = extract_price_info(item)
+                        info = extract_price_info(item)
+                        results[asin] = info
+                        if use_cache:
+                            cache[asin] = {"data": info, "fetched_at": now}
 
             # Note any errors
             if "Errors" in response:
+                error_pairs = []
                 for error in response["Errors"]:
-                    print(f"  PA API warning: {error.get('Message', 'Unknown error')}")
+                    msg = error.get("Message", "Unknown error")
+                    code = error.get("Code", "")
+                    print(f"  PA API warning: {msg}")
+                    error_pairs.append((code, msg))
+                _record_invalid_asins(error_pairs)
 
         except Exception as e:
             print(f"  Error fetching batch: {e}")
             # Mark batch as failed
             for asin in batch:
                 results[asin] = {"error": str(e)}
+
+    if use_cache and asins_to_fetch:
+        _save_pa_cache(cache)
 
     return results
 

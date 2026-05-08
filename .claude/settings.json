@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "cd /Users/mark/Desktop/claude-code-apps/reco-deals && git pull --ff-only 2>&1 || echo 'NOTICE: git pull failed — may need manual merge'"
+          },
+          {
+            "type": "command",
+            "command": "cd /Users/mark/Desktop/claude-code-apps/reco-deals && nohup python3 -u create_review_page.py --warmup --skip-preflight > /tmp/reco-warmup.log 2>&1 & disown 2>/dev/null ; echo 'NOTICE: deals catalog warming up in background (log: /tmp/reco-warmup.log)'"
           }
         ]
       }

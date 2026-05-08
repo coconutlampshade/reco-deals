@@ -30,11 +30,179 @@ HIDDEN_FILE = PROJECT_ROOT / "catalog" / "hidden_products.json"
 SALES_CSV = PROJECT_ROOT / "amazon-2025.csv"
 SALES_CSV_2026 = PROJECT_ROOT / "amazon-2026.csv"
 PRODUCTS_FILE = PROJECT_ROOT / "catalog" / "products.json"
+INVALID_ASINS_FILE = PROJECT_ROOT / "catalog" / "invalid_asins.json"
+CAMPAIGN_HISTORY_FILE = PROJECT_ROOT / "catalog" / "campaign_history.json"
+LAST_STATS_CACHE_FILE = PROJECT_ROOT / "catalog" / "last_campaign_stats.json"
+LAST_STATS_CACHE_TTL_SECS = 4 * 60 * 60
 
 REQUIRED_ENV_VARS = [
     "MAILCHIMP_API_KEY", "MAILCHIMP_LIST_ID", "MAILCHIMP_REPLY_TO",
     "KEEPA_API_KEY", "PA_API_ACCESS_KEY", "PA_API_SECRET_KEY",
 ]
+
+
+_BANNED_TITLE_PHRASES = [
+    "gifts for the",
+    "holiday gift",
+    "[maker update",
+    "best gifts",
+    "best for",
+]
+_GENERIC_BENEFIT_PHRASES = [
+    "specialized tools",
+    "improve overall",
+    "enhance your",
+    "providing specialized",
+    "helps improve",
+]
+_FEATURED_HISTORY_FILE = PROJECT_ROOT / "catalog" / "featured_history.json"
+_UNAVAILABLE_TRACKING_FILE = PROJECT_ROOT / "catalog" / "unavailable_tracking.json"
+_DEAL_MIN_NEWSLETTER_SCORE = 40
+_COOLDOWN_DAYS = 30
+_MAX_CONSECUTIVE_UNAVAILABLE = 2
+
+
+def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benefits: dict, affiliate_urls: dict) -> dict:
+    """Validate selected deals before send. Returns a per-ASIN findings dict.
+
+    Severity:
+      - "block" — must be addressed (or explicitly overridden) before sending
+      - "warn"  — soft warning; user can ignore
+    """
+    try:
+        history = json.loads(_FEATURED_HISTORY_FILE.read_text()) if _FEATURED_HISTORY_FILE.exists() else {}
+    except (json.JSONDecodeError, OSError):
+        history = {}
+    try:
+        unavailable = json.loads(_UNAVAILABLE_TRACKING_FILE.read_text()) if _UNAVAILABLE_TRACKING_FILE.exists() else {}
+    except (json.JSONDecodeError, OSError):
+        unavailable = {}
+
+    findings = {}
+    now = datetime.now()
+
+    for asin in selected_asins:
+        product = products.get(asin, {}) or {}
+        issues = []
+
+        title = (titles.get(asin) or product.get("short_title") or product.get("title") or "").strip()
+        title_lower = title.lower()
+        word_count = len(title.split())
+        for phrase in _BANNED_TITLE_PHRASES:
+            if phrase in title_lower:
+                issues.append({"severity": "warn", "kind": "title_banned_phrase", "detail": f'Title contains "{phrase}"'})
+                break
+        if word_count < 3:
+            issues.append({"severity": "warn", "kind": "title_too_short", "detail": f"Title is {word_count} words"})
+        elif word_count > 9:
+            issues.append({"severity": "warn", "kind": "title_too_long", "detail": f"Title is {word_count} words"})
+
+        benefit = (benefits.get(asin) or product.get("benefit_description") or "").strip()
+        if not benefit:
+            issues.append({"severity": "warn", "kind": "benefit_missing", "detail": "No benefit description"})
+        else:
+            benefit_lower = benefit.lower()
+            for phrase in _GENERIC_BENEFIT_PHRASES:
+                if phrase in benefit_lower:
+                    issues.append({"severity": "warn", "kind": "benefit_generic", "detail": f'Benefit contains generic phrase "{phrase}"'})
+                    break
+            if len(benefit.split()) > 30:
+                issues.append({"severity": "warn", "kind": "benefit_too_long", "detail": f"Benefit is {len(benefit.split())} words (>30)"})
+
+        url = (affiliate_urls.get(asin) or product.get("affiliate_url") or "").strip()
+        if not url:
+            issues.append({"severity": "block", "kind": "url_missing", "detail": "No affiliate URL"})
+        elif not (url.startswith("https://geni.us/") or url.startswith("https://www.amazon.com/dp/") or url.startswith("https://amzn.to/")):
+            issues.append({"severity": "warn", "kind": "url_unusual", "detail": f"URL is not geni.us/amazon.com/amzn.to: {url}"})
+
+        score = product.get("deal_score") or 0
+        if score and score < _DEAL_MIN_NEWSLETTER_SCORE:
+            issues.append({"severity": "warn", "kind": "low_score", "detail": f"Deal score {score} < {_DEAL_MIN_NEWSLETTER_SCORE}"})
+
+        last_featured = history.get(asin)
+        if last_featured:
+            try:
+                last_dt = datetime.fromisoformat(last_featured)
+                days = (now - last_dt).days
+                if days < _COOLDOWN_DAYS:
+                    issues.append({"severity": "warn", "kind": "cooldown", "detail": f"Featured {days}d ago (cooldown {_COOLDOWN_DAYS}d)"})
+            except (ValueError, TypeError):
+                pass
+
+        unavail_entry = unavailable.get(asin)
+        if unavail_entry:
+            consecutive = unavail_entry.get("consecutive_days", 0)
+            if consecutive > _MAX_CONSECUTIVE_UNAVAILABLE:
+                issues.append({"severity": "warn", "kind": "unavailable", "detail": f"Marked unavailable {consecutive} consecutive days"})
+
+        if issues:
+            findings[asin] = {
+                "title": title,
+                "issues": issues,
+            }
+
+    block_count = sum(1 for f in findings.values() for i in f["issues"] if i["severity"] == "block")
+    warn_count = sum(1 for f in findings.values() for i in f["issues"] if i["severity"] == "warn")
+
+    return {
+        "findings": findings,
+        "block_count": block_count,
+        "warn_count": warn_count,
+        "clear": block_count == 0 and warn_count == 0,
+    }
+
+
+def get_latest_campaign_stats() -> dict | None:
+    """Fetch open/click rate for the most recent sent Mailchimp campaign.
+
+    Cached to disk for LAST_STATS_CACHE_TTL_SECS to avoid hitting the API on every page load.
+    Returns None if there's no history, the campaign hasn't been sent yet, or the API call fails.
+    """
+    if LAST_STATS_CACHE_FILE.exists():
+        age = (datetime.now() - datetime.fromtimestamp(LAST_STATS_CACHE_FILE.stat().st_mtime)).total_seconds()
+        if age < LAST_STATS_CACHE_TTL_SECS:
+            try:
+                return json.loads(LAST_STATS_CACHE_FILE.read_text())
+            except (json.JSONDecodeError, OSError):
+                pass
+
+    if not CAMPAIGN_HISTORY_FILE.exists():
+        return None
+    try:
+        history = json.loads(CAMPAIGN_HISTORY_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+    if not history:
+        return None
+
+    latest = history[-1]
+    campaign_id = latest.get("campaign_id")
+    if not campaign_id:
+        return None
+
+    try:
+        from mailchimp_send import get_campaign_report
+        report = get_campaign_report(campaign_id)
+    except Exception:
+        return None
+    if not report:
+        return None
+
+    stats = {
+        "date": latest.get("date", ""),
+        "subject": report.get("subject", ""),
+        "emails_sent": report.get("emails_sent", 0),
+        "open_rate": round(report.get("opens", {}).get("rate", 0) * 100, 1),
+        "click_rate": round(report.get("clicks", {}).get("rate", 0) * 100, 1),
+        "unique_clicks": report.get("clicks", {}).get("unique", 0),
+        "unsubscribes": report.get("unsubscribes", 0),
+        "deals_count": latest.get("deals_count", 0),
+    }
+    try:
+        LAST_STATS_CACHE_FILE.write_text(json.dumps(stats, indent=2))
+    except OSError:
+        pass
+    return stats
 
 
 def preflight_check() -> bool:
@@ -90,6 +258,14 @@ def preflight_check() -> bool:
         except (json.JSONDecodeError, OSError) as e:
             print(f"  FAIL  deals.json unreadable: {e}")
             has_fatal = True
+
+    if INVALID_ASINS_FILE.exists():
+        try:
+            invalid = json.loads(INVALID_ASINS_FILE.read_text())
+            if invalid:
+                print(f"  WARN  {len(invalid)} ASIN(s) flagged invalid by PA API — review catalog/invalid_asins.json")
+        except (json.JSONDecodeError, OSError):
+            pass
 
     for csv_path in (SALES_CSV, SALES_CSV_2026):
         if not csv_path.exists():
@@ -419,6 +595,22 @@ def build_html(merged_data: dict) -> str:
     benefits = {asin: p["benefit_description"] for asin, p in products.items() if p.get("benefit_description")}
     benefits_json = json.dumps(benefits)
 
+    # Yesterday's campaign stats banner (best-effort; skipped if API call fails or no history)
+    last_stats = get_latest_campaign_stats()
+    if last_stats:
+        last_stats_html = (
+            f'<div class="last-stats-banner">'
+            f'<span class="last-stats-label">Last send ({last_stats["date"]}):</span> '
+            f'<strong>{last_stats["open_rate"]}%</strong> opens · '
+            f'<strong>{last_stats["click_rate"]}%</strong> clicks · '
+            f'{last_stats["unique_clicks"]} unique clicks · '
+            f'{last_stats["emails_sent"]:,} sent · '
+            f'{last_stats["unsubscribes"]} unsubs'
+            f'</div>'
+        )
+    else:
+        last_stats_html = ""
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -469,6 +661,34 @@ def build_html(merged_data: dict) -> str:
             font-weight: 700;
             color: #363737;
         }}
+        .last-stats-banner {{
+            background: #f8fafc;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 8px 24px;
+            font-size: 13px;
+            color: #555;
+            text-align: center;
+        }}
+        .last-stats-banner strong {{
+            color: #2c5282;
+            font-weight: 700;
+        }}
+        .last-stats-label {{
+            color: #888;
+            margin-right: 6px;
+        }}
+        .presend-table {{ width:100%; border-collapse:collapse; font-size:13px; }}
+        .presend-table td {{ padding:10px 12px; border-bottom:1px solid #f0f0f0; vertical-align:top; }}
+        .presend-table td:first-child {{ width:200px; white-space:nowrap; }}
+        .presend-table code {{ font-family:'SF Mono',Menlo,monospace; font-size:12px; background:#f5f5f5; padding:2px 6px; border-radius:3px; }}
+        .presend-title {{ color:#888; font-size:12px; margin-top:4px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
+        .presend-issue {{ display:flex; align-items:center; gap:8px; margin-bottom:4px; }}
+        .presend-tag {{ font-size:10px; font-weight:700; padding:2px 6px; border-radius:3px; letter-spacing:0.5px; }}
+        .presend-block .presend-tag {{ background:#fee; color:#c33; }}
+        .presend-warn .presend-tag {{ background:#fff8e0; color:#a96; }}
+        .presend-cancel {{ background:#fff; border:1px solid #ccc; padding:10px 18px; border-radius:6px; cursor:pointer; font-weight:600; }}
+        .presend-override {{ background:#e74c3c; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; font-weight:600; }}
+        .presend-override:hover {{ background:#c0392b; }}
         .toolbar {{
             background: #fff;
             border-bottom: 1px solid #e0e0e0;
@@ -832,6 +1052,7 @@ def build_html(merged_data: dict) -> str:
             </div>
         </div>
     </div>
+    {last_stats_html}
 
     <div class="toolbar">
         <div class="toolbar-inner">
@@ -2306,6 +2527,38 @@ function sendToMailchimp() {{
 
     const btn = document.getElementById('sendBtn');
     btn.disabled = true;
+    btn.textContent = 'Running pre-send check...';
+
+    fetch('/pre-send-check', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ asins, titles, benefits, affiliateUrls }})
+    }})
+    .then(r => r.json())
+    .then(report => {{
+        if (report.error) {{
+            alert('Pre-send check failed: ' + report.error + '\\nProceeding to send anyway.');
+            actuallySendToMailchimp(body, btn);
+            return;
+        }}
+        if (report.clear) {{
+            actuallySendToMailchimp(body, btn);
+            return;
+        }}
+        showPreSendModal(report, () => actuallySendToMailchimp(body, btn), () => {{
+            btn.disabled = false;
+            btn.textContent = 'Send to Mailchimp \\u2192';
+        }});
+    }})
+    .catch(err => {{
+        // Pre-send check is non-fatal — fall through to actual send
+        console.warn('Pre-send check error, sending anyway:', err);
+        actuallySendToMailchimp(body, btn);
+    }});
+}}
+
+function actuallySendToMailchimp(body, btn) {{
+    btn.disabled = true;
     btn.textContent = 'Sending...';
 
     let lastLabel = '';
@@ -2342,6 +2595,57 @@ function sendToMailchimp() {{
         alert('Error: ' + err);
         btn.disabled = false;
         btn.textContent = 'Send to Mailchimp \\u2192';
+    }});
+}}
+
+function showPreSendModal(report, onOverride, onCancel) {{
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    const blockTotal = report.block_count || 0;
+    const warnTotal = report.warn_count || 0;
+
+    let rows = '';
+    Object.entries(report.findings || {{}}).forEach(([asin, info]) => {{
+        const issuesHtml = info.issues.map(i =>
+            `<div class="presend-issue presend-${{i.severity}}">
+                <span class="presend-tag">${{i.severity.toUpperCase()}}</span>
+                <span>${{i.detail}}</span>
+            </div>`
+        ).join('');
+        rows += `
+            <tr>
+                <td><code>${{asin}}</code><div class="presend-title">${{info.title || ''}}</div></td>
+                <td>${{issuesHtml}}</td>
+            </tr>
+        `;
+    }});
+
+    const overrideDisabled = blockTotal > 0 ? '' : '';
+    const overrideLabel = blockTotal > 0 ? `Override and send anyway (${{blockTotal}} blocking)` : 'Send anyway';
+
+    overlay.innerHTML = `
+        <div class="modal" style="max-width:720px;text-align:left;">
+            <h2 style="margin-top:0;">Pre-send check</h2>
+            <p style="color:#666;margin-bottom:16px;">
+                ${{blockTotal}} blocking · ${{warnTotal}} warning · ${{Object.keys(report.findings || {{}}).length}} affected ASINs
+            </p>
+            <div style="max-height:400px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:6px;">
+                <table class="presend-table">${{rows}}</table>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+                <button class="presend-cancel">Cancel and fix</button>
+                <button class="presend-override">${{overrideLabel}}</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.presend-cancel').addEventListener('click', () => {{
+        overlay.remove();
+        onCancel();
+    }});
+    overlay.querySelector('.presend-override').addEventListener('click', () => {{
+        overlay.remove();
+        onOverride();
     }});
 }}
 
@@ -2805,6 +3109,35 @@ Title: {full_title}""",
                 self.wfile.write(json.dumps({"success": False, "error": f"Lookup failed: {e}"}).encode())
             return
 
+        if self.path == "/pre-send-check":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            selected_asins = data.get("asins", [])
+            custom_titles = data.get("titles", {})
+            custom_benefits = data.get("benefits", {})
+            custom_affiliate_urls = data.get("affiliateUrls", {})
+
+            try:
+                report = run_pre_send_check(
+                    selected_asins, self.products,
+                    custom_titles, custom_benefits, custom_affiliate_urls,
+                )
+                payload = json.dumps(report).encode()
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         if self.path == "/confirm":
             content_length = int(self.headers["Content-Length"])
             post_data = self.rfile.read(content_length)
@@ -2888,6 +3221,7 @@ def main():
     parser = argparse.ArgumentParser(description="Review deals and create Mailchimp newsletter")
     parser.add_argument("--port", type=int, default=8765, help="Local server port (default: 8765)")
     parser.add_argument("--skip-preflight", action="store_true", help="Skip pre-flight validation")
+    parser.add_argument("--warmup", action="store_true", help="Pre-warm the catalog/PA API cache and exit (no server)")
     args = parser.parse_args()
 
     if not args.skip_preflight:
@@ -2901,6 +3235,10 @@ def main():
     priced = sum(1 for v in products.values() if v.get("current_price"))
     deal_count = sum(1 for v in products.values() if v.get("is_deal"))
     print(f"  {len(products)} products, {priced} with prices, {deal_count} deals")
+
+    if args.warmup:
+        print("Warmup complete — PA API cache populated. Exiting.")
+        return
 
     print("Preparing candidates...")
     candidates = prepare_candidates(products)

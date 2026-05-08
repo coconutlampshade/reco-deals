@@ -42,6 +42,11 @@ cruft/
 # Checkpoint (transient, not committed)
 catalog/check_checkpoint.json
 
+# Local caches and runtime queues
+catalog/pa_api_cache.json
+catalog/last_campaign_stats.json
+catalog/invalid_asins.json
+
 # Vercel
 .vercel/
 .vercel
