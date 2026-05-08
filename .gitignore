@@ -47,6 +47,17 @@ catalog/pa_api_cache.json
 catalog/last_campaign_stats.json
 catalog/invalid_asins.json
 
+# User tooling state (Obsidian, gstack, context-save, gstack skill symlinks)
+.obsidian/
+.gstack/
+.context/
+.claude/skills/
+
+# Local-only notes (kept on disk, not version-controlled)
+Dashboard.md
+log.md
+skills.md
+
 # Vercel
 .vercel/
 .vercel
