@@ -1752,32 +1752,6 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
     except Exception as e:
         print(f"Warning: Failed to save campaign history: {e}")
 
-    # Deploy to Vercel and push to git in background so the HTTP response
-    # returns immediately and the browser can show the success modal.
-    import threading
-
-    def _deploy_and_push():
-        print("Deploying to Vercel...")
-        try:
-            subprocess.run(["vercel", "--prod", "--yes"], check=True, capture_output=True, cwd=str(config.PROJECT_ROOT / "public"))
-            print("Deployed to Vercel")
-        except subprocess.CalledProcessError as e:
-            print(f"Vercel deploy failed: {e}")
-
-        print("Pushing to git...")
-        try:
-            subprocess.run(["git", "add", "-A"], check=True, capture_output=True)
-            subprocess.run(
-                ["git", "commit", "-m", "Update deals and featured history\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"],
-                check=True, capture_output=True
-            )
-            subprocess.run(["git", "push"], check=True, capture_output=True)
-            print("Pushed to git")
-        except subprocess.CalledProcessError as e:
-            print(f"Git push failed: {e}")
-
-    threading.Thread(target=_deploy_and_push, daemon=True).start()
-
     return {
         "success": True,
         "campaign_url": campaign_url,
