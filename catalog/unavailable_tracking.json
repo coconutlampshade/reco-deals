@@ -7346,37 +7346,57 @@
   },
   "B0798DTRJQ": {
     "first_unavailable": "2026-05-09",
-    "last_checked": "2026-05-10",
-    "consecutive_days": 2
+    "last_checked": "2026-05-11",
+    "consecutive_days": 3
   },
   "B000BYRP9Y": {
     "first_unavailable": "2026-05-09",
-    "last_checked": "2026-05-10",
-    "consecutive_days": 2
+    "last_checked": "2026-05-11",
+    "consecutive_days": 3
   },
   "B086J7X4GV": {
     "first_unavailable": "2026-05-09",
-    "last_checked": "2026-05-10",
-    "consecutive_days": 2
+    "last_checked": "2026-05-11",
+    "consecutive_days": 3
   },
   "B001VY1GDY": {
     "first_unavailable": "2026-05-10",
-    "last_checked": "2026-05-10",
-    "consecutive_days": 1
+    "last_checked": "2026-05-11",
+    "consecutive_days": 2
   },
   "B00005BV0D": {
     "first_unavailable": "2026-05-10",
-    "last_checked": "2026-05-10",
-    "consecutive_days": 1
+    "last_checked": "2026-05-11",
+    "consecutive_days": 2
   },
   "B001Y7XQ18": {
     "first_unavailable": "2026-05-10",
-    "last_checked": "2026-05-10",
-    "consecutive_days": 1
+    "last_checked": "2026-05-11",
+    "consecutive_days": 2
   },
   "B073H552FJ": {
     "first_unavailable": "2026-05-10",
-    "last_checked": "2026-05-10",
+    "last_checked": "2026-05-11",
+    "consecutive_days": 2
+  },
+  "B0C33KSJNF": {
+    "first_unavailable": "2026-05-11",
+    "last_checked": "2026-05-11",
+    "consecutive_days": 1
+  },
+  "B000FNFXQS": {
+    "first_unavailable": "2026-05-11",
+    "last_checked": "2026-05-11",
+    "consecutive_days": 1
+  },
+  "B079K9B4XV": {
+    "first_unavailable": "2026-05-11",
+    "last_checked": "2026-05-11",
+    "consecutive_days": 1
+  },
+  "B07HNHJCZY": {
+    "first_unavailable": "2026-05-11",
+    "last_checked": "2026-05-11",
     "consecutive_days": 1
   }
 }
