@@ -1141,5 +1141,30 @@
       "B00BAGTNAQ": "https://geni.us/FqoPwL",
       "B00JS56OPI": "https://geni.us/ymPOUi"
     }
+  },
+  {
+    "campaign_id": "6dc9615341",
+    "web_id": 9144201,
+    "date": "2026-05-11",
+    "subject": "Recomendo Deals - May 11, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B08T5QN2TR",
+      "B001GNBJNW",
+      "B0044SCV4M",
+      "B0000AY69V"
+    ],
+    "titles": {
+      "B08T5QN2TR": "Anker Nano II",
+      "B001GNBJNW": "Ray Ban Wayfarer",
+      "B0044SCV4M": "Crayola Broad Line Markers, 12-Pack",
+      "B0000AY69V": "The Absorber"
+    },
+    "affiliate_urls": {
+      "B08T5QN2TR": "https://geni.us/qhor",
+      "B001GNBJNW": "https://geni.us/8sZ5O52",
+      "B0044SCV4M": "https://amzn.to/2Juoz2S",
+      "B0000AY69V": "https://geni.us/0HowbO"
+    }
   }
 ]

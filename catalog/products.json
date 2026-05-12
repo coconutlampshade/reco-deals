@@ -16141,17 +16141,7 @@
     "asin": "B0000AY69V",
     "title": "The Absorber",
     "amazon_url": "https://www.amazon.com/dp/B0000AY69V",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "0HowbO",
-      "productUrl": "https://www.amazon.com/dp/B0000AY69V?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "0HowbO"
-    },
+    "affiliate_url": "https://geni.us/0HowbO",
     "issues": [
       {
         "url": "https://kk.org/cooltools/the-absorber/",
@@ -32520,17 +32510,7 @@
     "asin": "B001GNBJNW",
     "title": "Ray-Ban RB2140 Original Wayfarer Sunglasses, Black/Green, 50 mm",
     "amazon_url": "https://www.amazon.com/dp/B001GNBJNW",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "8sZ5O52",
-      "productUrl": "https://www.amazon.com/dp/B001GNBJNW?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "8sZ5O52"
-    },
+    "affiliate_url": "https://geni.us/8sZ5O52",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-dean-putney/",
@@ -32541,7 +32521,7 @@
     ],
     "first_featured": "2014-09-11",
     "added_at": "2026-01-03T08:01:04.386346",
-    "benefit_description": "Discover a curated collection of travel gear and everyday essentials, from compact tripods to portable chargers, chosen by a professional who actually uses them."
+    "benefit_description": "The Original Ray-Ban Wayfarer features legendary G-15 lenses, in both polarized and non-polarized options, perfect for both women and men."
   },
   "B005HNZ5T6": {
     "asin": "B005HNZ5T6",
@@ -66361,8 +66341,8 @@
     ],
     "first_featured": "2018-08-21",
     "added_at": "2026-01-03T08:35:48.138984",
-    "benefit_description": "This toolkit teaches you to evaluate decisions based on the quality of your decision-making process rather than just the outcomes, helping you think in probabilities and overcome the mental traps that lead to poor choices.",
-    "short_title": "What's New in My Tool Box"
+    "short_title": "What's New in My Tool Box",
+    "benefit_description": "Vivid, smudge-free color goes on smoothly with a versatile conical tip that handles both broad fills and fine details without bleeding through paper."
   },
   "B00LBFQERG": {
     "asin": "B00LBFQERG",
