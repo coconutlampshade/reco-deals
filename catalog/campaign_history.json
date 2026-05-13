@@ -1166,5 +1166,52 @@
       "B0044SCV4M": "https://amzn.to/2Juoz2S",
       "B0000AY69V": "https://geni.us/0HowbO"
     }
+  },
+  {
+    "campaign_id": "65f1ada0b3",
+    "web_id": 9144203,
+    "date": "2026-05-12",
+    "subject": "Recomendo Deals - May 12, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B01LXFSJY7",
+      "B00G901GZ8",
+      "B00002N8OK",
+      "B015GZOHKW"
+    ],
+    "titles": {
+      "B01LXFSJY7": "Folding Travel Toothbrush",
+      "B00G901GZ8": "Box Opener Tool",
+      "B00002N8OK": "Seymour Iwan Auger",
+      "B015GZOHKW": "Micro USB Adapter Connector"
+    },
+    "affiliate_urls": {
+      "B01LXFSJY7": "https://geni.us/A9rJl",
+      "B00G901GZ8": "https://amzn.to/2IJpjEH",
+      "B00002N8OK": "https://geni.us/ryXVG",
+      "B015GZOHKW": "https://geni.us/w3lezH8"
+    }
+  },
+  {
+    "campaign_id": "0aae37ed74",
+    "web_id": 9144209,
+    "date": "2026-05-13",
+    "subject": "Recomendo Deals - May 13, 2026",
+    "deals_count": 3,
+    "asins": [
+      "B014TJR53M",
+      "B0CTNTFBNX",
+      "B001VH7G62"
+    ],
+    "titles": {
+      "B014TJR53M": "SwissGear Carry-On Spinner",
+      "B0CTNTFBNX": "JBL Go Ultra Waterproof Speaker",
+      "B001VH7G62": "Advil Liqui Gels Pain Capsules"
+    },
+    "affiliate_urls": {
+      "B014TJR53M": "https://geni.us/swissgear-21",
+      "B0CTNTFBNX": "https://geni.us/jblgo4-r",
+      "B001VH7G62": "https://geni.us/AamvXYO"
+    }
   }
 ]

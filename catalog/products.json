@@ -31449,17 +31449,7 @@
     "asin": "B001VH7G62",
     "title": "Advil Liqui-Gels Pain Reliever and Fever Reducer, Pain Medicine for Adults with Ibuprofen 200mg for Headache, Backache, Menstrual Pain and Joint Pain Relief - 160 Liquid Filled Capsules",
     "amazon_url": "https://www.amazon.com/dp/B001VH7G62",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "AamvXYO",
-      "productUrl": "https://www.amazon.com/dp/B001VH7G62",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "AamvXYO"
-    },
+    "affiliate_url": "https://geni.us/AamvXYO",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-laura-welcher/",
@@ -51993,17 +51983,7 @@
     "asin": "B015GZOHKW",
     "title": "Micro USB Adapter Connector",
     "amazon_url": "https://www.amazon.com/dp/B015GZOHKW",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "w3lezH8",
-      "productUrl": "https://www.amazon.com/dp/B015GZOHKW?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "w3lezH8"
-    },
+    "affiliate_url": "https://geni.us/w3lezH8",
     "issues": [
       {
         "url": "https://kk.org/cooltools/32890/",
@@ -53227,17 +53207,7 @@
     "asin": "B00002N8OK",
     "title": "Seymour Iwan Auger",
     "amazon_url": "https://www.amazon.com/dp/B00002N8OK",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "ryXVG",
-      "productUrl": "https://www.amazon.com/dp/B00002N8OK?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "ryXVG"
-    },
+    "affiliate_url": "https://geni.us/ryXVG",
     "issues": [
       {
         "url": "https://kk.org/cooltools/seymour-iwan-auger/",
@@ -68038,7 +68008,8 @@
       }
     ],
     "first_featured": "2019-04-19",
-    "added_at": "2026-01-03T08:38:03.911008"
+    "added_at": "2026-01-03T08:38:03.911008",
+    "benefit_description": "Made from durable Japanese stainless steel, it features serrated blades designed specifically for cutting cardboard."
   },
   "B071XRVNY8": {
     "asin": "B071XRVNY8",
@@ -74669,7 +74640,8 @@
       }
     ],
     "first_featured": "2026-05-08",
-    "added_at": "2026-05-09T06:09:11.499561"
+    "added_at": "2026-05-09T06:09:11.499561",
+    "benefit_description": "Delivers surprisingly loud, clear sound in a palm-sized, fully waterproof package you can take to the beach, pool, or shower without worry."
   },
   "B07CVX3516": {
     "asin": "B07CVX3516",
