@@ -1213,5 +1213,33 @@
       "B0CTNTFBNX": "https://geni.us/jblgo4-r",
       "B001VH7G62": "https://geni.us/AamvXYO"
     }
+  },
+  {
+    "campaign_id": "3506af1627",
+    "web_id": 9144212,
+    "date": "2026-05-14",
+    "subject": "Recomendo Deals - May 14, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B001PD28JM",
+      "059372318X",
+      "B0002JT0PK",
+      "B09T3NLMTM",
+      "B0000TZX1M"
+    ],
+    "titles": {
+      "B001PD28JM": "Rite in the Rain Weatherproof Notebook",
+      "059372318X": "The 5 Types of Wealth",
+      "B0002JT0PK": "Fiskars SewSharp Scissors Sharpener",
+      "B09T3NLMTM": "East Oak Smokeless Fire Pit",
+      "B0000TZX1M": "Self-Centering Drill Bits"
+    },
+    "affiliate_urls": {
+      "B001PD28JM": "https://amzn.to/2SmuQ94",
+      "059372318X": "https://amazon.com/dp/059372318X",
+      "B0002JT0PK": "https://geni.us/L5PVY",
+      "B09T3NLMTM": "https://geni.us/M9h8haW",
+      "B0000TZX1M": "https://geni.us/OEBtpH"
+    }
   }
 ]

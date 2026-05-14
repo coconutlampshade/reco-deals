@@ -18877,17 +18877,7 @@
     "asin": "B0002JT0PK",
     "title": "Fiskars SewSharp Scissors Sharpener",
     "amazon_url": "https://www.amazon.com/dp/B0002JT0PK",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "L5PVY",
-      "productUrl": "https://www.amazon.com/dp/B0002JT0PK?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "L5PVY"
-    },
+    "affiliate_url": "https://geni.us/L5PVY",
     "issues": [
       {
         "url": "https://kk.org/cooltools/fiskars-sewshar/",
@@ -45756,17 +45746,7 @@
     "asin": "B0000TZX1M",
     "title": "Maker Update: Self-Centering Drill Bits",
     "amazon_url": "https://www.amazon.com/dp/B0000TZX1M",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "OEBtpH",
-      "productUrl": "https://www.amazon.com/dp/B0000TZX1M?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "OEBtpH"
-    },
+    "affiliate_url": "https://geni.us/OEBtpH",
     "issues": [
       {
         "url": "https://kk.org/cooltools/maker-update-self-centering-drill-bits/",
@@ -71856,7 +71836,8 @@
       }
     ],
     "first_featured": "2019-12-23",
-    "added_at": "2026-01-03T08:42:20.704290"
+    "added_at": "2026-01-03T08:42:20.704290",
+    "benefit_description": "Stays legible and intact when wet, so you can write in rain, snow, or any damp conditions without your notes dissolving or smearing."
   },
   "B013HBOFUO": {
     "asin": "B013HBOFUO",
@@ -74163,7 +74144,7 @@
     "asin": "059372318X",
     "title": "Get The 5 Types of Wealth",
     "amazon_url": "https://www.amazon.com/dp/059372318X",
-    "affiliate_url": null,
+    "affiliate_url": "https://amazon.com/dp/059372318X",
     "issues": [
       {
         "url": "http://eepurl.com/jBFjoc",
