@@ -1241,5 +1241,33 @@
       "B09T3NLMTM": "https://geni.us/M9h8haW",
       "B0000TZX1M": "https://geni.us/OEBtpH"
     }
+  },
+  {
+    "campaign_id": "9ac0893564",
+    "web_id": 9144217,
+    "date": "2026-05-15",
+    "subject": "Recomendo Deals - May 15, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B00IR153UG",
+      "B0000C8T92",
+      "B00125HEL0",
+      "B00NO7BWJE",
+      "B01B8K8A34"
+    ],
+    "titles": {
+      "B00IR153UG": "Fabri-Fuse Adhesive",
+      "B0000C8T92": "12-Inch Tweezer Tongs",
+      "B00125HEL0": "National Single Subject Wirebound",
+      "B00NO7BWJE": "Scott Shop Blue Towels",
+      "B01B8K8A34": "24 Goo Gone Wipes"
+    },
+    "affiliate_urls": {
+      "B00IR153UG": "https://geni.us/PTWq",
+      "B0000C8T92": "https://geni.us/77UO",
+      "B00125HEL0": "https://geni.us/JB2uKS",
+      "B00NO7BWJE": "https://geni.us/rTS5B",
+      "B01B8K8A34": "https://geni.us/APStFY"
+    }
   }
 ]

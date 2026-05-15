@@ -1217,17 +1217,7 @@
     "asin": "B00125HEL0",
     "title": "8¼” x 6 ⅞” spiral bound notebook",
     "amazon_url": "https://www.amazon.com/dp/B00125HEL0?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "JB2uKS",
-      "productUrl": "https://www.amazon.com/dp/B00125HEL0?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "JB2uKS"
-    },
+    "affiliate_url": "https://geni.us/JB2uKS",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/meruemoji-to-gomore-perfect-18-02-25",
@@ -3301,17 +3291,7 @@
     "asin": "B00NO7BWJE",
     "title": "Scott Shop blue towels",
     "amazon_url": "https://www.amazon.com/dp/B00NO7BWJE?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "rTS5B",
-      "productUrl": "https://www.amazon.com/dp/B00NO7BWJE?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "rTS5B"
-    },
+    "affiliate_url": "https://geni.us/rTS5B",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/privacy-tipthe-browserchicobag-bottle-19-08-18",
@@ -5033,17 +5013,7 @@
     "asin": "B01B8K8A34",
     "title": "24 Goo Gone wipes",
     "amazon_url": "https://www.amazon.com/dp/B01B8K8A34?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "APStFY",
-      "productUrl": "https://www.amazon.com/dp/B01B8K8A34?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "APStFY"
-    },
+    "affiliate_url": "https://geni.us/APStFY",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/the-inevitablebetter-test-scoresfree-17-06-04",
@@ -51683,17 +51653,7 @@
     "asin": "B00IR153UG",
     "title": "What’s the Best Type of E6000 Glue?",
     "amazon_url": "https://www.amazon.com/dp/B00IR153UG",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "PTWq",
-      "productUrl": "https://www.amazon.com/dp/B00IR153UG?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "PTWq"
-    },
+    "affiliate_url": "https://geni.us/PTWq",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-the-best-type-of-e6000-glue/",
@@ -57074,17 +57034,7 @@
     "asin": "B0000C8T92",
     "title": "Making a Cutting Table for Your Nibbler",
     "amazon_url": "https://www.amazon.com/dp/B0000C8T92",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "77UO",
-      "productUrl": "https://www.amazon.com/dp/B0000C8T92?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "77UO"
-    },
+    "affiliate_url": "https://geni.us/77UO",
     "issues": [
       {
         "url": "https://kk.org/cooltools/making-a-cutting-table-for-your-nibbler/",
@@ -57094,7 +57044,8 @@
       }
     ],
     "first_featured": "2020-04-09",
-    "added_at": "2026-01-03T08:01:04.453149"
+    "added_at": "2026-01-03T08:01:04.453149",
+    "benefit_description": "Machined ridges on both sides give you a secure grip on slippery food — from pulling pin bones out of fish to plucking a strand of spaghetti from boiling water — making them precise enough for delicate kitchen tasks and sturdy enough for studio and workshop use."
   },
   "B01LXFSJY7": {
     "asin": "B01LXFSJY7",
