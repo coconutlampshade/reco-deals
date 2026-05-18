@@ -1269,5 +1269,30 @@
       "B00NO7BWJE": "https://geni.us/rTS5B",
       "B01B8K8A34": "https://geni.us/APStFY"
     }
+  },
+  {
+    "campaign_id": "43beedeed9",
+    "web_id": 9144231,
+    "date": "2026-05-18",
+    "subject": "Recomendo Deals - May 18, 2026",
+    "deals_count": 4,
+    "asins": [
+      "1465419659",
+      "B003BS2PW4",
+      "B00FZPJW54",
+      "B0DSKF9KDR"
+    ],
+    "titles": {
+      "1465419659": "Science Book: Big Ideas",
+      "B003BS2PW4": "Trauma Pak",
+      "B00FZPJW54": "Hakko CHP PN 2002 Pliers",
+      "B0DSKF9KDR": "Aootek New Solar Motion"
+    },
+    "affiliate_urls": {
+      "1465419659": "https://geni.us/0rhemVg",
+      "B003BS2PW4": "https://geni.us/xuGB",
+      "B00FZPJW54": "https://geni.us/l1b6SDX",
+      "B0DSKF9KDR": "https://geni.us/wJ99fZ"
+    }
   }
 ]

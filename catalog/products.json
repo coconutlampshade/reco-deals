@@ -1306,17 +1306,7 @@
     "asin": "B003BS2PW4",
     "title": "trauma pak",
     "amazon_url": "https://www.amazon.com/dp/B003BS2PW4?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "xuGB",
-      "productUrl": "https://www.amazon.com/dp/B003BS2PW4?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "xuGB"
-    },
+    "affiliate_url": "https://geni.us/xuGB",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/ublacklistdelta-vpatagonia-nine-trails-19-06-09",
@@ -34901,17 +34891,7 @@
     "asin": "B00FZPJW54",
     "title": "Hakko CHP PN-2002 General Purpose Short-Nose Pliers, Pointed Nose, Smooth Jaws, Black, Red, Grey, 20mm Jaw Length, 1.2mm Nose Width, 3mm Thick Steel",
     "amazon_url": "https://www.amazon.com/dp/B00FZPJW54",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "l1b6SDX",
-      "productUrl": "https://www.amazon.com/dp/B00FZPJW54?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "l1b6SDX"
-    },
+    "affiliate_url": "https://geni.us/l1b6SDX",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-john-baichtal/",
@@ -74262,7 +74242,8 @@
       }
     ],
     "first_featured": "2026-04-10",
-    "added_at": "2026-04-11T05:21:33.080404"
+    "added_at": "2026-04-11T05:21:33.080404",
+    "benefit_description": "More than 100 ground-breaking ideas in this field of science"
   },
   "1449334318": {
     "asin": "1449334318",
@@ -74685,7 +74666,8 @@
       }
     ],
     "first_featured": "2026-05-15",
-    "added_at": "2026-05-16T06:15:01.882665"
+    "added_at": "2026-05-16T06:15:01.882665",
+    "benefit_description": "Automatically lights up walkways, steps, and outdoor spaces when it detects motion—no wiring required, since it charges itself via solar panel and withstands rain and extreme weather year-round."
   },
   "B0CQY5RK52": {
     "asin": "B0CQY5RK52",
