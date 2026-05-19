@@ -1294,5 +1294,30 @@
       "B00FZPJW54": "https://geni.us/l1b6SDX",
       "B0DSKF9KDR": "https://geni.us/wJ99fZ"
     }
+  },
+  {
+    "campaign_id": "fd9b9e6fb5",
+    "web_id": 9144236,
+    "date": "2026-05-19",
+    "subject": "Recomendo Deals - May 19, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B000S7ZSTS",
+      "B00FRODUR4",
+      "B01B2ULW7G",
+      "B00006IFHE"
+    ],
+    "titles": {
+      "B000S7ZSTS": "Construction Adhesive",
+      "B00FRODUR4": "Power Cord Splitter",
+      "B01B2ULW7G": "Wetnfix",
+      "B00006IFHE": "Sharpie Permanent Markers Fine"
+    },
+    "affiliate_urls": {
+      "B000S7ZSTS": "https://geni.us/XZ3ZA",
+      "B00FRODUR4": "https://geni.us/wqhKXP",
+      "B01B2ULW7G": "https://geni.us/wetnfix",
+      "B00006IFHE": "https://geni.us/dQmgl"
+    }
   }
 ]
