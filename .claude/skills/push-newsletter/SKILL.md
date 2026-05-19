@@ -1,8 +1,10 @@
 ---
 name: push-newsletter
-description: Commit and push today's newsletter and catalog updates to git
+description: (Manual fallback) Commit and push today's newsletter and catalog updates. /dailydeals normally handles this automatically.
 disable-model-invocation: true
 ---
+
+> **Note:** As of May 2026, `/dailydeals` owns commit + push + Vercel deploy after a send. This skill exists as a manual fallback for cases where `/dailydeals` exited before the post-send phase ran (server crashed, session ended, etc.). Don't invoke after a normal `/dailydeals` run completed — it would no-op.
 
 Commit and push the newsletter changes. Follow these steps:
 

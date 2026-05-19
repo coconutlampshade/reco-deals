@@ -47,11 +47,21 @@ catalog/pa_api_cache.json
 catalog/last_campaign_stats.json
 catalog/invalid_asins.json
 
-# User tooling state (Obsidian, gstack, context-save, gstack skill symlinks)
+# User tooling state (Obsidian, gstack, context-save)
 .obsidian/
 .gstack/
 .context/
-.claude/skills/
+
+# Gstack skill symlinks (the real project skills under .claude/skills/ stay tracked)
+.claude/skills/browse
+.claude/skills/gstack-upgrade
+.claude/skills/plan-ceo-review
+.claude/skills/plan-eng-review
+.claude/skills/qa
+.claude/skills/retro
+.claude/skills/review
+.claude/skills/setup-browser-cookies
+.claude/skills/ship
 
 # Local-only notes (kept on disk, not version-controlled)
 Dashboard.md

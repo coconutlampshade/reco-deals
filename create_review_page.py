@@ -46,7 +46,6 @@ _BANNED_TITLE_PHRASES = [
     "holiday gift",
     "[maker update",
     "best gifts",
-    "best for",
 ]
 _GENERIC_BENEFIT_PHRASES = [
     "specialized tools",
@@ -62,7 +61,7 @@ _COOLDOWN_DAYS = 30
 _MAX_CONSECUTIVE_UNAVAILABLE = 2
 
 
-def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benefits: dict, affiliate_urls: dict) -> dict:
+def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benefits: dict, affiliate_urls: dict, unclassified_ad: dict | None = None) -> dict:
     """Validate selected deals before send. Returns a per-ASIN findings dict.
 
     Severity:
@@ -139,6 +138,47 @@ def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benef
             findings[asin] = {
                 "title": title,
                 "issues": issues,
+            }
+
+    if unclassified_ad:
+        ad_issues = []
+        ad_title = (unclassified_ad.get("title") or "").strip()
+        ad_desc = (unclassified_ad.get("description") or "").strip()
+        ad_url = (unclassified_ad.get("affiliate_url") or "").strip()
+        ad_title_lower = ad_title.lower()
+        ad_word_count = len(ad_title.split())
+        for phrase in _BANNED_TITLE_PHRASES:
+            if phrase in ad_title_lower:
+                ad_issues.append({"severity": "warn", "kind": "title_banned_phrase", "detail": f'Ad title contains "{phrase}"'})
+                break
+        if not ad_title:
+            ad_issues.append({"severity": "block", "kind": "title_missing", "detail": "Ad has no title"})
+        elif ad_word_count < 3:
+            ad_issues.append({"severity": "warn", "kind": "title_too_short", "detail": f"Ad title is {ad_word_count} words"})
+        elif ad_word_count > 9:
+            ad_issues.append({"severity": "warn", "kind": "title_too_long", "detail": f"Ad title is {ad_word_count} words"})
+
+        if not ad_desc:
+            ad_issues.append({"severity": "warn", "kind": "benefit_missing", "detail": "Ad has no description"})
+        else:
+            ad_desc_lower = ad_desc.lower()
+            for phrase in _GENERIC_BENEFIT_PHRASES:
+                if phrase in ad_desc_lower:
+                    ad_issues.append({"severity": "warn", "kind": "benefit_generic", "detail": f'Ad description contains generic phrase "{phrase}"'})
+                    break
+            if len(ad_desc.split()) > 30:
+                ad_issues.append({"severity": "warn", "kind": "benefit_too_long", "detail": f"Ad description is {len(ad_desc.split())} words (>30)"})
+
+        if not ad_url:
+            ad_issues.append({"severity": "block", "kind": "url_missing", "detail": "Ad has no affiliate URL"})
+        elif not (ad_url.startswith("https://geni.us/") or ad_url.startswith("https://www.amazon.com/dp/") or ad_url.startswith("https://amzn.to/")):
+            ad_issues.append({"severity": "warn", "kind": "url_unusual", "detail": f"Ad URL is not geni.us/amazon.com/amzn.to: {ad_url}"})
+
+        if ad_issues:
+            ad_key = unclassified_ad.get("asin") or "AD"
+            findings[ad_key] = {
+                "title": ad_title or "(unclassified ad)",
+                "issues": ad_issues,
             }
 
     block_count = sum(1 for f in findings.values() for i in f["issues"] if i["severity"] == "block")
@@ -245,6 +285,11 @@ def preflight_check() -> bool:
             if generated_at:
                 try:
                     gen_dt = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+                    # check_deals.py writes naive UTC timestamps; treat naive as UTC so the
+                    # age math doesn't end up 7-8 hours off local time.
+                    if gen_dt.tzinfo is None:
+                        from datetime import timezone
+                        gen_dt = gen_dt.replace(tzinfo=timezone.utc)
                     age_hours = (datetime.now(gen_dt.tzinfo) - gen_dt).total_seconds() / 3600
                     label = "OK   " if age_hours < 26 else "WARN "
                     if age_hours >= 26:
@@ -2532,7 +2577,7 @@ function sendToMailchimp() {{
     fetch('/pre-send-check', {{
         method: 'POST',
         headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ asins, titles, benefits, affiliateUrls }})
+        body: JSON.stringify({{ asins, titles, benefits, affiliateUrls, unclassifiedAd: body.unclassifiedAd || null }})
     }})
     .then(r => r.json())
     .then(report => {{
@@ -3117,11 +3162,13 @@ Title: {full_title}""",
             custom_titles = data.get("titles", {})
             custom_benefits = data.get("benefits", {})
             custom_affiliate_urls = data.get("affiliateUrls", {})
+            unclassified_ad = data.get("unclassifiedAd")
 
             try:
                 report = run_pre_send_check(
                     selected_asins, self.products,
                     custom_titles, custom_benefits, custom_affiliate_urls,
+                    unclassified_ad=unclassified_ad,
                 )
                 payload = json.dumps(report).encode()
                 self.send_response(200)
