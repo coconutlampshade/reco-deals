@@ -198,9 +198,14 @@ def get_latest_campaign_stats() -> dict | None:
     Cached to disk for LAST_STATS_CACHE_TTL_SECS to avoid hitting the API on every page load.
     Returns None if there's no history, the campaign hasn't been sent yet, or the API call fails.
     """
+    # Cache is valid only if it's fresh AND newer than campaign_history.json. Without
+    # the history-mtime check, a send during a cached window leaves the banner stuck on
+    # the previous day's stats for up to LAST_STATS_CACHE_TTL_SECS.
     if LAST_STATS_CACHE_FILE.exists():
-        age = (datetime.now() - datetime.fromtimestamp(LAST_STATS_CACHE_FILE.stat().st_mtime)).total_seconds()
-        if age < LAST_STATS_CACHE_TTL_SECS:
+        cache_mtime = LAST_STATS_CACHE_FILE.stat().st_mtime
+        age = (datetime.now() - datetime.fromtimestamp(cache_mtime)).total_seconds()
+        history_mtime = CAMPAIGN_HISTORY_FILE.stat().st_mtime if CAMPAIGN_HISTORY_FILE.exists() else 0
+        if age < LAST_STATS_CACHE_TTL_SECS and cache_mtime >= history_mtime:
             try:
                 return json.loads(LAST_STATS_CACHE_FILE.read_text())
             except (json.JSONDecodeError, OSError):
