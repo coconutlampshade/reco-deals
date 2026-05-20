@@ -1319,5 +1319,33 @@
       "B01B2ULW7G": "https://geni.us/wetnfix",
       "B00006IFHE": "https://geni.us/dQmgl"
     }
+  },
+  {
+    "campaign_id": "1208d74f0e",
+    "web_id": 9144242,
+    "date": "2026-05-20",
+    "subject": "Recomendo Deals - May 20, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B07WV5P9RS",
+      "B00PYS7R7M",
+      "B00382Y0JO",
+      "B001B19JLS",
+      "B000BPTVTK"
+    ],
+    "titles": {
+      "B07WV5P9RS": "Adventure Medical Kits QuikClot",
+      "B00PYS7R7M": "Healing Solutions Lavender Essential",
+      "B00382Y0JO": "Vise-Grip 6-Inch Locking C-Clamp",
+      "B001B19JLS": "Duck Brand 3/4 Inch Tape",
+      "B000BPTVTK": "Rain RX11806D Washer Fluid"
+    },
+    "affiliate_urls": {
+      "B07WV5P9RS": "https://geni.us/4E71Bw",
+      "B00PYS7R7M": "https://geni.us/MBcKNTC",
+      "B00382Y0JO": "https://amzn.to/2NlCQkV",
+      "B001B19JLS": "https://amzn.to/2Fnlgs0",
+      "B000BPTVTK": "https://geni.us/TJBh"
+    }
   }
 ]
