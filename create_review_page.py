@@ -115,8 +115,11 @@ def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benef
             issues.append({"severity": "warn", "kind": "url_unusual", "detail": f"URL is not geni.us/amazon.com/amzn.to: {url}"})
 
         score = product.get("deal_score") or 0
-        if score and score < _DEAL_MIN_NEWSLETTER_SCORE:
-            issues.append({"severity": "warn", "kind": "low_score", "detail": f"Deal score {score} < {_DEAL_MIN_NEWSLETTER_SCORE}"})
+        if score < _DEAL_MIN_NEWSLETTER_SCORE:
+            if score == 0:
+                issues.append({"severity": "warn", "kind": "not_a_deal", "detail": f"Not currently discounted (deal_score 0)"})
+            else:
+                issues.append({"severity": "warn", "kind": "low_score", "detail": f"Deal score {score} < {_DEAL_MIN_NEWSLETTER_SCORE}"})
 
         last_featured = history.get(asin)
         if last_featured:
