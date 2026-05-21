@@ -6417,17 +6417,7 @@
     "asin": "B074QSSTFQ",
     "title": "Planet E collapsible “bags”",
     "amazon_url": "https://www.amazon.com/dp/B074QSSTFQ?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "QeYFS",
-      "productUrl": "https://www.amazon.com/dp/B074QSSTFQ?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "QeYFS"
-    },
+    "affiliate_url": "https://geni.us/QeYFS",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/sci-hublearning-synthsstrikethrough-19-06-30",
@@ -10259,23 +10249,6 @@
     "added_at": "2026-01-02T13:42:17.900129",
     "benefit_description": "These shower tablets create a spa-like aromatherapy experience for people without bathtubs by releasing relaxing essential oil scents when placed near the water stream.",
     "short_title": "aromatherapy bomb fizzies by Floroma"
-  },
-  "B008UFUXEU": {
-    "asin": "B008UFUXEU",
-    "title": "$7 Norpro Microfiber Drying Mat",
-    "amazon_url": "https://www.amazon.com/dp/B008UFUXEU?tag=recomendos-20",
-    "affiliate_url": "https://geni.us/6svX2O",
-    "issues": [
-      {
-        "url": "https://recomendo.substack.com/p/google-fontsgpt-2-wisdomlink-drop-20-07-26",
-        "title": "Google Fonts/GPT-2 wisdom/Link Drop",
-        "date": "2020-07-26"
-      }
-    ],
-    "first_featured": "2020-07-26",
-    "added_at": "2026-01-02T13:42:17.900162",
-    "benefit_description": "This absorbent mat replaces bulky dish racks by providing a space-saving drying surface that folds up for drawer storage and is machine washable.",
-    "short_title": "$7 Norpro Microfiber Drying Mat"
   },
   "B071V82JJG": {
     "asin": "B071V82JJG",
@@ -17794,17 +17767,7 @@
     "asin": "B0047BIWSK",
     "title": "Aeropress",
     "amazon_url": "https://www.amazon.com/dp/B0047BIWSK",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "N21xw",
-      "productUrl": "https://www.amazon.com/dp/B0047BIWSK?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "N21xw"
-    },
+    "affiliate_url": "https://geni.us/N21xw",
     "issues": [
       {
         "url": "https://kk.org/cooltools/aeropress/",
@@ -27693,17 +27656,7 @@
     "asin": "B000E7ZMRU",
     "title": "Ball End Hex Wrenches",
     "amazon_url": "https://www.amazon.com/dp/B000E7ZMRU",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "0M0Y",
-      "productUrl": "https://www.amazon.com/dp/B000E7ZMRU?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "0M0Y"
-    },
+    "affiliate_url": "https://geni.us/0M0Y",
     "issues": [
       {
         "url": "https://kk.org/cooltools/ball-end-hex-wrenches/",
@@ -27719,7 +27672,8 @@
       }
     ],
     "first_featured": "2020-03-13",
-    "added_at": "2026-01-03T08:01:04.364412"
+    "added_at": "2026-01-03T08:01:04.364412",
+    "benefit_description": "Ball-ended hex wrenches that let you insert them at an angle, making them faster to seat in tight, blind, or hard-to-reach spots than standard Allen wrenches."
   },
   "B00STSZ77G": {
     "asin": "B00STSZ77G",

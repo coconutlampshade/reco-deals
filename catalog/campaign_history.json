@@ -1347,5 +1347,27 @@
       "B001B19JLS": "https://amzn.to/2Fnlgs0",
       "B000BPTVTK": "https://geni.us/TJBh"
     }
+  },
+  {
+    "campaign_id": "1db5da6b2b",
+    "web_id": 9144251,
+    "date": "2026-05-21",
+    "subject": "Recomendo Deals - May 21, 2026",
+    "deals_count": 3,
+    "asins": [
+      "B074QSSTFQ",
+      "B000E7ZMRU",
+      "B0047BIWSK"
+    ],
+    "titles": {
+      "B074QSSTFQ": "Planet E Reinforced Bags",
+      "B000E7ZMRU": "Bondhus Hex Key Set",
+      "B0047BIWSK": "Aeropress"
+    },
+    "affiliate_urls": {
+      "B074QSSTFQ": "https://geni.us/QeYFS",
+      "B000E7ZMRU": "https://geni.us/0M0Y",
+      "B0047BIWSK": "https://geni.us/N21xw"
+    }
   }
 ]
