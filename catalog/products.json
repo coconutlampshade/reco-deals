@@ -1815,17 +1815,7 @@
     "asin": "B06XRMDYWN",
     "title": "12 packs of 0.85-ounce tubes of Crest",
     "amazon_url": "https://www.amazon.com/dp/B06XRMDYWN?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "ipruF",
-      "productUrl": "https://www.amazon.com/dp/B06XRMDYWN?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "ipruF"
-    },
+    "affiliate_url": "https://geni.us/ipruF",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/caravanistantravel-toothpastedewalt-17-08-20",
@@ -44037,17 +44027,7 @@
     "asin": "B0037KMI0K",
     "title": "Tide To Go Instant Stain Remover 0.33 oz ( Pack of 3)",
     "amazon_url": "https://www.amazon.com/dp/B0037KMI0K",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "S0THx",
-      "productUrl": "https://www.amazon.com/dp/B0037KMI0K?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "S0THx"
-    },
+    "affiliate_url": "https://geni.us/S0THx",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-dominic-duncombe/",
@@ -61900,17 +61880,7 @@
     "asin": "B01KBXHJ0Y",
     "title": "Mistakes That Newbies Make on the Bandsaw",
     "amazon_url": "https://www.amazon.com/dp/B01KBXHJ0Y",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "XC22kg",
-      "productUrl": "https://www.amazon.com/dp/B01KBXHJ0Y?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "XC22kg"
-    },
+    "affiliate_url": "https://geni.us/XC22kg",
     "issues": [
       {
         "url": "https://kk.org/cooltools/mistakes-that-newbies-make-on-the-bandsaw/",
@@ -61920,7 +61890,8 @@
       }
     ],
     "first_featured": "2023-04-26",
-    "added_at": "2026-01-03T08:01:04.499576"
+    "added_at": "2026-01-03T08:01:04.499576",
+    "benefit_description": "Delivers strong cutting and grinding performance at a mid-range price, with a lightweight 5.5 lb body, tool-free guard adjustments, and a comfortable soft-grip handle for extended use."
   },
   "B089WFYM1Z": {
     "asin": "B089WFYM1Z",
@@ -69383,7 +69354,8 @@
       }
     ],
     "first_featured": "2019-08-16",
-    "added_at": "2026-01-03T08:40:03.047115"
+    "added_at": "2026-01-03T08:40:03.047115",
+    "benefit_description": "Lets you track the real-time location of vehicles, luggage, or people anywhere in the world using satellite signals, even where there's no cell service."
   },
   "B07GR67DKC": {
     "asin": "B07GR67DKC",

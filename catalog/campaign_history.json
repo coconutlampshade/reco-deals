@@ -1369,5 +1369,33 @@
       "B000E7ZMRU": "https://geni.us/0M0Y",
       "B0047BIWSK": "https://geni.us/N21xw"
     }
+  },
+  {
+    "campaign_id": "689163ec70",
+    "web_id": 9144262,
+    "date": "2026-05-25",
+    "subject": "Recomendo Deals - May 25, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B083TPF36G",
+      "B01KBXHJ0Y",
+      "B00GQ8WW4M",
+      "B06XRMDYWN",
+      "B0037KMI0K"
+    ],
+    "titles": {
+      "B083TPF36G": "Topeak Joe Blow bike pump",
+      "B01KBXHJ0Y": "Milwaukee Angle Grinder",
+      "B00GQ8WW4M": "Spot Trace Satellite Tracker",
+      "B06XRMDYWN": "Crest Toothpaste Travel Size, 12-Pack",
+      "B0037KMI0K": "Tide Go Instant Stain Remover, 3-Pack"
+    },
+    "affiliate_urls": {
+      "B083TPF36G": "https://geni.us/XH6YQa",
+      "B01KBXHJ0Y": "https://geni.us/XC22kg",
+      "B00GQ8WW4M": "https://amzn.to/2Z40HuQ",
+      "B06XRMDYWN": "https://geni.us/ipruF",
+      "B0037KMI0K": "https://geni.us/S0THx"
+    }
   }
 ]
