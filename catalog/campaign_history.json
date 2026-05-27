@@ -1397,5 +1397,30 @@
       "B06XRMDYWN": "https://geni.us/ipruF",
       "B0037KMI0K": "https://geni.us/S0THx"
     }
+  },
+  {
+    "campaign_id": "7a5a885eb5",
+    "web_id": 9144282,
+    "date": "2026-05-27",
+    "subject": "Recomendo Deals - May 27, 2026",
+    "deals_count": 4,
+    "asins": [
+      "B0DHNG4DL8",
+      "B0054LHI5A",
+      "B004HIW02M",
+      "B0CQY5RK52"
+    ],
+    "titles": {
+      "B0DHNG4DL8": "Wolfbox Air Duster",
+      "B0054LHI5A": "Burt's Bees 100% Natural",
+      "B004HIW02M": "Staedtler Mars Plastic Erasers",
+      "B0CQY5RK52": "SUNMORY Floor Lamps Living Lamp"
+    },
+    "affiliate_urls": {
+      "B0DHNG4DL8": "https://geni.us/Rf13Om",
+      "B0054LHI5A": "https://geni.us/7tGYz",
+      "B004HIW02M": "https://geni.us/mBP9gqc",
+      "B0CQY5RK52": "https://geni.us/LED-lamp"
+    }
   }
 ]

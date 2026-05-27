@@ -37056,17 +37056,7 @@
     "asin": "B0054LHI5A",
     "title": "Burt's Bees 100% Natural Moisturizing Lip Balm (Original Beeswax)",
     "amazon_url": "https://www.amazon.com/dp/B0054LHI5A",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "7tGYz",
-      "productUrl": "https://www.amazon.com/dp/B0054LHI5A",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "7tGYz"
-    },
+    "affiliate_url": "https://geni.us/7tGYz",
     "issues": [
       {
         "url": "https://kk.org/cooltools/whats-in-my-bag-andrew-maxwell-parish/",
@@ -74294,7 +74284,8 @@
       }
     ],
     "first_featured": "2026-04-24",
-    "added_at": "2026-04-25T05:43:51.637422"
+    "added_at": "2026-04-25T05:43:51.637422",
+    "benefit_description": "Erases cleanly without tearing the paper surface, and can be refreshed with a damp thumb or scrap paper when dirty."
   },
   "B0B56BVWBM": {
     "asin": "B0B56BVWBM",
@@ -74522,7 +74513,8 @@
       }
     ],
     "first_featured": "2026-05-15",
-    "added_at": "2026-05-16T06:15:02.613845"
+    "added_at": "2026-05-16T06:15:02.613845",
+    "benefit_description": "Fully adjustable brightness and color temperature, a 350° rotating head, and remote control from up to 50 feet away let you dial in the exact light you need for reading, working, or winding down — all from one lamp."
   },
   "1763639703": {
     "asin": "1763639703",
