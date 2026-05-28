@@ -1422,5 +1422,33 @@
       "B004HIW02M": "https://geni.us/mBP9gqc",
       "B0CQY5RK52": "https://geni.us/LED-lamp"
     }
+  },
+  {
+    "campaign_id": "5f1cc7b50a",
+    "web_id": 9144288,
+    "date": "2026-05-28",
+    "subject": "Recomendo Deals - May 28, 2026",
+    "deals_count": 5,
+    "asins": [
+      "B075PL2GDD",
+      "B07CVX3516",
+      "B00FZPHMUG",
+      "B07DMZF4ZZ",
+      "B07RW8VTSX"
+    ],
+    "titles": {
+      "B075PL2GDD": "Bissell Zing Canister Vacuum",
+      "B07CVX3516": "USB A-to-C Adapter, 2-Pack",
+      "B00FZPHMUG": "Hakko Wire Stripper",
+      "B07DMZF4ZZ": "Intermediate Spanish Short Stories:",
+      "B07RW8VTSX": "IGAN 330 Flush Cutters Cutter"
+    },
+    "affiliate_urls": {
+      "B075PL2GDD": "https://geni.us/pNB9qHK",
+      "B07CVX3516": "https://geni.us/usbc-to-a",
+      "B00FZPHMUG": "https://amzn.to/2DpktIv",
+      "B07DMZF4ZZ": "https://geni.us/3of8Y",
+      "B07RW8VTSX": "https://geni.us/4ik8WMf"
+    }
   }
 ]

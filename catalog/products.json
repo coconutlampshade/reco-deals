@@ -1982,17 +1982,7 @@
     "asin": "B075PL2GDD",
     "title": "Bissell Zing Canister",
     "amazon_url": "https://www.amazon.com/dp/B075PL2GDD?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "pNB9qHK",
-      "productUrl": "https://www.amazon.com/dp/B075PL2GDD?tag=recomendos-20&linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "pNB9qHK"
-    },
+    "affiliate_url": "https://geni.us/pNB9qHK",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/under-the-influencebook-freakdeath-19-05-05",
@@ -61678,17 +61668,7 @@
     "asin": "B07RW8VTSX",
     "title": "New Maker Show Coming to Netflix",
     "amazon_url": "https://www.amazon.com/dp/B07RW8VTSX",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "4ik8WMf",
-      "productUrl": "https://www.amazon.com/dp/B07RW8VTSX?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "4ik8WMf"
-    },
+    "affiliate_url": "https://geni.us/4ik8WMf",
     "issues": [
       {
         "url": "https://kk.org/cooltools/new-maker-show-coming-to-netflix/",
@@ -61698,7 +61678,8 @@
       }
     ],
     "first_featured": "2022-02-10",
-    "added_at": "2026-01-03T08:01:04.483590"
+    "added_at": "2026-01-03T08:01:04.483590",
+    "benefit_description": "Cuts plastic model parts, wire, and similar materials flush to the surface with clean precision, leaving no nub or excess material behind."
   },
   "B083XTZR3P": {
     "asin": "B083XTZR3P",
@@ -68149,7 +68130,7 @@
     ],
     "first_featured": "2019-06-17",
     "added_at": "2026-01-03T08:38:41.177434",
-    "benefit_description": "Self-adjusting mechanisms automatically grip and strip wires of different gauges without manual adjustment, making electrical work faster and more precise.",
+    "benefit_description": "This wire stripper can also be used as a shear or pliers for multiple functions.",
     "short_title": "Searching for the Best Wire Stripper"
   },
   "B000JNNWQ2": {
@@ -74400,7 +74381,8 @@
       }
     ],
     "first_featured": "2026-05-08",
-    "added_at": "2026-05-09T06:09:12.513893"
+    "added_at": "2026-05-09T06:09:12.513893",
+    "benefit_description": "Lets you plug standard USB-A accessories into USB-C ports on modern laptops and phones, with two durable adapters that support fast data transfer and charging out of the box."
   },
   "B0CP8PMDWS": {
     "asin": "B0CP8PMDWS",
@@ -74432,7 +74414,8 @@
       }
     ],
     "first_featured": "2026-05-15",
-    "added_at": "2026-05-16T06:14:58.159575"
+    "added_at": "2026-05-16T06:14:58.159575",
+    "benefit_description": "10 captivating short stories that develop in circumstances such as traveling, personal relationships, among other topics that you will find easy to relate to."
   },
   "B0819KKSC5": {
     "asin": "B0819KKSC5",
