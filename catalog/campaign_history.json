@@ -1450,5 +1450,27 @@
       "B07DMZF4ZZ": "https://geni.us/3of8Y",
       "B07RW8VTSX": "https://geni.us/4ik8WMf"
     }
+  },
+  {
+    "campaign_id": "03cae708fd",
+    "web_id": 9144293,
+    "date": "2026-05-29",
+    "subject": "Recomendo Deals - May 29, 2026",
+    "deals_count": 3,
+    "asins": [
+      "B004C12Q46",
+      "B06X6B8WZD",
+      "B00125Q75Y"
+    ],
+    "titles": {
+      "B004C12Q46": "Vetbond Tissue Adhesive",
+      "B06X6B8WZD": "6-inch Steel Spring Clamps, 8-Pack",
+      "B00125Q75Y": "Ticonderoga Wood Cased Pencils, 96-Pack"
+    },
+    "affiliate_urls": {
+      "B004C12Q46": "https://geni.us/KuSw",
+      "B06X6B8WZD": "https://geni.us/VkPVXps",
+      "B00125Q75Y": "http://amzn.to/2CFcp3T"
+    }
   }
 ]

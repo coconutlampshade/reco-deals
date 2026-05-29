@@ -14815,17 +14815,7 @@
     "asin": "B004C12Q46",
     "title": "Vetbond",
     "amazon_url": "https://www.amazon.com/dp/B004C12Q46?tag=recomendos-20",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "KuSw",
-      "productUrl": "https://www.amazon.com/dp/B004C12Q46?tag=recomendos-20",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "KuSw"
-    },
+    "affiliate_url": "https://geni.us/KuSw",
     "issues": [
       {
         "url": "https://recomendo.substack.com/p/archive-downloaderscience-newssunshinefyi-19-07-07",
@@ -58820,17 +58810,7 @@
     "asin": "B06X6B8WZD",
     "title": "Improving a Cheap Airbrush",
     "amazon_url": "https://www.amazon.com/dp/B06X6B8WZD",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "VkPVXps",
-      "productUrl": "https://www.amazon.com/dp/B06X6B8WZD?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "VkPVXps"
-    },
+    "affiliate_url": "https://geni.us/VkPVXps",
     "issues": [
       {
         "url": "https://kk.org/cooltools/improving-a-cheap-airbrush/",
@@ -58840,7 +58820,8 @@
       }
     ],
     "first_featured": "2020-06-18",
-    "added_at": "2026-01-03T08:01:04.457114"
+    "added_at": "2026-01-03T08:01:04.457114",
+    "benefit_description": "Heavy-duty nickel-plated steel spring clamps that hold workpieces, secure backdrops, and grip tarps or garden netting — with a soft removable handle grip and rubber jaw pads that protect surfaces from scratches."
   },
   "B00V472ORU": {
     "asin": "B00V472ORU",
@@ -64614,7 +64595,8 @@
       }
     ],
     "first_featured": "2018-02-23",
-    "added_at": "2026-01-03T08:33:43.412332"
+    "added_at": "2026-01-03T08:33:43.412332",
+    "benefit_description": "Delivers exceptionally smooth writing with a premium #2 graphite formula, backed by a clean-erasing latex-free eraser and eco-friendly wood construction."
   },
   "B075PT8Q4W": {
     "asin": "B075PT8Q4W",
