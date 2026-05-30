@@ -45,6 +45,7 @@ catalog/check_checkpoint.json
 # Local caches and runtime queues
 catalog/pa_api_cache.json
 catalog/last_campaign_stats.json
+catalog/product_clicks.json
 catalog/invalid_asins.json
 
 # User tooling state (Obsidian, gstack, context-save)
