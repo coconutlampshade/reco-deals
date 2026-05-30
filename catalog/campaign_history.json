@@ -1472,5 +1472,21 @@
       "B06X6B8WZD": "https://geni.us/VkPVXps",
       "B00125Q75Y": "http://amzn.to/2CFcp3T"
     }
+  },
+  {
+    "campaign_id": "34e0c2bbf5",
+    "web_id": 9144295,
+    "date": "2026-05-30",
+    "subject": "Recomendo Deals - May 30, 2026",
+    "deals_count": 1,
+    "asins": [
+      "B01M04LR6P"
+    ],
+    "titles": {
+      "B01M04LR6P": "Zojirushi Micom Water Boiler"
+    },
+    "affiliate_urls": {
+      "B01M04LR6P": "http://amzn.to/2eOpod2"
+    }
   }
 ]

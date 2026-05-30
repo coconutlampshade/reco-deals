@@ -62139,32 +62139,6 @@
     "first_featured": "2024-09-20",
     "added_at": "2026-01-03T08:01:04.526154"
   },
-  "B079MJBP21": {
-    "asin": "B079MJBP21",
-    "title": "Gar's Tips & Tools - Issue #184",
-    "amazon_url": "https://www.amazon.com/dp/B079MJBP21",
-    "affiliate_url": {
-      "linkCreatorSetting": "Simple",
-      "code": "CO47k",
-      "productUrl": "https://www.amazon.com/dp/B079MJBP21?linkCode=ogi&th=1&psc=1&language=en_US",
-      "domain": "geni.us",
-      "username": "cooltools",
-      "groupId": 113260,
-      "fetchMetadata": true,
-      "baseDomain": "geni.us",
-      "baseCode": "CO47k"
-    },
-    "issues": [
-      {
-        "url": "https://kk.org/cooltools/gars-tips-tools-issue-184/",
-        "title": "Gar's Tips & Tools - Issue #184",
-        "date": "2024-09-20",
-        "source": "cooltools"
-      }
-    ],
-    "first_featured": "2024-09-20",
-    "added_at": "2026-01-03T08:01:04.526156"
-  },
   "B002O2IFV8": {
     "asin": "B002O2IFV8",
     "title": "Cold Clothes",
@@ -63351,7 +63325,8 @@
       }
     ],
     "first_featured": "2017-07-26",
-    "added_at": "2026-01-03T08:31:42.292620"
+    "added_at": "2026-01-03T08:31:42.292620",
+    "benefit_description": "Keeps hot water ready at your exact preferred brewing temperature — from 160° to 208°F — so you can brew any type of tea or coffee instantly without waiting for a kettle to boil."
   },
   "B00VQTOYPG": {
     "asin": "B00VQTOYPG",
@@ -73616,24 +73591,6 @@
     ],
     "first_featured": "2026-02-27",
     "added_at": "2026-02-28T00:26:38.083442"
-  },
-  "B001Y7VMYQ": {
-    "asin": "B001Y7VMYQ",
-    "title": "Swiss Army Replacement Pen",
-    "amazon_url": "https://www.amazon.com/dp/B001Y7VMYQ",
-    "affiliate_url": "https://geni.us/6JNlm",
-    "issues": [
-      {
-        "url": "http://eepurl.com/jAv_B-/",
-        "title": "Posts from Cool Tools for 02/27/2026",
-        "date": "2026-02-27",
-        "source": "cooltools"
-      }
-    ],
-    "first_featured": "2026-02-27",
-    "added_at": "2026-02-28T00:26:39.579330",
-    "short_title": "Swiss Army Replacement Pen",
-    "benefit_description": "Carry all the essential tools you need—blade, pen, LED, and key ring—in one compact, dependable package."
   },
   "B00K54CJZK": {
     "asin": "B00K54CJZK",
