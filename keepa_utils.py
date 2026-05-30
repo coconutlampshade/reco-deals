@@ -272,33 +272,54 @@ def calculate_deal_score(
     - Star rating (0-10): scales from 3.5 to 5.0 stars
     - Dollar savings (0-20): scales linearly up to $25
     - Near 90-day low (0-20): bonus if within 5% of low
+
+    Missing-data normalization: rating and review data are absent for ~87% of
+    catalog products (Keepa simply doesn't report them). Treating "missing" as
+    "zero points" silently penalized those products up to 20 points and let a
+    mediocre 18%-off item with rating data outrank a genuine 50%-off item that
+    happened to lack it. Instead we score over only the components whose DATA is
+    actually available and rescale to 0-100, so missing Keepa metadata no longer
+    drags a real deal down. Earning 0 on an *available* metric (e.g. not near the
+    low) still counts against the product — only truly absent data is excluded.
     """
     import config
 
-    score = 0.0
+    earned = 0.0
+    denominator = 0.0
 
-    # Savings % component
+    # Savings % component (price data always available)
+    denominator += config.SCORE_WEIGHT_SAVINGS_PCT
     pct = percent_below_avg or 0
     if pct > 0:
-        score += min(pct * 2, config.SCORE_WEIGHT_SAVINGS_PCT)
+        earned += min(pct * 2, config.SCORE_WEIGHT_SAVINGS_PCT)
 
-    # Review count component
-    rc = review_count or 0
-    if rc > 0:
-        score += min(rc / 500, 1.0) * config.SCORE_WEIGHT_REVIEWS
-
-    # Star rating component
-    r = rating or 0
-    if r > 3.5:
-        score += min((r - 3.5) / 1.5, 1.0) * config.SCORE_WEIGHT_RATING
-
-    # Dollar savings component
+    # Dollar savings component (price data always available)
+    denominator += config.SCORE_WEIGHT_DOLLARS
     ds = savings_dollars or 0
     if ds > 0:
-        score += min(ds / 25, 1.0) * config.SCORE_WEIGHT_DOLLARS
+        earned += min(ds / 25, 1.0) * config.SCORE_WEIGHT_DOLLARS
 
-    # Near 90-day low bonus
-    if low_90_day and low_90_day > 0 and current_price <= low_90_day * 1.05:
-        score += config.SCORE_WEIGHT_NEAR_LOW
+    # Near 90-day low bonus (low_90_day data available when we have history)
+    if low_90_day and low_90_day > 0:
+        denominator += config.SCORE_WEIGHT_NEAR_LOW
+        if current_price <= low_90_day * 1.05:
+            earned += config.SCORE_WEIGHT_NEAR_LOW
 
-    return round(score)
+    # Review count component (only counts when Keepa actually reports reviews)
+    if review_count is not None:
+        denominator += config.SCORE_WEIGHT_REVIEWS
+        rc = review_count or 0
+        if rc > 0:
+            earned += min(rc / 500, 1.0) * config.SCORE_WEIGHT_REVIEWS
+
+    # Star rating component (only counts when Keepa actually reports a rating)
+    if rating is not None:
+        denominator += config.SCORE_WEIGHT_RATING
+        r = rating or 0
+        if r > 3.5:
+            earned += min((r - 3.5) / 1.5, 1.0) * config.SCORE_WEIGHT_RATING
+
+    if denominator <= 0:
+        return 0
+
+    return round((earned / denominator) * 100)

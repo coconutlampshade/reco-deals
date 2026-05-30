@@ -345,6 +345,7 @@ from review_deals import (
 )
 from generate_report import load_featured_history, COOLDOWN_DAYS, get_media_category
 from utils import call_claude
+from keepa_utils import calculate_deal_score
 
 # Server state
 server_should_stop = False
@@ -510,7 +511,22 @@ def merge_catalog_and_deals() -> dict:
             "savings_dollars": deal.get("savings_dollars") or 0,
             "rating": deal.get("rating"),
             "review_count": deal.get("review_count"),
-            "deal_score": deal.get("deal_score", 0),
+            # Recompute the score with the current formula so the review always
+            # reflects live scoring logic, not whatever check_deals.py baked into
+            # deals.json on its last (possibly stale) nightly run. Falls back to
+            # the stored score if we lack the inputs to recompute.
+            "deal_score": (
+                calculate_deal_score(
+                    current_price=deal.get("current_price"),
+                    percent_below_avg=deal.get("percent_below_avg"),
+                    savings_dollars=deal.get("savings_dollars"),
+                    low_90_day=deal.get("low_90_day"),
+                    rating=deal.get("rating"),
+                    review_count=deal.get("review_count"),
+                )
+                if deal.get("current_price")
+                else deal.get("deal_score", 0)
+            ),
             "price_source": deal.get("price_source"),
             "has_deal_data": asin in deals,
             "sales_qty": sales.get(asin, {}).get("qty", 0),
@@ -1126,6 +1142,7 @@ def build_html(merged_data: dict) -> str:
             </div>
             <select class="sort-select" id="sortSelect">
                 <option value="score-desc">Deal Score (best first)</option>
+                <option value="trusted-desc">Trusted Source First (Amazon/Buy Box)</option>
                 <option value="near-low-asc">Near 90-Day Low</option>
                 <option value="proven-desc">Proven Sellers (DI revenue)</option>
                 <option value="rev-per-unit-desc">Revenue per Unit</option>
@@ -1340,6 +1357,18 @@ function sortDeals(deals) {{
         case 'score-desc':
             sorted.sort((a, b) => (b.deal_score || 0) - (a.deal_score || 0));
             break;
+        case 'trusted-desc': {{
+            // Rank trustworthy price sources first (Amazon-direct & Buy Box),
+            // then third-party, then unknown — breaking ties by deal score.
+            const trust = (d) => {{
+                const s = d.price_source || '';
+                if (s === 'amazon' || s.startsWith('buy_box')) return 2;
+                if (s === 'new_3rd_party') return 0;
+                return 1;
+            }};
+            sorted.sort((a, b) => (trust(b) - trust(a)) || ((b.deal_score || 0) - (a.deal_score || 0)));
+            break;
+        }}
         case 'near-low-asc':
             sorted.sort((a, b) => {{
                 const aVal = a.near_low_pct !== null && a.near_low_pct !== undefined ? a.near_low_pct : 9999;
