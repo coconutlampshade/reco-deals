@@ -1562,6 +1562,52 @@ def update_rss_feed(public_dir):
     print(f"RSS feed updated: {feed_path}")
 
 
+def build_subject_line(selected: list, prices: dict) -> str:
+    """Build an engaging subject line from the headline (deepest-discount) deal.
+
+    "Recomendo Deals - May 30, 2026" tells a subscriber nothing about what's
+    inside. Leading with the best deal's savings ("Save 56% on the 20Q AI
+    game + 4 more deals") gives a concrete reason to open. Falls back to the
+    dated format if nothing has a meaningful discount.
+    """
+    fallback = f"Recomendo Deals - {datetime.now().strftime('%B %d, %Y')}"
+    if not selected:
+        return fallback
+
+    # Find the deal with the largest percentage discount.
+    best_asin, best_pct = None, 0
+    for asin, deal in selected:
+        pct = deal.get("savings_percent") or deal.get("percent_below_avg") or 0
+        if pct > best_pct:
+            best_asin, best_pct = asin, pct
+
+    n = len(selected)
+    more = n - 1
+
+    # No deal clears a meaningful discount — use a neutral but specific subject.
+    if not best_asin or best_pct < 10:
+        if best_asin:
+            name = shorten_title(prices.get(best_asin, {}).get("title", "") or "")
+            if name:
+                tail = f" + {more} more deals" if more > 0 else ""
+                return f"Today's pick: {name}{tail}"[:75]
+        return fallback
+
+    name = shorten_title(prices.get(best_asin, {}).get("title", "") or "")
+    if not name:
+        return fallback
+
+    pct = int(round(best_pct))
+    # Keep the headline product short enough that the whole subject stays read-
+    # able in an inbox (~75 chars). Trim the product name, never the savings.
+    tail = f" + {more} more deals" if more > 0 else ""
+    head = f"Save {pct}% on "
+    budget = 75 - len(head) - len(tail)
+    if len(name) > budget and budget > 12:
+        name = name[: budget - 1].rstrip() + "…"
+    return f"{head}{name}{tail}"
+
+
 def generate_and_send(asins: list, candidates: list, custom_titles: dict = None, custom_benefits: dict = None, custom_affiliate_urls: dict = None, unclassified_ad: dict = None, custom_prices: dict = None) -> dict:
     """Generate newsletter with selected ASINs and send to Mailchimp."""
     from generate_report import (
@@ -1725,7 +1771,8 @@ def generate_and_send(asins: list, candidates: list, custom_titles: dict = None,
 
     # Send to Mailchimp
     print("Creating Mailchimp campaign...")
-    subject = f"Recomendo Deals - {datetime.now().strftime('%B %d, %Y')}"
+    subject = build_subject_line(selected, prices)
+    print(f"Subject: {subject}")
     campaign = create_campaign(subject, html, preview_text)
     campaign_url = campaign.get("web_id", "")
     if campaign_url:

@@ -34,6 +34,9 @@ INVALID_ASINS_FILE = PROJECT_ROOT / "catalog" / "invalid_asins.json"
 CAMPAIGN_HISTORY_FILE = PROJECT_ROOT / "catalog" / "campaign_history.json"
 LAST_STATS_CACHE_FILE = PROJECT_ROOT / "catalog" / "last_campaign_stats.json"
 LAST_STATS_CACHE_TTL_SECS = 4 * 60 * 60
+PRODUCT_CLICKS_CACHE_FILE = PROJECT_ROOT / "catalog" / "product_clicks.json"
+PRODUCT_CLICKS_CACHE_TTL_SECS = 6 * 60 * 60
+PRODUCT_CLICKS_LOOKBACK = 8  # how many recent campaigns to aggregate clicks over
 
 REQUIRED_ENV_VARS = [
     "MAILCHIMP_API_KEY", "MAILCHIMP_LIST_ID", "MAILCHIMP_REPLY_TO",
@@ -59,6 +62,7 @@ _UNAVAILABLE_TRACKING_FILE = PROJECT_ROOT / "catalog" / "unavailable_tracking.js
 _DEAL_MIN_NEWSLETTER_SCORE = 40
 _COOLDOWN_DAYS = 30
 _MAX_CONSECUTIVE_UNAVAILABLE = 2
+_MIN_NEWSLETTER_DEALS = 3  # warn below this — historical median send is 5 deals
 
 
 def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benefits: dict, affiliate_urls: dict, unclassified_ad: dict | None = None) -> dict:
@@ -184,14 +188,28 @@ def run_pre_send_check(selected_asins: list, products: dict, titles: dict, benef
                 "issues": ad_issues,
             }
 
+    # Newsletter-level checks that aren't tied to a single product.
+    summary = []
+    deal_count = len(selected_asins)
+    if deal_count < _MIN_NEWSLETTER_DEALS:
+        summary.append({
+            "severity": "warn",
+            "kind": "too_few_deals",
+            "detail": f"Only {deal_count} deal{'s' if deal_count != 1 else ''} selected "
+                      f"(typical newsletter has 3–5). Consider adding more before sending.",
+        })
+
     block_count = sum(1 for f in findings.values() for i in f["issues"] if i["severity"] == "block")
     warn_count = sum(1 for f in findings.values() for i in f["issues"] if i["severity"] == "warn")
+    summary_warn = sum(1 for i in summary if i["severity"] == "warn")
+    summary_block = sum(1 for i in summary if i["severity"] == "block")
 
     return {
         "findings": findings,
-        "block_count": block_count,
-        "warn_count": warn_count,
-        "clear": block_count == 0 and warn_count == 0,
+        "summary": summary,
+        "block_count": block_count + summary_block,
+        "warn_count": warn_count + summary_warn,
+        "clear": block_count == 0 and warn_count == 0 and not summary,
     }
 
 
@@ -251,6 +269,88 @@ def get_latest_campaign_stats() -> dict | None:
     except OSError:
         pass
     return stats
+
+
+def _normalize_url(url: str) -> str:
+    """Strip query/fragment and trailing slash so the same destination matches
+    whether or not Mailchimp appended tracking params."""
+    if not url:
+        return ""
+    u = url.split("?")[0].split("#")[0].rstrip("/")
+    return u.lower()
+
+
+def load_product_click_history(force: bool = False) -> dict:
+    """Aggregate per-ASIN click counts from recent Mailchimp campaigns.
+
+    This is the feedback loop: campaign_history.json records which affiliate URL
+    each ASIN was sent under, and Mailchimp's click-details report says how many
+    times each URL was clicked. Joining them tells us which *products* readers
+    actually clicked, so the review page can show "got N clicks last time" and
+    we stop guessing what subscribers like.
+
+    Returns {asin: {"clicks": int, "campaigns": int, "last_clicks": int,
+    "last_date": str}}. Cached to disk; network failures degrade to {} or the
+    last good cache rather than breaking the page.
+    """
+    if not force and PRODUCT_CLICKS_CACHE_FILE.exists():
+        try:
+            age = (datetime.now() - datetime.fromtimestamp(
+                PRODUCT_CLICKS_CACHE_FILE.stat().st_mtime)).total_seconds()
+            hist_mtime = CAMPAIGN_HISTORY_FILE.stat().st_mtime if CAMPAIGN_HISTORY_FILE.exists() else 0
+            if age < PRODUCT_CLICKS_CACHE_TTL_SECS and PRODUCT_CLICKS_CACHE_FILE.stat().st_mtime >= hist_mtime:
+                return json.loads(PRODUCT_CLICKS_CACHE_FILE.read_text())
+        except (json.JSONDecodeError, OSError, ValueError):
+            pass
+
+    if not CAMPAIGN_HISTORY_FILE.exists():
+        return {}
+    try:
+        history = json.loads(CAMPAIGN_HISTORY_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+    if not history:
+        return {}
+
+    try:
+        from mailchimp_send import get_campaign_click_details
+    except Exception:
+        return {}
+
+    per_asin: dict = {}
+    # Most recent campaigns first; cap the API calls.
+    for campaign in reversed(history[-PRODUCT_CLICKS_LOOKBACK:]):
+        campaign_id = campaign.get("campaign_id")
+        url_map = campaign.get("affiliate_urls", {}) or {}
+        if not campaign_id or not url_map:
+            continue
+        # destination URL -> asin for this campaign
+        norm_to_asin = {_normalize_url(u): a for a, u in url_map.items() if u}
+        try:
+            click_rows = get_campaign_click_details(campaign_id)
+        except Exception:
+            continue
+        if not click_rows:
+            continue
+        date = campaign.get("date", "")
+        for row in click_rows:
+            asin = norm_to_asin.get(_normalize_url(row.get("url", "")))
+            if not asin:
+                continue
+            clicks = row.get("unique_clicks", 0) or 0
+            entry = per_asin.setdefault(asin, {"clicks": 0, "campaigns": 0, "last_clicks": 0, "last_date": ""})
+            entry["clicks"] += clicks
+            entry["campaigns"] += 1
+            # First time we see this asin is the most recent campaign (reversed).
+            if not entry["last_date"]:
+                entry["last_clicks"] = clicks
+                entry["last_date"] = date
+
+    try:
+        PRODUCT_CLICKS_CACHE_FILE.write_text(json.dumps(per_asin, indent=2))
+    except OSError:
+        pass
+    return per_asin
 
 
 def preflight_check() -> bool:
@@ -346,6 +446,7 @@ from review_deals import (
 from generate_report import load_featured_history, COOLDOWN_DAYS, get_media_category
 from utils import call_claude
 from keepa_utils import calculate_deal_score
+from categorize import categorize, diversify
 
 # Server state
 server_should_stop = False
@@ -480,6 +581,11 @@ def merge_catalog_and_deals() -> dict:
     hidden = load_hidden_products()
     all_results = deals_data.get("all_results", {})
     sales = load_sales_data()
+    try:
+        click_history = load_product_click_history()
+    except Exception as e:
+        print(f"  Click history unavailable (non-blocking): {e}")
+        click_history = {}
 
     merged = {}
     for asin, product in catalog.items():
@@ -491,6 +597,7 @@ def merge_catalog_and_deals() -> dict:
             # Catalog fields — prefer Keepa title (actual product name) over
             # catalog title (may be an article/episode name for Cool Tools entries)
             "title": deal.get("title") or product.get("title") or asin,
+            "category": categorize(deal.get("title") or product.get("title") or "", asin),
             "image_url": deal.get("image_url") or result.get("image_url") or product.get("image_url", ""),
             "issues": product.get("issues", []),
             "affiliate_url": resolve_affiliate_url(product.get("affiliate_url")),
@@ -531,6 +638,10 @@ def merge_catalog_and_deals() -> dict:
             "has_deal_data": asin in deals,
             "sales_qty": sales.get(asin, {}).get("qty", 0),
             "sales_revenue": sales.get(asin, {}).get("revenue", 0),
+            # Feedback loop: how this product performed when last featured.
+            "past_clicks": click_history.get(asin, {}).get("clicks", 0),
+            "last_clicks": click_history.get(asin, {}).get("last_clicks", 0),
+            "clicks_campaigns": click_history.get(asin, {}).get("campaigns", 0),
         }
         # Use cached list_price from deals.json if available
         # Discard absurd list prices (Keepa sometimes returns garbage MSRP)
@@ -1143,6 +1254,7 @@ def build_html(merged_data: dict) -> str:
             <select class="sort-select" id="sortSelect">
                 <option value="score-desc">Deal Score (best first)</option>
                 <option value="trusted-desc">Trusted Source First (Amazon/Buy Box)</option>
+                <option value="clicks-desc">Most Clicked (past performance)</option>
                 <option value="near-low-asc">Near 90-Day Low</option>
                 <option value="proven-desc">Proven Sellers (DI revenue)</option>
                 <option value="rev-per-unit-desc">Revenue per Unit</option>
@@ -1191,6 +1303,8 @@ const DEALS_DATA = {products_json};
 const FEATURED_HISTORY = {history_json};
 const CATALOG_BENEFITS = {benefits_json};
 const COOLDOWN_DAYS = {COOLDOWN_DAYS};
+const MIN_NEWSLETTER_SCORE = {_DEAL_MIN_NEWSLETTER_SCORE};
+const PRESELECT_TARGET = 5;  // open with the best ~5 deals already picked
 
 let allDeals = [];
 let activeFilter = 'all';
@@ -1252,7 +1366,45 @@ function init() {{
         }});
     }});
 
+    preselectBestDeals();
     render();
+}}
+
+// Open the page with the best ~5 deals already selected, spread across product
+// categories, so the daily job is "review and tweak" rather than "assemble from
+// scratch". Everything stays editable — Clear wipes it, clicking toggles each.
+function preselectBestDeals() {{
+    const trust = (d) => {{
+        const s = d.price_source || '';
+        if (s === 'amazon' || s.startsWith('buy_box')) return 2;
+        if (s === 'new_3rd_party') return 0;
+        return 1;
+    }};
+    const eligible = allDeals.filter(d =>
+        d.is_deal && (d.deal_score || 0) >= MIN_NEWSLETTER_SCORE && d.current_price && !d._inCooldown
+    );
+    eligible.sort((a, b) =>
+        ((b.deal_score || 0) - (a.deal_score || 0)) ||
+        (trust(b) - trust(a)) ||
+        ((b.percent_below_avg || 0) - (a.percent_below_avg || 0))
+    );
+    // Round-robin: one per category first (variety), then best leftovers.
+    const usedCat = new Set();
+    let picked = 0;
+    for (const d of eligible) {{
+        if (picked >= PRESELECT_TARGET) break;
+        const c = d.category || 'other';
+        if (usedCat.has(c)) continue;
+        selectedAsins.add(d.asin);
+        usedCat.add(c);
+        picked++;
+    }}
+    for (const d of eligible) {{
+        if (picked >= PRESELECT_TARGET) break;
+        if (selectedAsins.has(d.asin)) continue;
+        selectedAsins.add(d.asin);
+        picked++;
+    }}
 }}
 
 function formatDate(iso) {{
@@ -1369,6 +1521,9 @@ function sortDeals(deals) {{
             sorted.sort((a, b) => (trust(b) - trust(a)) || ((b.deal_score || 0) - (a.deal_score || 0)));
             break;
         }}
+        case 'clicks-desc':
+            sorted.sort((a, b) => ((b.past_clicks || 0) - (a.past_clicks || 0)) || ((b.deal_score || 0) - (a.deal_score || 0)));
+            break;
         case 'near-low-asc':
             sorted.sort((a, b) => {{
                 const aVal = a.near_low_pct !== null && a.near_low_pct !== undefined ? a.near_low_pct : 9999;
@@ -1481,6 +1636,13 @@ function renderCard(deal) {{
     if (deal.price_source === 'buy_box_prime') badges += '<span class="badge badge-prime"><a href="https://amzn.to/4c7wkNg" target="_blank" style="color:inherit;text-decoration:none">Prime exclusive deal</a></span>';
     if (deal.price_source === 'new_3rd_party') badges += '<span class="badge" style="background:#fef3c7;color:#d97706">3rd party seller</span>';
     if (deal._inCooldown) badges += `<span class="badge badge-cooldown">Featured ${{deal._daysSince}}d ago</span>`;
+    // Feedback loop: how it performed last time it went out.
+    if (deal.past_clicks > 0) {{
+        const label = deal.clicks_campaigns > 1
+            ? `🔥 ${{deal.past_clicks}} clicks (${{deal.clicks_campaigns}}× featured)`
+            : `🔥 ${{deal.past_clicks}} clicks last time`;
+        badges += `<span class="badge" style="background:#fde8ef;color:#be185d" title="Unique subscriber clicks across recent sends">${{label}}</span>`;
+    }}
 
     // Rating and review count
     let ratingHtml = '';
@@ -2705,12 +2867,21 @@ function showPreSendModal(report, onOverride, onCancel) {{
     const overrideDisabled = blockTotal > 0 ? '' : '';
     const overrideLabel = blockTotal > 0 ? `Override and send anyway (${{blockTotal}} blocking)` : 'Send anyway';
 
+    let summaryHtml = '';
+    (report.summary || []).forEach(i => {{
+        summaryHtml += `<div class="presend-issue presend-${{i.severity}}" style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">
+            <span class="presend-tag">${{i.severity.toUpperCase()}}</span>
+            <span>${{i.detail}}</span>
+        </div>`;
+    }});
+
     overlay.innerHTML = `
         <div class="modal" style="max-width:720px;text-align:left;">
             <h2 style="margin-top:0;">Pre-send check</h2>
             <p style="color:#666;margin-bottom:16px;">
                 ${{blockTotal}} blocking · ${{warnTotal}} warning · ${{Object.keys(report.findings || {{}}).length}} affected ASINs
             </p>
+            ${{summaryHtml ? `<div style="border:1px solid #f0d890;border-radius:6px;background:#fffdf5;margin-bottom:12px;">${{summaryHtml}}</div>` : ''}}
             <div style="max-height:400px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:6px;">
                 <table class="presend-table">${{rows}}</table>
             </div>
